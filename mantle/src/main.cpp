@@ -1,4 +1,4 @@
-#include "renderer/public/renderer/renderer.h"
+#include "renderer/renderer.h"
 #include "spdlog/spdlog.h"
 #include "window/window.h"
 
@@ -19,9 +19,30 @@ int main() {
     mantle::Renderer renderer;
     renderer.init(window);
 
-    // while (!window.should_close()) {
-    //     window.on_update();
-    // }
+    window.set_resize_callback([&](uint32_t w, uint32_t h) {
+        renderer.resize(w, h);
+    });
+
+    while (!window.should_close()) {
+        window.on_update();
+
+        mantle::Renderer::Result result = renderer.begin_frame();
+        if (result == mantle::Renderer::Result::NeedsResize) {
+            auto [width, height] = window.get_framebuffer_size();
+            renderer.resize(width, height);
+            continue;
+        }
+        renderer.begin_pass();
+
+        renderer.draw_triangle();
+
+        renderer.end_pass();
+        result = renderer.end_frame();
+        if (result == mantle::Renderer::Result::NeedsResize) {
+            auto [width, height] = window.get_framebuffer_size();
+            renderer.resize(width, height);
+        }
+    }
 
     renderer.destroy();
     window.destroy();

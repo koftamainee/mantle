@@ -5,16 +5,12 @@
 #include <core/assert.h>
 #include <spdlog/spdlog.h>
 
-#include "vulkan_allocator.h"
+#include <renderer_impl.h>
+
+#include "vkassert.h"
 #include "window/window.h"
 
 namespace mantle {
-    struct Renderer::Impl {
-        VulkanGraphicsContext graphics_context;
-        VulkanDevice device;
-        VulkanAllocator allocator;
-        VulkanSwapchain swapchain;
-    };
 
     Renderer::Renderer() = default;
     Renderer::~Renderer() { destroy(); }
@@ -28,18 +24,19 @@ namespace mantle {
         VkInstance instance = m_impl->graphics_context.get_instance();
         VkSurfaceKHR surface = m_impl->graphics_context.get_surface();
 
-
         m_impl->device.init(m_impl->graphics_context.get_instance(), surface);
         VkDevice device = m_impl->device.get_device();
         VkPhysicalDevice physical_device = m_impl->device.get_physical_device();
 
         m_impl->allocator.init(physical_device, device, instance);
 
-        auto [width, height] = window.get_size();
+        auto [width, height] = window.get_framebuffer_size();
 
         m_impl->swapchain.init(device, surface,
                                m_impl->device.get_swapchain_support_details(surface),
                                m_impl->device.get_queue_families(), width, height);
+
+        m_impl->create_frames();
 
         m_is_initialized = true;
         spdlog::info("Renderer Initialized");
@@ -47,6 +44,8 @@ namespace mantle {
 
     void Renderer::destroy() {
         if (m_is_initialized) {
+            vkDeviceWaitIdle(m_impl->device.get_device());
+            m_impl->destroy_frames();
             m_impl->swapchain.destroy();
             m_impl->allocator.destroy();
             m_impl->device.destroy();
@@ -58,4 +57,229 @@ namespace mantle {
             m_is_initialized = false;
         }
     }
-} // namespace VkEngine
+
+    Renderer::Result Renderer::begin_frame() const {
+        check(m_is_initialized);
+
+        if (m_impl->swapchain_dirty) {
+            return Result::NeedsResize;
+        }
+
+        FrameData &frame = m_impl->get_current_frame();
+        VkDevice device = m_impl->device.get_device();
+
+        vk_verify(vkWaitForFences(device, 1, &frame.in_flight, VK_TRUE, UINT64_MAX));
+        vk_verify(vkResetFences(device, 1, &frame.in_flight));
+
+        VkSemaphore acquire_sem = m_impl->acquire_semaphores[m_impl->acquire_index];
+
+        VkResult result = vkAcquireNextImageKHR(device, m_impl->swapchain.get_swapchain(), UINT64_MAX,
+                                                acquire_sem, VK_NULL_HANDLE, &m_impl->image_index);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            m_impl->swapchain_dirty = true;
+            return Result::NeedsResize;
+        }
+        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            vk_verify(result);
+        }
+
+        vk_verify(vkResetCommandBuffer(frame.cmd, 0));
+
+        VkCommandBufferBeginInfo begin_info = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        };
+        vk_verify(vkBeginCommandBuffer(frame.cmd, &begin_info));
+
+        return Result::Ok;
+    }
+
+    Renderer::Result Renderer::end_frame() const {
+        auto &frame = m_impl->get_current_frame();
+
+        VkSemaphore acquire_sem = m_impl->acquire_semaphores[m_impl->acquire_index];
+        VkSemaphore render_sem  = m_impl->render_semaphores[m_impl->image_index];
+
+        vk_verify(vkEndCommandBuffer(frame.cmd));
+
+        VkPipelineStageFlags wait_stages[] = {
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+        };
+
+        VkSubmitInfo submit = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &acquire_sem,
+            .pWaitDstStageMask = wait_stages,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &frame.cmd,
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &render_sem,
+        };
+
+        vk_verify(vkQueueSubmit(
+            m_impl->device.get_graphics_queue(),
+            1,
+            &submit,
+            frame.in_flight
+        ));
+
+        VkSwapchainKHR swapchain = m_impl->swapchain.get_swapchain();
+
+        VkPresentInfoKHR present = {
+            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &render_sem,
+            .swapchainCount = 1,
+            .pSwapchains = &swapchain,
+            .pImageIndices = &m_impl->image_index,
+        };
+
+        VkResult result = vkQueuePresentKHR(
+            m_impl->device.get_present_queue(),
+            &present
+        );
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            m_impl->swapchain_dirty = true;
+        } else {
+            vk_verify(result);
+        }
+
+        m_impl->current_frame = (m_impl->current_frame + 1) % Impl::frames_in_flight;
+        m_impl->acquire_index = (m_impl->acquire_index + 1) % static_cast<uint32_t>(m_impl->acquire_semaphores.size());
+
+        if (m_impl->swapchain_dirty) {
+            return Result::NeedsResize;
+        }
+        return Result::Ok;
+    }
+
+    void Renderer::begin_pass() const {
+        check(m_is_initialized);
+        auto &frame = m_impl->frames[m_impl->current_frame];
+
+        VkImage image = m_impl->swapchain.get_images()[m_impl->image_index].image;
+
+        VkImageMemoryBarrier barrier_to_attachment = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+        };
+
+        vkCmdPipelineBarrier(frame.cmd,
+                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                             0, 0, nullptr, 0, nullptr,
+                             1, &barrier_to_attachment);
+
+        VkRenderingAttachmentInfo color_attachment = {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+            .imageView = m_impl->swapchain.get_images()[m_impl->image_index].view,
+            .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        };
+
+        VkRenderingInfo rendering_info = {
+            .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+            .renderArea = {.extent = m_impl->swapchain.get_extent()},
+            .layerCount = 1,
+            .colorAttachmentCount = 1,
+            .pColorAttachments = &color_attachment,
+        };
+
+        vkCmdBeginRendering(frame.cmd, &rendering_info);
+    }
+
+    void Renderer::end_pass() const {
+        check(m_is_initialized);
+        auto &frame = m_impl->get_current_frame();
+        vkCmdEndRendering(frame.cmd);
+
+        VkImage image = m_impl->swapchain.get_images()[m_impl->image_index].image;
+
+        VkImageMemoryBarrier barrier_to_present = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = 0,
+            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+        };
+
+        vkCmdPipelineBarrier(frame.cmd,
+                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                             0, 0, nullptr, 0, nullptr,
+                             1, &barrier_to_present);
+    }
+
+    void Renderer::resize(uint32_t width, uint32_t height) const {
+        check(m_is_initialized);
+        VkDevice device = m_impl->device.get_device();
+        VkSurfaceKHR surface = m_impl->graphics_context.get_surface();
+
+        vkDeviceWaitIdle(device);
+
+        uint32_t old_count = static_cast<uint32_t>(m_impl->acquire_semaphores.size());
+
+        m_impl->swapchain.destroy();
+        m_impl->swapchain.init(
+            device,
+            surface,
+            m_impl->device.get_swapchain_support_details(surface),
+            m_impl->device.get_queue_families(),
+            width, height
+        );
+
+        uint32_t new_count = static_cast<uint32_t>(m_impl->swapchain.get_images().size());
+        if (new_count != old_count) {
+            for (auto &sem : m_impl->acquire_semaphores) {
+                vkDestroySemaphore(device, sem, nullptr);
+            }
+            for (auto &sem : m_impl->render_semaphores) {
+                vkDestroySemaphore(device, sem, nullptr);
+            }
+
+            m_impl->acquire_semaphores.resize(new_count);
+            m_impl->render_semaphores.resize(new_count);
+
+            VkSemaphoreCreateInfo sem_info = {
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+            };
+            for (auto &sem : m_impl->acquire_semaphores) {
+                vk_verify(vkCreateSemaphore(device, &sem_info, nullptr, &sem));
+            }
+            for (auto &sem : m_impl->render_semaphores) {
+                vk_verify(vkCreateSemaphore(device, &sem_info, nullptr, &sem));
+            }
+
+            m_impl->acquire_index = 0;
+        }
+
+        m_impl->swapchain_dirty = false;
+    }
+
+    void Renderer::draw_triangle() {}
+} // namespace mantle

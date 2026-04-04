@@ -7,6 +7,11 @@ namespace mantle {
 
     class Renderer final {
     public:
+        enum class Result {
+            Ok,
+            NeedsResize,
+        };
+
         Renderer();
         ~Renderer();
 
@@ -17,6 +22,16 @@ namespace mantle {
 
         void init(const Window &window);
         void destroy();
+
+        Result begin_frame() const;
+        Result end_frame() const;
+
+        void begin_pass() const;
+        void end_pass() const;
+
+        void resize(uint32_t width, uint32_t height) const;
+
+        void draw_triangle();
 
     private:
         bool m_is_initialized = false;

@@ -10,7 +10,6 @@
 
 #include <spdlog/spdlog.h>
 
-#include "vkassert.h"
 
 namespace mantle {
 
@@ -336,6 +335,21 @@ namespace mantle {
         fatal(true, "Could not find a matching depth format");
     }
 
+    VkQueue VulkanDevice::get_graphics_queue() const {
+        check(m_is_initialized);
+        return m_graphics_queue;
+    }
+
+    VkQueue VulkanDevice::get_present_queue() const {
+        check(m_is_initialized);
+        return m_present_queue;
+    }
+
+    VkQueue VulkanDevice::get_transfer_queue() const {
+        check(m_is_initialized);
+        return m_transfer_queue;
+    }
+
     QueueFamilyIndices VulkanDevice::get_queue_families() const {
         check(m_is_initialized);
         return m_queue_indices;
@@ -423,6 +437,10 @@ namespace mantle {
 
         vk_verify(vkCreateDevice(m_physical_device, &device_create_info, nullptr, &m_device));
 
+
+        vkGetDeviceQueue(m_device, m_queue_indices.graphics_family, 0, &m_graphics_queue);
+        vkGetDeviceQueue(m_device, m_queue_indices.present_family, 0, &m_present_queue);
+        vkGetDeviceQueue(m_device, m_queue_indices.transfer_family, 0, &m_transfer_queue);
 
         spdlog::info("Logical device created");
     }

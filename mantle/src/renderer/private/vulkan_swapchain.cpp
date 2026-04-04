@@ -122,6 +122,16 @@ namespace mantle {
         return m_images;
     }
 
+    VkSwapchainKHR VulkanSwapchain::get_swapchain() const {
+        check(m_is_initialized);
+        return m_swapchain;
+    }
+
+    VkExtent2D VulkanSwapchain::get_extent() const {
+        check(m_is_initialized);
+        return m_extent;
+    }
+
     VkSurfaceFormatKHR VulkanSwapchain::pick_surface_format(const std::vector<VkSurfaceFormatKHR> &formats) {
         for (const auto &format : formats) {
             if (format.format == VK_FORMAT_R8G8B8A8_SRGB &&

@@ -30,6 +30,8 @@ namespace mantle {
         fatal(!m_native_window, "Failed to create GLFW window");
         s_windows_count++;
 
+        glfwSetWindowUserPointer(m_native_window, this);
+
         spdlog::info("Window created: {} ({}x{})",
                      properties.title.c_str(), properties.size.width, properties.size.height);
         m_is_initialized = true;
@@ -79,8 +81,25 @@ namespace mantle {
         return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
     }
 
+    Window::Properties::Size Window::get_framebuffer_size() const {
+        check(m_is_initialized);
+        int width, height;
+        glfwGetFramebufferSize(m_native_window, &width, &height);
+        return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+    }
+
     GLFWwindow *Window::get_native_window() const {
         check(m_is_initialized);
         return m_native_window;
+    }
+
+    void Window::set_resize_callback(std::function<void(uint32_t, uint32_t)> callback) {
+        m_resize_callback = std::move(callback);
+        glfwSetFramebufferSizeCallback(m_native_window, [](GLFWwindow *w, int width, int height) {
+            auto *window = static_cast<Window *>(glfwGetWindowUserPointer(w));
+            if (window->m_resize_callback) {
+                window->m_resize_callback(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+            }
+        });
     }
 }

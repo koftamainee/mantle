@@ -55,6 +55,10 @@ namespace mantle {
         bool extension_supported(std::string_view extension) const;
         VkFormat get_supported_depth_format(bool check_sampling_support) const;
 
+        VkQueue get_graphics_queue() const;
+        VkQueue get_present_queue() const;
+        VkQueue get_transfer_queue() const;
+
     private:
         void create_physical_device(VkInstance instance, VkSurfaceKHR surface);
         void destroy_physical_device();
@@ -89,6 +93,11 @@ namespace mantle {
         std::vector<std::string> m_supported_extensions{};
         VkCommandPool m_command_pool{};
         QueueFamilyIndices m_queue_indices{};
+
+        VkQueue m_graphics_queue{};
+        VkQueue m_present_queue{};
+        VkQueue m_transfer_queue{};
+
 
     private:
         inline static const std::vector<const char *> ms_device_extensions = {

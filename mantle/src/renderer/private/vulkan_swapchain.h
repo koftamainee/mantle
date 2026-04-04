@@ -33,6 +33,8 @@ namespace mantle {
         void destroy();
 
         std::vector<Image> get_images() const;
+        VkSwapchainKHR get_swapchain() const;
+        VkExtent2D get_extent() const;
 
     private:
         static VkSurfaceFormatKHR pick_surface_format(const std::vector<VkSurfaceFormatKHR> &formats);
