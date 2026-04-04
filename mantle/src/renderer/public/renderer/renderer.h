@@ -3,30 +3,26 @@
 
 namespace mantle {
 
-  class VulkanSwapchain;
-  class VulkanDevice;
-  class VulkanGraphicsContext;
-  class Window;
+    class Window;
 
-  class Renderer final {
-  public:
-    Renderer();
-    ~Renderer();
+    class Renderer final {
+    public:
+        Renderer();
+        ~Renderer();
 
-    Renderer(const Renderer&) = delete;
-    Renderer& operator=(const Renderer&) = delete;
-    Renderer(const Renderer&&) noexcept = delete;
-    Renderer& operator=(const Renderer&&) noexcept = delete;
+        Renderer(const Renderer &) = delete;
+        Renderer &operator=(const Renderer &) = delete;
+        Renderer(Renderer &&) noexcept = delete;
+        Renderer &operator=(Renderer &&) noexcept = delete;
 
-    void init(const Window& window);
-    void destroy();
+        void init(const Window &window);
+        void destroy();
 
-  private:
-    bool m_is_initialized = false;
+    private:
+        bool m_is_initialized = false;
 
-    std::unique_ptr<VulkanGraphicsContext> m_graphics_context;
-    std::unique_ptr<VulkanDevice> m_device;
-    std::unique_ptr<VulkanSwapchain> m_swapchain;
-  };
+        struct Impl;
+        std::unique_ptr<Impl> m_impl;
+    };
 
 } // namespace VkEngine

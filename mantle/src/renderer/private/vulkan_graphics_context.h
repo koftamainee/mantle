@@ -9,58 +9,58 @@
 #endif
 
 namespace mantle {
-  class VulkanGraphicsContext final {
-  public:
-    VulkanGraphicsContext() = default;
-    ~VulkanGraphicsContext();
+    class VulkanGraphicsContext final {
+    public:
+        VulkanGraphicsContext() = default;
+        ~VulkanGraphicsContext();
 
-    VulkanGraphicsContext(const VulkanGraphicsContext&) = delete;
-    VulkanGraphicsContext& operator=(const VulkanGraphicsContext&) = delete;
-    VulkanGraphicsContext(VulkanGraphicsContext&&) noexcept = delete;
-    VulkanGraphicsContext& operator=(VulkanGraphicsContext&&) noexcept = delete;
+        VulkanGraphicsContext(const VulkanGraphicsContext &) = delete;
+        VulkanGraphicsContext &operator=(const VulkanGraphicsContext &) = delete;
+        VulkanGraphicsContext(VulkanGraphicsContext &&) noexcept = delete;
+        VulkanGraphicsContext &operator=(VulkanGraphicsContext &&) noexcept = delete;
 
-    void init(GLFWwindow* window);
-    void destroy();
+        void init(GLFWwindow *window);
+        void destroy();
 
-    VkInstance get_instance() const;
-    VkSurfaceKHR get_surface() const;
+        VkInstance get_instance() const;
+        VkSurfaceKHR get_surface() const;
 
-  private:
-    void create_instance();
-    void destroy_instance();
+    private:
+        void create_instance();
+        void destroy_instance();
 
 #ifdef ENABLE_VALIDATION_LAYERS
-    void create_debug_messenger_ext();
-    void destroy_debug_messenger_ext();
+        void create_debug_messenger_ext();
+        void destroy_debug_messenger_ext();
 #endif
 
-    void create_surface(GLFWwindow* glfw_window);
-    void destroy_surface();
+        void create_surface(GLFWwindow *glfw_window);
+        void destroy_surface();
 
-  private:
-    static std::vector<const char*> get_required_instance_extensions();
+    private:
+        static std::vector<const char *> get_required_instance_extensions();
 
 #ifdef ENABLE_VALIDATION_LAYERS
-    static VkDebugUtilsMessengerCreateInfoEXT make_debug_messenger_create_info_ext();
-    static void check_validation_layers();
+        static VkDebugUtilsMessengerCreateInfoEXT make_debug_messenger_create_info_ext();
+        static void check_validation_layers();
 #endif
 
-  private:
-    bool m_is_initialized = false;
+    private:
+        bool m_is_initialized = false;
 
 #ifdef ENABLE_VALIDATION_LAYERS
-    VkDebugUtilsMessengerEXT m_debug_messenger = VK_NULL_HANDLE;
+        VkDebugUtilsMessengerEXT m_debug_messenger = VK_NULL_HANDLE;
 #endif
 
-    VkInstance m_instance = VK_NULL_HANDLE;
-    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
-    VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
+        VkInstance m_instance = VK_NULL_HANDLE;
+        VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+        VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
 
-  private:
+    private:
 #ifdef ENABLE_VALIDATION_LAYERS
-    inline static const std::vector<const char*> ms_validation_layers{
-      "VK_LAYER_KHRONOS_validation"
+        inline static const std::vector<const char *> ms_validation_layers{
+            "VK_LAYER_KHRONOS_validation"
+        };
+#endif
     };
-#endif
-  };
 } // namespace mantle
