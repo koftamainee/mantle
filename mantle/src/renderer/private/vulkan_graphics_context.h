@@ -54,7 +54,6 @@ namespace mantle {
 
         VkInstance m_instance = VK_NULL_HANDLE;
         VkSurfaceKHR m_surface = VK_NULL_HANDLE;
-        VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
 
     private:
 #ifdef ENABLE_VALIDATION_LAYERS

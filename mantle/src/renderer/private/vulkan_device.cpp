@@ -1,5 +1,6 @@
 #include "vulkan_device.h"
 
+#include <algorithm>
 #include <core/assert.h>
 
 #include <vkassert.h>
@@ -19,21 +20,76 @@ namespace mantle {
         check(!m_is_initialized);
 
         create_physical_device(instance, surface);
+
+        vkGetPhysicalDeviceProperties(m_physical_device, &m_properties);
+        vkGetPhysicalDeviceFeatures(m_physical_device, &m_features);
+        vkGetPhysicalDeviceMemoryProperties(m_physical_device, &m_memory_properties);
+        uint32_t queue_family_count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_family_count, nullptr);
+
+        fatal(queue_family_count == 0, "Failed to get family count");
+
+        m_queue_family_properties.resize(queue_family_count);
+        vkGetPhysicalDeviceQueueFamilyProperties(
+            m_physical_device,
+            &queue_family_count,
+            m_queue_family_properties.data()
+            );
+
+        uint32_t extension_count = 0;
+        vkEnumerateDeviceExtensionProperties(m_physical_device, nullptr, &extension_count, nullptr);
+
+        if (extension_count > 0) {
+            std::vector<VkExtensionProperties> extensions(extension_count);
+
+            if (vkEnumerateDeviceExtensionProperties(
+                m_physical_device,
+                nullptr,
+                &extension_count,
+                extensions.data()) == VK_SUCCESS) {
+                m_supported_extensions.reserve(extension_count);
+
+                for (const auto &ext : extensions) {
+                    m_supported_extensions.emplace_back(ext.extensionName);
+                }
+            }
+        }
+
         create_logical_device(instance);
 
         m_is_initialized = true;
+
+        m_command_pool = create_command_pool(m_queue_indices.graphics_family);
+        spdlog::info("Logical device command pool created");
     }
 
     void VulkanDevice::destroy() {
         if (m_is_initialized) {
+            if (m_command_pool != VK_NULL_HANDLE) {
+                check(m_device != VK_NULL_HANDLE);
+                vkDestroyCommandPool(m_device, m_command_pool, nullptr);
+            }
             destroy_logical_device();
             destroy_physical_device();
+
+            m_properties = {};
+            m_features = {};
+            m_enabled_features = {};
+            m_memory_properties = {};
+            m_queue_family_properties.resize(0);
+            m_supported_extensions.resize(0);
+            m_is_initialized = false;
         }
     }
 
     VkDevice VulkanDevice::get_device() const {
         check(m_is_initialized);
         return m_device;
+    }
+
+    VkPhysicalDevice VulkanDevice::get_physical_device() const {
+        check(m_is_initialized);
+        return m_physical_device;
     }
 
     SwapchainSupportDetails VulkanDevice::get_swapchain_support_details(VkSurfaceKHR surface) const {
@@ -63,9 +119,199 @@ namespace mantle {
         return details;
     }
 
+    uint32_t VulkanDevice::get_queue_family_index(VkQueueFlags queue_flags) const {
+        const auto queue_family_count = static_cast<uint32_t>(m_queue_family_properties.size());
+
+        if (queue_flags & VK_QUEUE_COMPUTE_BIT) {
+            for (uint32_t i = 0; i < queue_family_count; i++) {
+                const auto &props = m_queue_family_properties[i];
+
+                if ((props.queueFlags & VK_QUEUE_COMPUTE_BIT) &&
+                    !(props.queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
+                    return i;
+                }
+            }
+        }
+
+        if (queue_flags & VK_QUEUE_TRANSFER_BIT) {
+            for (uint32_t i = 0; i < queue_family_count; i++) {
+                const auto &props = m_queue_family_properties[i];
+
+                if ((props.queueFlags & VK_QUEUE_TRANSFER_BIT) &&
+                    !(props.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+                    !(props.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+                    return i;
+                }
+            }
+        }
+
+        for (uint32_t i = 0; i < queue_family_count; i++) {
+            const auto &props = m_queue_family_properties[i];
+
+            if ((props.queueFlags & queue_flags) == queue_flags) {
+                return i;
+            }
+        }
+
+        fatal(true, "Could not find a matching queue family index");
+    }
+
+    std::optional<uint32_t> VulkanDevice::get_memory_type(
+        uint32_t type_bits,
+        VkMemoryPropertyFlags properties) const {
+        check(m_is_initialized);
+        for (uint32_t i = 0; i < m_memory_properties.memoryTypeCount; i++) {
+            if ((type_bits & 1u) == 1u) {
+                const auto &memory_type = m_memory_properties.memoryTypes[i];
+
+                if ((memory_type.propertyFlags & properties) == properties) {
+                    return i;
+                }
+            }
+
+            type_bits >>= 1u;
+        }
+
+        return std::nullopt;
+    }
+
+    VkResult VulkanDevice::copy_buffer(VkBuffer src, VkBuffer dst, VkQueue queue, VkDeviceSize size,
+                                       VkDeviceSize src_offset, VkDeviceSize dst_offset) const {
+        check(m_is_initialized);
+        VkCommandBuffer cmd = create_command_buffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+
+        VkBufferCopy region = {
+            .srcOffset = src_offset,
+            .dstOffset = dst_offset,
+            .size = size,
+        };
+
+        vkCmdCopyBuffer(cmd, src, dst, 1, &region);
+
+        flush_command_buffer(cmd, queue, true);
+
+        return VK_SUCCESS;
+    }
+
+
+    VkCommandPool VulkanDevice::
+    create_command_pool(uint32_t queue_family_index, VkCommandPoolCreateFlags create_flags) const {
+        check(m_is_initialized);
+        check(m_device != VK_NULL_HANDLE);
+
+        VkCommandPoolCreateInfo cmd_pool_create_info = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .flags = create_flags,
+            .queueFamilyIndex = queue_family_index
+        };
+        VkCommandPool pool;
+        vk_verify(vkCreateCommandPool(m_device, &cmd_pool_create_info, nullptr, &pool));
+        return pool;
+    }
+
+    VkCommandBuffer VulkanDevice::create_command_buffer(VkCommandBufferLevel level, VkCommandPool pool,
+                                                        bool begin) const {
+        check(m_is_initialized);
+        check(m_device != VK_NULL_HANDLE);
+        VkCommandBufferAllocateInfo command_buffer_allocate_info = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .commandPool = pool,
+            .level = level,
+            .commandBufferCount = 1,
+        };
+        VkCommandBuffer cmd_buffer;
+        vk_verify(vkAllocateCommandBuffers(m_device, &command_buffer_allocate_info, &cmd_buffer));
+
+        if (begin) {
+            VkCommandBufferBeginInfo begin_info = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            };
+            vk_verify(vkBeginCommandBuffer(cmd_buffer, &begin_info));
+        }
+
+        return cmd_buffer;
+    }
+
+    VkCommandBuffer VulkanDevice::create_command_buffer(VkCommandBufferLevel level, bool begin) const {
+        check(m_is_initialized);
+        return create_command_buffer(level, m_command_pool, begin);
+    }
+
+    void VulkanDevice::flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, VkCommandPool pool,
+                                            bool free) const {
+        check(m_is_initialized);
+        check(m_device != VK_NULL_HANDLE);
+
+        if (command_buffer == VK_NULL_HANDLE) {
+            return;
+        }
+
+        vk_verify(vkEndCommandBuffer(command_buffer));
+        VkSubmitInfo submit_info = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &command_buffer
+        };
+
+        VkFenceCreateInfo fence_create_info = {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        };
+        VkFence fence;
+
+        vk_verify(vkCreateFence(m_device, &fence_create_info, nullptr, &fence));
+        vk_verify(vkQueueSubmit(queue, 1, &submit_info, fence));
+
+        vk_verify(vkWaitForFences(m_device, 1, &fence, VK_TRUE, 0));
+        vkDestroyFence(m_device, fence, nullptr);
+
+        if (free) {
+            vkFreeCommandBuffers(m_device, pool, 1, &command_buffer);
+        }
+    }
+
+    void VulkanDevice::flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free) const {
+        check(m_is_initialized);
+
+        flush_command_buffer(command_buffer, queue, m_command_pool, free);
+    }
+
+
+    bool VulkanDevice::extension_supported(std::string_view extension) const {
+        check(m_is_initialized);
+        return std::ranges::contains(m_supported_extensions, extension);
+    }
+
+    VkFormat VulkanDevice::get_supported_depth_format(bool check_sampling_support) const {
+        check(m_is_initialized);
+        const std::vector<VkFormat> depth_formats = {
+            VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D32_SFLOAT,
+            VK_FORMAT_D24_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM
+        };
+
+        for (const auto &format : depth_formats) {
+            VkFormatProperties format_properties{};
+            vkGetPhysicalDeviceFormatProperties(m_physical_device, format, &format_properties);
+
+            if (format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+                if (check_sampling_support) {
+                    if (!(format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)) {
+                        continue;
+                    }
+                }
+
+                return format;
+            }
+        }
+
+        fatal(true, "Could not find a matching depth format");
+    }
+
     QueueFamilyIndices VulkanDevice::get_queue_families() const {
         check(m_is_initialized);
-        return queue_indices;
+        return m_queue_indices;
     }
 
     void VulkanDevice::create_physical_device(VkInstance instance, VkSurfaceKHR surface) {
@@ -79,7 +325,7 @@ namespace mantle {
         vk_verify(vkEnumeratePhysicalDevices(instance, &device_count, devices.data()));
 
         for (const auto &physical_device_candidate : devices) {
-            if (is_physical_device_suitable(physical_device_candidate, surface, queue_indices)) {
+            if (is_physical_device_suitable(physical_device_candidate, surface, m_queue_indices)) {
                 m_physical_device = physical_device_candidate;
                 spdlog::info("Physical Device created");
                 break;
@@ -101,8 +347,9 @@ namespace mantle {
         check(m_physical_device != VK_NULL_HANDLE);
 
         std::unordered_set<uint32_t> unique_queue_families = {
-            queue_indices.graphics_family,
-            queue_indices.present_family
+            m_queue_indices.graphics_family,
+            m_queue_indices.present_family,
+            m_queue_indices.transfer_family,
         };
 
         float queue_priority = 0.5f;
@@ -149,8 +396,6 @@ namespace mantle {
 
         vk_verify(vkCreateDevice(m_physical_device, &device_create_info, nullptr, &m_device));
 
-        vkGetDeviceQueue(m_device, queue_indices.graphics_family, 0, &m_graphics_queue);
-        vkGetDeviceQueue(m_device, queue_indices.present_family, 0, &m_present_queue);
 
         spdlog::info("Logical device created");
     }
@@ -159,11 +404,9 @@ namespace mantle {
         if (m_device != VK_NULL_HANDLE) {
             vkDestroyDevice(m_device, nullptr);
 
-            m_present_queue = VK_NULL_HANDLE;
-            m_graphics_queue = VK_NULL_HANDLE;
             m_device = VK_NULL_HANDLE;
 
-            queue_indices = QueueFamilyIndices{};
+            m_queue_indices = QueueFamilyIndices{};
 
             spdlog::info("Logical device destroyed");
         }
@@ -237,7 +480,9 @@ namespace mantle {
         return true;
     }
 
-    QueueFamilyIndices VulkanDevice::find_queue_families(VkPhysicalDevice physical_device, VkSurfaceKHR surface) {
+    QueueFamilyIndices VulkanDevice::find_queue_families(
+        VkPhysicalDevice physical_device,
+        VkSurfaceKHR surface) {
         check(physical_device != VK_NULL_HANDLE);
         check(surface != VK_NULL_HANDLE);
 
@@ -247,47 +492,48 @@ namespace mantle {
         vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
 
         std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
-        vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, queue_families.data());
+        vkGetPhysicalDeviceQueueFamilyProperties(
+            physical_device,
+            &queue_family_count,
+            queue_families.data()
+            );
 
         for (uint32_t i = 0; i < queue_family_count; i++) {
-            if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            if ((queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
                 indices.graphics_family = i;
                 break;
             }
         }
 
-        if (indices.graphics_family != UINT32_MAX) {
+        for (uint32_t i = 0; i < queue_family_count; i++) {
+            const auto &props = queue_families[i];
+
+            if ((props.queueFlags & VK_QUEUE_TRANSFER_BIT) &&
+                !(props.queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
+                indices.transfer_family = i;
+                break;
+            }
+        }
+
+        for (uint32_t i = 0; i < queue_family_count; i++) {
             VkBool32 present_support = VK_FALSE;
-            vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, indices.graphics_family, surface, &present_support);
+
+            vkGetPhysicalDeviceSurfaceSupportKHR(
+                physical_device,
+                i,
+                surface,
+                &present_support
+                );
 
             if (present_support) {
-                indices.present_family = indices.graphics_family;
+                indices.present_family = i;
+                break;
             }
         }
 
-        if (indices.present_family == UINT32_MAX) {
-            for (uint32_t i = 0; i < queue_family_count; i++) {
-                VkBool32 present_support = VK_FALSE;
-                vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, i, surface, &present_support);
-
-                if ((queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) && present_support) {
-                    indices.graphics_family = i;
-                    indices.present_family = i;
-                    break;
-                }
-            }
-        }
-
-        if (indices.present_family == UINT32_MAX) {
-            for (uint32_t i = 0; i < queue_family_count; i++) {
-                VkBool32 present_support = VK_FALSE;
-                vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, i, surface, &present_support);
-
-                if (present_support) {
-                    indices.present_family = i;
-                    break;
-                }
-            }
+        if (indices.transfer_family == UINT32_MAX) {
+            spdlog::trace("No separate transfer queue found. Fallback transfer queue = graphics_queue");
+            indices.transfer_family = indices.graphics_family;
         }
 
         return indices;
