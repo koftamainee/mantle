@@ -35,6 +35,11 @@ namespace mantle {
         }
     }
 
+    void Renderer::set_camera(const glm::mat4 &view, const glm::mat4 &projection) const {
+        m_impl->view = view;
+        m_impl->projection = projection;
+    }
+
     Renderer::Result Renderer::begin_frame() const {
         check(m_is_initialized);
 
@@ -213,7 +218,7 @@ namespace mantle {
                              1, &barrier_to_present);
     }
 
-    void Renderer::draw_mesh(MeshHandle handle) const {
+    void Renderer::draw_mesh(MeshHandle handle, const glm::mat4 &model) const {
         check(m_is_initialized);
         auto &frame = m_impl->get_current_frame();
         auto extent = m_impl->swapchain.get_extent();
@@ -244,6 +249,11 @@ namespace mantle {
         VkDeviceSize offset = 0;
         vkCmdBindVertexBuffers(frame.cmd, 0, 1, &vb, &offset);
         vkCmdBindIndexBuffer(frame.cmd, ib, 0, VK_INDEX_TYPE_UINT32);
+
+        glm::mat4 mvp = m_impl->projection * m_impl->view * model;
+        vkCmdPushConstants(frame.cmd, m_impl->graphics_pipeline.get_layout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
+                           sizeof(glm::mat4), &mvp);
+
         vkCmdDrawIndexed(frame.cmd, mesh.index_count, 1, 0, 0, 0);
     }
 

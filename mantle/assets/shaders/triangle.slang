@@ -1,3 +1,10 @@
+struct PushConstants {
+    float4x4 mvp;
+}
+
+[[vk::push_constant]]
+PushConstants pc;
+
 struct VSInput {
     float3 position : POSITION;
 };
@@ -9,7 +16,7 @@ struct VSOutput {
 [shader("vertex")]
 VSOutput vert_main(VSInput input) {
     VSOutput output;
-    output.position = float4(input.position, 1.0);
+    output.position = mul(pc.mvp, float4(input.position, 1.0));
     return output;
 }
 

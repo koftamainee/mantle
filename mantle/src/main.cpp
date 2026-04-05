@@ -1,4 +1,6 @@
 #include "camera/public/camera/camera.h"
+#include "glm/matrix.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include "mesh/mesh.h"
 #include "renderer/renderer.h"
 #include "spdlog/spdlog.h"
@@ -61,8 +63,13 @@ int main() {
 
     mantle::MeshHandle mesh_handle = resources.upload_mesh(mesh.vertices, mesh.indices);
 
+    auto model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
     while (!window.should_close()) {
         window.on_update();
+
+        renderer.set_camera(camera.view(), camera.projection());
 
         mantle::Renderer::Result result = renderer.begin_frame();
         if (result == mantle::Renderer::Result::NeedsResize) {
@@ -72,7 +79,7 @@ int main() {
         }
         renderer.begin_pass();
 
-        renderer.draw_mesh(mesh_handle);
+        renderer.draw_mesh(mesh_handle, model);
 
         renderer.end_pass();
 

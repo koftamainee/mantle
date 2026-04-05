@@ -25,13 +25,16 @@ namespace mantle {
         void init(const Window &window);
         void destroy();
 
+        void set_camera(const glm::mat4 &view, const glm::mat4 &projection) const;
+
         Result begin_frame() const;
         Result end_frame() const;
 
         void begin_pass() const;
         void end_pass() const;
 
-        void draw_mesh(MeshHandle handle) const;
+        void draw_mesh(MeshHandle handle, const glm::mat4 &model) const;
+
 
         void resize(uint32_t width, uint32_t height) const;
 

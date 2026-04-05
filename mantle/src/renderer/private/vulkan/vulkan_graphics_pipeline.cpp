@@ -46,8 +46,16 @@ namespace mantle {
             },
         };
 
+        VkPushConstantRange push_range = {
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+            .offset = 0,
+            .size = sizeof(glm::mat4),
+        };
+
         VkPipelineLayoutCreateInfo layout_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .pushConstantRangeCount = 1,
+            .pPushConstantRanges = &push_range,
         };
         vk_verify(vkCreatePipelineLayout(device, &layout_info, nullptr, &m_pipeline_layout));
 
@@ -136,7 +144,7 @@ namespace mantle {
 
         vk_verify(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_pipeline));
 
-        vkDestroyShaderModule(device, shader, nullptr);
+        destroy_shader_module(device, shader);
 
 
         m_is_initialized = true;
