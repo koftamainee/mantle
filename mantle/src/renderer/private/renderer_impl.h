@@ -5,6 +5,7 @@
 #include "vulkan_device.h"
 #include "vulkan_graphics_context.h"
 #include "vulkan_graphics_pipeline.h"
+#include "vulkan_resource_manager.h"
 #include "vulkan_swapchain.h"
 #include "renderer/renderer.h"
 
@@ -17,7 +18,7 @@ namespace mantle {
     struct Renderer::Impl final {
         VulkanGraphicsContext graphics_context;
         VulkanDevice device;
-        VulkanAllocator allocator;
+        VulkanResourceManager resource_manager;
         VulkanSwapchain swapchain;
         VulkanGraphicsPipeline graphics_pipeline;
 

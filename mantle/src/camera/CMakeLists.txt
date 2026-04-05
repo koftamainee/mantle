@@ -1,0 +1,1 @@
+mantle_module(NAME camera DEPS core glm)

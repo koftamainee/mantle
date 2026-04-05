@@ -36,7 +36,7 @@ namespace mantle {
         VkDevice vkdevice = device.get_device();
         VkPhysicalDevice physical_device = device.get_physical_device();
 
-        allocator.init(physical_device, vkdevice, instance);
+        resource_manager.init(physical_device, vkdevice, instance);
 
         auto [width, height] = window.get_framebuffer_size();
 
@@ -62,7 +62,7 @@ namespace mantle {
         graphics_pipeline.destroy();
         destroy_frames();
         swapchain.destroy();
-        allocator.destroy();
+        resource_manager.destroy();
         device.destroy();
         graphics_context.destroy();
     }

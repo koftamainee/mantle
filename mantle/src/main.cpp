@@ -1,3 +1,4 @@
+#include "camera/public/camera/camera.h"
 #include "renderer/renderer.h"
 #include "spdlog/spdlog.h"
 #include "window/window.h"
@@ -24,8 +25,11 @@ int main() {
     mantle::Renderer renderer;
     renderer.init(window);
 
+    mantle::Camera camera;
+
     window.set_resize_callback([&](uint32_t w, uint32_t h) {
         renderer.resize(w, h);
+        camera.aspect = static_cast<float>(w) / static_cast<float>(h);
     });
 
     while (!window.should_close()) {
