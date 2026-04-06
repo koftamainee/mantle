@@ -13,15 +13,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             artifact: mantle-linux
-            container: registry.gitlab.steampowered.com/steam/steamrt-sniper/sdk:latest
           - os: windows-latest
             artifact: mantle-windows
-            container: ""
 
     runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container || null }}
     name: ${{ matrix.artifact }}
 
     env:
@@ -32,6 +29,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Install system deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y libwayland-dev libxkbcommon-dev \
+            xorg-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
 
       - name: Install Vulkan SDK (Linux)
         if: runner.os == 'Linux'
