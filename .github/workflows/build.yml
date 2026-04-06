@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [main, master]
+    branches: [master]
     tags:   ['v*']
   pull_request:
-    branches: [main, master]
+    branches: [master]
 
 jobs:
   build:
@@ -14,14 +14,15 @@ jobs:
       matrix:
         include:
           - os: ubuntu-24.04
-            preset: linux
             artifact: mantle-linux
           - os: windows-latest
-            preset: windows
             artifact: mantle-windows
 
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.artifact }}
+
+    env:
+      VULKAN_VERSION: "1.4.341.1"
 
     steps:
       - name: Checkout
@@ -32,34 +33,37 @@ jobs:
       - name: Install Vulkan SDK (Linux)
         if: runner.os == 'Linux'
         run: |
-          wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
-          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list \
-            https://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list
-          sudo apt-get update
-          sudo apt-get install -y vulkan-sdk libwayland-dev libxkbcommon-dev \
+          sudo apt-get install -y libwayland-dev libxkbcommon-dev \
             xorg-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
-          echo "VULKAN_SDK=/usr" >> $GITHUB_ENV
+
+          wget -q "https://sdk.lunarg.com/sdk/download/${VULKAN_VERSION}/linux/vulkansdk-linux-x86_64-${VULKAN_VERSION}.tar.xz" \
+            -O vulkansdk.tar.xz
+          mkdir -p ~/vulkansdk
+          tar -xf vulkansdk.tar.xz -C ~/vulkansdk
+
+          source ~/vulkansdk/${VULKAN_VERSION}/setup-env.sh
+
+          echo "VULKAN_SDK=${VULKAN_SDK}" >> $GITHUB_ENV
+          echo "PATH=${PATH}" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> $GITHUB_ENV
 
       - name: Install Vulkan SDK (Windows)
         if: runner.os == 'Windows'
         run: |
-          $version = "1.4.341.1"
-          $installer = "vulkansdk-windows-X64-$version.exe"
-          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$version/windows/$installer" -OutFile $installer
+          $installer = "vulkansdk-windows-X64-${env:VULKAN_VERSION}.exe"
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/${env:VULKAN_VERSION}/windows/$installer" -OutFile $installer
           Start-Process -FilePath $installer -ArgumentList "--accept-licenses --default-answer --confirm-command install" -Wait
-          echo "VULKAN_SDK=C:\VulkanSDK\$version" >> $env:GITHUB_ENV
-          echo "C:\VulkanSDK\$version\Bin" >> $env:GITHUB_PATH
+          echo "VULKAN_SDK=C:\VulkanSDK\${env:VULKAN_VERSION}" >> $env:GITHUB_ENV
+          echo "C:\VulkanSDK\${env:VULKAN_VERSION}\Bin" >> $env:GITHUB_PATH
         shell: pwsh
 
       - name: Configure (Linux)
         if: runner.os == 'Linux'
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Configure (Windows)
         if: runner.os == 'Windows'
-        run: |
-          cmake -B build
+        run: cmake -B build
         shell: pwsh
 
       - name: Build
