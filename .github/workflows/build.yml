@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [master]
+    branches: [main, master]
     tags:   ['v*']
   pull_request:
-    branches: [master]
+    branches: [main, master]
 
 jobs:
   build:
@@ -38,12 +38,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y vulkan-sdk libwayland-dev libxkbcommon-dev \
             xorg-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+          echo "VULKAN_SDK=/usr" >> $GITHUB_ENV
 
       - name: Install Vulkan SDK (Windows)
         if: runner.os == 'Windows'
         run: |
           $version = "1.4.341.1"
-          $installer = "VulkanSDK-$version-Installer.exe"
+          $installer = "vulkansdk-windows-X64-$version.exe"
           Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$version/windows/$installer" -OutFile $installer
           Start-Process -FilePath $installer -ArgumentList "--accept-licenses --default-answer --confirm-command install" -Wait
           echo "VULKAN_SDK=C:\VulkanSDK\$version" >> $env:GITHUB_ENV
@@ -69,14 +70,14 @@ jobs:
         run: |
           mkdir -p dist
           cp -r build/target dist/
-          tar -czf ${{ matrix.artifact }}.tar.gz -C dist target
+          tar -czf mantle-linux.tar.gz -C dist target
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
         run: |
           New-Item -ItemType Directory -Force dist
           Copy-Item -Recurse build\target dist\
-          Compress-Archive -Path dist\target -DestinationPath ${{ matrix.artifact }}.zip
+          Compress-Archive -Path dist\target -DestinationPath mantle-windows.zip
         shell: pwsh
 
       - name: Upload artifact
@@ -84,8 +85,8 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: |
-            ${{ matrix.artifact }}.tar.gz
-            ${{ matrix.artifact }}.zip
+            mantle-linux.tar.gz
+            mantle-windows.zip
           if-no-files-found: error
           retention-days: 30
 
