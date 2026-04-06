@@ -103,11 +103,11 @@ namespace mantle {
         constexpr VkApplicationInfo app_info = {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pNext = nullptr,
-            .pApplicationName = "VkEngine",
+            .pApplicationName = "mantle",
             .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-            .pEngineName = "VkEngine",
+            .pEngineName = "mantle engine",
             .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-            .apiVersion = VK_API_VERSION_1_4,
+            .apiVersion = VK_API_VERSION_1_3, // no 1.4 :(
         };
 
         const std::vector<const char *> extensions = get_required_instance_extensions();
