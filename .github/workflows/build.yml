@@ -1,0 +1,109 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags:   ['v*']
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            preset: linux
+            artifact: mantle-linux
+          - os: windows-latest
+            preset: windows
+            artifact: mantle-windows
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.artifact }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Vulkan SDK (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list \
+            https://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list
+          sudo apt-get update
+          sudo apt-get install -y vulkan-sdk libwayland-dev libxkbcommon-dev \
+            xorg-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+
+      - name: Install Vulkan SDK (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $version = "1.4.341.1"
+          $installer = "VulkanSDK-$version-Installer.exe"
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$version/windows/$installer" -OutFile $installer
+          Start-Process -FilePath $installer -ArgumentList "--accept-licenses --default-answer --confirm-command install" -Wait
+          echo "VULKAN_SDK=C:\VulkanSDK\$version" >> $env:GITHUB_ENV
+          echo "C:\VulkanSDK\$version\Bin" >> $env:GITHUB_PATH
+        shell: pwsh
+
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cmake -B build
+        shell: pwsh
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p dist
+          cp -r build/target dist/
+          tar -czf ${{ matrix.artifact }}.tar.gz -C dist target
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          New-Item -ItemType Directory -Force dist
+          Copy-Item -Recurse build\target dist\
+          Compress-Archive -Path dist\target -DestinationPath ${{ matrix.artifact }}.zip
+        shell: pwsh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}.tar.gz
+            ${{ matrix.artifact }}.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            mantle-linux/mantle-linux.tar.gz
+            mantle-windows/mantle-windows.zip
+          generate_release_notes: true

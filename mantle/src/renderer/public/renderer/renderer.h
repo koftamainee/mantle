@@ -38,7 +38,7 @@ namespace mantle {
 
         void resize(uint32_t width, uint32_t height) const;
 
-        GPUResourceManager& get_resource_manager();
+        GPUResourceManager& get_resource_manager() const;
 
     private:
         bool m_is_initialized = false;

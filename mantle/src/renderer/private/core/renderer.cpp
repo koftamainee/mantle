@@ -308,7 +308,7 @@ namespace mantle {
         m_impl->swapchain_dirty = false;
     }
 
-    GPUResourceManager &Renderer::get_resource_manager() {
+    GPUResourceManager &Renderer::get_resource_manager() const {
         check(m_is_initialized);
         return m_impl->gpu_resource_manager;
     }
