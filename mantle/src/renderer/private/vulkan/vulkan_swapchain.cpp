@@ -162,7 +162,18 @@ namespace mantle {
 
     VkPresentModeKHR VulkanSwapchain::pick_present_mode(const std::vector<VkPresentModeKHR> &present_modes) {
         for (const auto &mode : present_modes) {
+            // vsync on, unlimited frames, best case
             if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                return mode;
+            }
+
+            // vsync on, sync to monitor refresh rate, first fallback
+             if (mode == VK_PRESENT_MODE_FIFO_KHR) {
+                return mode;
+            }
+
+            // this SHOULD be supported on most platforms, last fallback
+             if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
                 return mode;
             }
         }
