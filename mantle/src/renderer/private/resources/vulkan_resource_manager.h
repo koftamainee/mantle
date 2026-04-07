@@ -1,5 +1,5 @@
 #pragma once
-#include <cstdint>
+#include "core/types.h"
 #include <vma/vk_mem_alloc.h>
 
 #include "deletion_queue.h"
@@ -10,7 +10,7 @@
 namespace mantle {
     class VulkanResourceManager final {
     public:
-        using ResourceID = uint32_t;
+        using ResourceID = u32;
 
         enum class ResourceType {
             Buffer,
@@ -22,7 +22,7 @@ namespace mantle {
         struct ResourceHandle {
             ResourceID id = 0;
             ResourceType type{};
-            uint32_t generation = 0;
+            u32 generation = 0;
         };
 
         VulkanResourceManager() = default;
@@ -57,8 +57,8 @@ namespace mantle {
     private:
         bool m_is_initialized = false;
 
-        static constexpr uint32_t ms_frame_lag = 3;
-        uint32_t m_current_frame = 0;
+        static constexpr u32 ms_frame_lag = 3;
+        u32 m_current_frame = 0;
         std::array<DeletionQueue, ms_frame_lag> m_deletion_queues{};
 
         VulkanAllocator m_allocator;
@@ -79,15 +79,15 @@ namespace mantle {
         std::vector<ResourceID> m_image_free_list;
         std::vector<ResourceID> m_buffer_free_list;
 
-        std::vector<uint32_t> m_buffer_generations;
-        std::vector<uint32_t> m_image_generations;
+        std::vector<u32> m_buffer_generations;
+        std::vector<u32> m_image_generations;
 
         template<typename TData>
         TData& get_resource_data(
             ResourceHandle handle,
             ResourceType expected_type,
             std::vector<TData>& storage,
-            const std::vector<uint32_t>& generations
+            const std::vector<u32>& generations
         );
 
         template<typename TData>
@@ -95,7 +95,7 @@ namespace mantle {
             ResourceHandle handle,
             ResourceType expected_type,
             const std::vector<TData>& storage,
-            const std::vector<uint32_t>& generations
+            const std::vector<u32>& generations
         ) const;
     };
 }

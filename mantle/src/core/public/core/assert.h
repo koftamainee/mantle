@@ -5,6 +5,7 @@
 
 #include "spdlog/spdlog.h"
 #include "macros.h"
+#include "types.h"
 
 namespace mantle {
 
@@ -27,7 +28,7 @@ namespace mantle {
 template<typename... Args>
 [[noreturn]] inline void debug_assert_failed(const char* expr,
                                              const char* file,
-                                             int32_t line,
+                                             i32 line,
                                              const char* fmt,
                                              Args&&... args) {
     spdlog::critical("Assertion failed: ({})\n  File: {}\n  Line: {}", expr, file, line);
@@ -40,7 +41,7 @@ template<typename... Args>
 
 template<typename... Args>
 [[noreturn]] inline void debug_fatal_failed(const char* file,
-                                            int32_t line,
+                                            i32 line,
                                             const char* fmt,
                                             Args&&... args) {
     spdlog::critical("Fatal error\n  File: {}\n  Line: {}", file, line);
@@ -52,7 +53,7 @@ template<typename... Args>
 template<typename... Args>
 inline void debug_ensure_failed(const char* expr,
                                const char* file,
-                               int32_t line,
+                               i32 line,
                                const char* fmt,
                                Args&&... args) {
     spdlog::warn("Ensure failed: ({})\n  File: {}\n  Line: {}", expr, file, line);

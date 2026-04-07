@@ -1,9 +1,10 @@
 #pragma once
-#include <cstdint>
 #include <string_view>
 #include <vector>
 
+#include "core/types.h"
+
 namespace mantle {
-    std::vector<uint32_t> load_spv(std::string_view path);
+    std::vector<u32> load_spv(std::string_view path);
 }
 

@@ -129,7 +129,7 @@ namespace mantle {
         }
 
         m_impl->current_frame = (m_impl->current_frame + 1) % Impl::frames_in_flight;
-        m_impl->acquire_index = (m_impl->acquire_index + 1) % static_cast<uint32_t>(m_impl->acquire_semaphores.size());
+        m_impl->acquire_index = (m_impl->acquire_index + 1) % static_cast<u32>(m_impl->acquire_semaphores.size());
 
         if (m_impl->swapchain_dirty) {
             return Result::FrameNeedsResize;
@@ -192,8 +192,8 @@ namespace mantle {
         VkViewport viewport = {
             .x = 0,
             .y = 0,
-            .width = static_cast<float>(extent.width),
-            .height = static_cast<float>(extent.height),
+            .width = static_cast<f32>(extent.width),
+            .height = static_cast<f32>(extent.height),
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };
@@ -264,14 +264,14 @@ namespace mantle {
         return Result::Ok;
     }
 
-    void Renderer::resize(uint32_t width, uint32_t height) const {
+    void Renderer::resize(u32 width, u32 height) const {
         check(m_is_initialized);
         VkDevice device = m_impl->device.get_device();
         VkSurfaceKHR surface = m_impl->graphics_context.get_surface();
 
         vkDeviceWaitIdle(device);
 
-        uint32_t old_count = static_cast<uint32_t>(m_impl->acquire_semaphores.size());
+        u32 old_count = static_cast<u32>(m_impl->acquire_semaphores.size());
 
         m_impl->swapchain.destroy();
         m_impl->swapchain.init(
@@ -282,7 +282,7 @@ namespace mantle {
             width, height
             );
 
-        uint32_t new_count = static_cast<uint32_t>(m_impl->swapchain.get_images().size());
+        u32 new_count = static_cast<u32>(m_impl->swapchain.get_images().size());
         if (new_count != old_count) {
             for (auto &sem : m_impl->acquire_semaphores) {
                 vkDestroySemaphore(device, sem, nullptr);

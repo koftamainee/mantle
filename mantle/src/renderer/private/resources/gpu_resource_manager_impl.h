@@ -10,7 +10,7 @@ namespace mantle {
         struct MeshData {
             VulkanResourceManager::ResourceHandle vertex_buffer;
             VulkanResourceManager::ResourceHandle index_buffer;
-            uint32_t index_count = 0;
+            u32 index_count = 0;
         };
         MeshData& get_mesh_data(MeshHandle handle) {
             check(handle.id < meshes.size());
@@ -22,8 +22,8 @@ namespace mantle {
         VulkanDevice& device;
 
         std::vector<MeshData> meshes;
-        std::vector<uint32_t> free_list;
-        std::vector<uint32_t> generations;
+        std::vector<u32> free_list;
+        std::vector<u32> generations;
 
         Impl(VulkanResourceManager& vulkan_resources, VulkanDevice& device)
             : vulkan_resources(vulkan_resources)

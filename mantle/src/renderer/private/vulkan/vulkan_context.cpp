@@ -122,7 +122,7 @@ namespace mantle {
             .pApplicationInfo = &app_info,
             .enabledLayerCount = 0,
             .ppEnabledLayerNames = nullptr,
-            .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+            .enabledExtensionCount = static_cast<u32>(extensions.size()),
             .ppEnabledExtensionNames = extensions.data(),
         };
 
@@ -132,7 +132,7 @@ namespace mantle {
 
         instance_create_info.pNext = &debug_messenger_create_info;
         instance_create_info.enabledLayerCount =
-            static_cast<uint32_t>(ms_validation_layers.size());
+            static_cast<u32>(ms_validation_layers.size());
         instance_create_info.ppEnabledLayerNames = ms_validation_layers.data();
 #endif
 
@@ -206,19 +206,19 @@ namespace mantle {
     }
 
     std::vector<const char *> VulkanContext::get_required_instance_extensions() {
-        uint32_t glfw_extensions_count = 0;
+        u32 glfw_extensions_count = 0;
         const char **glfw_extensions =
             glfwGetRequiredInstanceExtensions(&glfw_extensions_count);
 
         fatal(glfw_extensions_count == 0, "Failed to get GLFW extensions");
 
-        uint32_t vk_extensions_count = 0;
+        u32 vk_extensions_count = 0;
         vk_verify(vkEnumerateInstanceExtensionProperties(nullptr, &vk_extensions_count, nullptr));
 
         std::vector<VkExtensionProperties> vk_extensions(vk_extensions_count);
         vk_verify(vkEnumerateInstanceExtensionProperties(nullptr, &vk_extensions_count, vk_extensions.data()));
 
-        for (uint32_t i = 0; i < glfw_extensions_count; i++) {
+        for (u32 i = 0; i < glfw_extensions_count; i++) {
             bool found = false;
             for (const auto &[extension_name, _] : vk_extensions) {
                 if (std::strcmp(extension_name, glfw_extensions[i]) == 0) {
@@ -261,7 +261,7 @@ namespace mantle {
     }
 
     void VulkanContext::check_validation_layers() {
-        uint32_t vk_layer_properties_count = 0;
+        u32 vk_layer_properties_count = 0;
         vk_verify(vkEnumerateInstanceLayerProperties(&vk_layer_properties_count, nullptr));
 
         std::vector<VkLayerProperties> vk_layers(vk_layer_properties_count);

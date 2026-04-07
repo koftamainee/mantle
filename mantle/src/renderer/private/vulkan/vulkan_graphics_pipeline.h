@@ -1,5 +1,6 @@
 #pragma once
 #include <span>
+#include "core/types.h"
 #include <string_view>
 #include <vulkan/vulkan_core.h>
 
@@ -20,7 +21,7 @@ namespace mantle {
         VulkanGraphicsPipeline(VulkanGraphicsPipeline &&) noexcept = delete;
         VulkanGraphicsPipeline &operator=(VulkanGraphicsPipeline &&) noexcept = delete;
 
-        void init(VkDevice device, const Config &config, std::span<uint32_t> spv);
+        void init(VkDevice device, const Config &config, std::span<u32> spv);
         void destroy();
 
         void bind(VkCommandBuffer cmd) const;

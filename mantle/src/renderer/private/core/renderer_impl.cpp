@@ -1,8 +1,8 @@
 #include "renderer_impl.h"
 
 #include <spdlog/spdlog.h>
-#include "../vulkan/vkassert.h"
-#include "../vulkan/vulkan_utils.h"
+#include "vulkan/vkassert.h"
+#include "vulkan/vulkan_utils.h"
 #include "core/assert.h"
 #include "window/window.h"
 
@@ -51,7 +51,7 @@ namespace mantle {
             .color_format = swapchain.get_surface_format().format,
         };
 
-        std::vector<uint32_t> spv = load_spv("assets/shaders/triangle.spv");
+        std::vector<u32> spv = load_spv("assets/shaders/triangle.spv");
 
         graphics_pipeline.init(vkdevice, pipeline_cfg, spv);
 
@@ -75,7 +75,7 @@ namespace mantle {
             create_frame(frame);
         }
 
-        uint32_t image_count = static_cast<uint32_t>(swapchain.get_images().size());
+        auto image_count = static_cast<u32>(swapchain.get_images().size());
 
         acquire_semaphores.resize(image_count);
         render_semaphores.resize(image_count);

@@ -1,5 +1,5 @@
-#include "../vulkan/vkassert.h"
-#include "../resources/vulkan_resource_manager.h"
+#include "vulkan/vkassert.h"
+#include "resources/vulkan_resource_manager.h"
 #include "core/assert.h"
 
 namespace mantle {
@@ -81,7 +81,7 @@ namespace mantle {
         ResourceHandle handle,
         ResourceType expected_type,
         std::vector<TData> &storage,
-        const std::vector<uint32_t> &generations
+        const std::vector<u32> &generations
         ) {
         check(m_is_initialized);
         check(handle.type == expected_type);
@@ -95,7 +95,7 @@ namespace mantle {
         ResourceHandle handle,
         ResourceType expected_type,
         const std::vector<TData> &storage,
-        const std::vector<uint32_t> &generations
+        const std::vector<u32> &generations
         ) const {
         check(m_is_initialized);
         check(handle.type == expected_type);

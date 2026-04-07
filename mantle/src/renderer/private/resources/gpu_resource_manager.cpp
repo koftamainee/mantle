@@ -12,7 +12,7 @@ namespace mantle {
 
     MeshHandle GPUResourceManager::upload_mesh(
         std::span<const Vertex> vertices,
-        std::span<const uint32_t> indices
+        std::span<const u32> indices
         ) const {
         check(m_impl);
         check(m_is_initialized);
@@ -71,10 +71,10 @@ namespace mantle {
         Impl::MeshData mesh_data = {
             .vertex_buffer = vb,
             .index_buffer = ib,
-            .index_count = static_cast<uint32_t>(indices.size()),
+            .index_count = static_cast<u32>(indices.size()),
         };
 
-        uint32_t id;
+        u32 id;
         if (!m_impl->free_list.empty()) {
             id = m_impl->free_list.back();
             m_impl->free_list.pop_back();
@@ -82,7 +82,7 @@ namespace mantle {
             m_impl->generations[id]++;
         }
         else {
-            id = static_cast<uint32_t>(m_impl->meshes.size());
+            id = static_cast<u32>(m_impl->meshes.size());
             m_impl->meshes.push_back(mesh_data);
             m_impl->generations.push_back(1);
         }

@@ -1,10 +1,10 @@
 #pragma once
-#include <cstdint>
+#include <core/types.h>
 
 namespace mantle {
     struct MeshHandle {
-        uint32_t id = 0;
-        uint32_t generation = 0;
+        u32 id = 0;
+        u32 generation = 0;
 
         bool is_valid() const { return generation != 0; }
     };

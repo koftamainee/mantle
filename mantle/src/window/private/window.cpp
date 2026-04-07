@@ -62,11 +62,11 @@ namespace mantle {
         return glfwWindowShouldClose(m_native_window);
     }
 
-    uint32_t Window::get_width() const {
+    u32 Window::get_width() const {
         return get_size().width;
     }
 
-    uint32_t Window::get_height() const {
+    u32 Window::get_height() const {
         return get_size().height;
     }
 
@@ -75,14 +75,14 @@ namespace mantle {
         int width = 0;
         int height = 0;
         glfwGetWindowSize(m_native_window, &width, &height);
-        return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+        return {static_cast<u32>(width), static_cast<u32>(height)};
     }
 
     Window::Properties::Size Window::get_framebuffer_size() const {
         check(m_is_initialized);
         int width, height;
         glfwGetFramebufferSize(m_native_window, &width, &height);
-        return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+        return {static_cast<u32>(width), static_cast<u32>(height)};
     }
 
     GLFWwindow *Window::get_native_window() const {
@@ -90,17 +90,17 @@ namespace mantle {
         return m_native_window;
     }
 
-    double Window::get_time() const {
+    f64 Window::get_time() const {
         check(m_is_initialized);
         return glfwGetTime();
     }
 
-    void Window::set_resize_callback(std::function<void(uint32_t, uint32_t)> callback) {
+    void Window::set_resize_callback(std::function<void(u32, u32)> callback) {
         m_resize_callback = std::move(callback);
         glfwSetFramebufferSizeCallback(m_native_window, [](GLFWwindow *w, int width, int height) {
             auto *window = static_cast<Window *>(glfwGetWindowUserPointer(w));
             if (window->m_resize_callback) {
-                window->m_resize_callback(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+                window->m_resize_callback(static_cast<u32>(width), static_cast<u32>(height));
             }
         });
     }

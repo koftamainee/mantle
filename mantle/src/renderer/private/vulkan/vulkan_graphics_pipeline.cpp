@@ -9,10 +9,10 @@
 
 namespace mantle {
 
-    static VkShaderModule create_shader_module(VkDevice device, std::span<uint32_t> spv) {
+    static VkShaderModule create_shader_module(VkDevice device, std::span<u32> spv) {
         VkShaderModuleCreateInfo info = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            .codeSize = spv.size() * sizeof(uint32_t),
+            .codeSize = spv.size() * sizeof(u32),
             .pCode = spv.data(),
         };
         VkShaderModule mod;
@@ -26,7 +26,7 @@ namespace mantle {
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline() { destroy(); }
 
-    void VulkanGraphicsPipeline::init(VkDevice device, const Config &config, std::span<uint32_t> spv) {
+    void VulkanGraphicsPipeline::init(VkDevice device, const Config &config, std::span<u32> spv) {
         check(!m_is_initialized);
         m_device = device;
 
@@ -80,7 +80,7 @@ namespace mantle {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
             .vertexBindingDescriptionCount = 1,
             .pVertexBindingDescriptions = &binding,
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(attrs.size()),
+            .vertexAttributeDescriptionCount = static_cast<u32>(attrs.size()),
             .pVertexAttributeDescriptions = attrs.data(),
         };
 

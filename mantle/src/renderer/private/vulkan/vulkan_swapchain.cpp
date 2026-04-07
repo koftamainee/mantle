@@ -1,4 +1,4 @@
-#include "../vulkan/vulkan_swapchain.h"
+#include "vulkan/vulkan_swapchain.h"
 
 #include <algorithm>
 #include <array>
@@ -20,8 +20,8 @@ namespace mantle {
                                VkSurfaceKHR surface,
                                const SwapchainSupportDetails &support_details,
                                const QueueFamilyIndices &indices,
-                               uint32_t width,
-                               uint32_t height) {
+                               u32 width,
+                               u32 height) {
         check(!m_is_initialized);
         check(device != VK_NULL_HANDLE);
         this->m_device = device;
@@ -30,7 +30,7 @@ namespace mantle {
         m_extent = pick_extent(support_details.capabilities, width, height);
         m_present_mode = pick_present_mode(support_details.present_modes);
 
-        uint32_t image_count = support_details.capabilities.minImageCount + 1;
+        u32 image_count = support_details.capabilities.minImageCount + 1;
         if (support_details.capabilities.maxImageCount > 0 &&
             image_count > support_details.capabilities.maxImageCount) {
             image_count = support_details.capabilities.maxImageCount;
@@ -72,7 +72,7 @@ namespace mantle {
         vk_verify(vkGetSwapchainImagesKHR(device, m_swapchain, &image_count, images.data()));
 
         m_images.resize(image_count);
-        for (uint32_t i = 0; i < image_count; i++) {
+        for (u32 i = 0; i < image_count; i++) {
             m_images[i].image = images[i];
 
             VkImageViewCreateInfo view_info = {
@@ -148,15 +148,15 @@ namespace mantle {
     }
 
     VkExtent2D VulkanSwapchain::pick_extent(const VkSurfaceCapabilitiesKHR &capabilities,
-                                            uint32_t width,
-                                            uint32_t height) {
+                                            u32 width,
+                                            u32 height) {
         if (capabilities.currentExtent.width != UINT32_MAX) {
             return capabilities.currentExtent;
         }
 
         return {
-            std::clamp<uint32_t>(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
-            std::clamp<uint32_t>(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height)
+            std::clamp<u32>(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
+            std::clamp<u32>(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height)
         };
     }
 

@@ -1,13 +1,14 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include "core/types.h"
 
-#include "../vulkan/vulkan_device.h"
-#include "../vulkan/vulkan_context.h"
-#include "../vulkan/vulkan_graphics_pipeline.h"
-#include "../resources/vulkan_resource_manager.h"
-#include "../vulkan/vulkan_swapchain.h"
+#include "vulkan/vulkan_device.h"
+#include "vulkan/vulkan_context.h"
+#include "vulkan/vulkan_graphics_pipeline.h"
+#include "resources/vulkan_resource_manager.h"
+#include "vulkan/vulkan_swapchain.h"
 #include "renderer/renderer.h"
-#include "../resources/gpu_resource_manager_impl.h"
+#include "resources/gpu_resource_manager_impl.h"
 
 namespace mantle {
     struct FrameData final {
@@ -27,15 +28,15 @@ namespace mantle {
         std::vector<VkSemaphore> acquire_semaphores;
         std::vector<VkSemaphore> render_semaphores;
 
-        uint32_t current_frame = 0;
-        uint32_t image_index = 0;
-        uint32_t acquire_index = 0;
+        u32 current_frame = 0;
+        u32 image_index = 0;
+        u32 acquire_index = 0;
         bool swapchain_dirty = false;
 
         glm::mat4 view;
         glm::mat4 projection;
 
-        static constexpr uint8_t frames_in_flight = 2;
+        static constexpr u8 frames_in_flight = 2;
 
         void init(const Window &window);
         void destroy();

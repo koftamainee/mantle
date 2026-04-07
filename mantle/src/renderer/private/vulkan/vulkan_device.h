@@ -6,6 +6,7 @@
 #include <vulkan/vulkan.h>
 
 #include "vulkan_types.h"
+#include "core/types.h"
 
 namespace mantle {
     class VulkanDevice final {
@@ -25,14 +26,14 @@ namespace mantle {
         VkPhysicalDevice get_physical_device() const;
         SwapchainSupportDetails get_swapchain_support_details(VkSurfaceKHR surface) const;
 
-        uint32_t get_queue_family_index(VkQueueFlags queue_flags) const;
-        std::optional<uint32_t> get_memory_type(uint32_t type_bits, VkMemoryPropertyFlags properties) const;
+        u32 get_queue_family_index(VkQueueFlags queue_flags) const;
+        std::optional<u32> get_memory_type(u32 type_bits, VkMemoryPropertyFlags properties) const;
         QueueFamilyIndices get_queue_families() const;
 
         VkResult copy_buffer(VkBuffer src, VkBuffer dst, VkQueue queue, VkDeviceSize size, VkDeviceSize src_offset = 0,
                              VkDeviceSize dst_offset = 0) const;
 
-        VkCommandPool create_command_pool(uint32_t queue_family_index,
+        VkCommandPool create_command_pool(u32 queue_family_index,
                                           VkCommandPoolCreateFlags create_flags =
                                               VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) const;
 

@@ -6,6 +6,8 @@
 #include "vulkan_types.h"
 #include <GLFW/glfw3.h>
 
+#include "core/types.h"
+
 namespace mantle {
 
     class VulkanSwapchain final {
@@ -27,8 +29,8 @@ namespace mantle {
                   VkSurfaceKHR surface,
                   const SwapchainSupportDetails &support_details,
                   const QueueFamilyIndices &indices,
-                  uint32_t width,
-                  uint32_t height);
+                  u32 width,
+                  u32 height);
 
         void destroy();
 
@@ -39,7 +41,7 @@ namespace mantle {
 
     private:
         static VkSurfaceFormatKHR pick_surface_format(const std::vector<VkSurfaceFormatKHR> &formats);
-        static VkExtent2D pick_extent(const VkSurfaceCapabilitiesKHR &capabilities, uint32_t width, uint32_t height);
+        static VkExtent2D pick_extent(const VkSurfaceCapabilitiesKHR &capabilities, u32 width, u32 height);
         static VkPresentModeKHR pick_present_mode(const std::vector<VkPresentModeKHR> &present_modes);
 
     private:

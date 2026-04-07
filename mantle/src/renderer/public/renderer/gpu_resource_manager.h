@@ -19,7 +19,7 @@ namespace mantle {
         ~GPUResourceManager() = default;
 
         MeshHandle upload_mesh(std::span<const Vertex> vertices,
-                               std::span<const uint32_t> indices) const;
+                               std::span<const u32> indices) const;
         void destroy_mesh(MeshHandle handle) const;
 
         bool is_valid(MeshHandle handle) const;

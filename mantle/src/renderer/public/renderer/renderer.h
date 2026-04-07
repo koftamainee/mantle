@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
-#include <cstdint>
 #include "renderer/gpu_resource_manager.h"
+#include "core/types.h"
 
 namespace mantle {
 
@@ -36,7 +36,7 @@ namespace mantle {
 
         Result draw_mesh(MeshHandle handle, const glm::mat4 &model) const;
 
-        void resize(uint32_t width, uint32_t height) const;
+        void resize(u32 width, u32 height) const;
 
         GPUResourceManager& get_resource_manager() const;
 
