@@ -1,5 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <window/window.h>
+#include <array>
+#include <utility>
 
 #include <core/assert.h>
 
