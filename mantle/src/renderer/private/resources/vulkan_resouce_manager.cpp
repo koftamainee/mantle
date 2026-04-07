@@ -1,11 +1,12 @@
-#include "vulkan/vkassert.h"
-#include "resources/vulkan_resource_manager.h"
 #include "core/assert.h"
+#include "resources/vulkan_resource_manager.h"
+#include "vulkan/vkassert.h"
 
 namespace mantle {
     VulkanResourceManager::~VulkanResourceManager() { destroy(); }
 
-    void VulkanResourceManager::init(VkPhysicalDevice physical_device, VkDevice device, VkInstance instance) {
+    void VulkanResourceManager::init(VkPhysicalDevice physical_device,
+                                     VkDevice device, VkInstance instance) {
         check(!m_is_initialized);
         m_allocator.init(physical_device, device, instance);
         m_buffers.clear();
@@ -45,12 +46,14 @@ namespace mantle {
     }
 
     VulkanResourceManager::ResourceHandle VulkanResourceManager::create_buffer(
-        VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage memory_usage, void **mapped_data) {
+        VkDeviceSize size, VkBufferUsageFlags usage,
+        VmaMemoryUsage memory_usage, void **mapped_data) {
         check(m_is_initialized);
 
         VkBuffer buffer;
         VmaAllocation allocation;
-        vk_verify(m_allocator.create_buffer(size, usage, memory_usage, &buffer, &allocation, mapped_data));
+        vk_verify(m_allocator.create_buffer(size, usage, memory_usage, &buffer,
+                                            &allocation, mapped_data));
 
         ResourceID id;
 
@@ -68,21 +71,14 @@ namespace mantle {
             m_buffer_generations.push_back(1);
         }
 
-        return ResourceHandle{
-            id,
-            ResourceType::Buffer,
-            m_buffer_generations[id]
-        };
-
+        return ResourceHandle{id, ResourceType::Buffer,
+                              m_buffer_generations[id]};
     }
 
     template <typename TData>
     TData &VulkanResourceManager::get_resource_data(
-        ResourceHandle handle,
-        ResourceType expected_type,
-        std::vector<TData> &storage,
-        const std::vector<u32> &generations
-        ) {
+        ResourceHandle handle, ResourceType expected_type,
+        std::vector<TData> &storage, const std::vector<u32> &generations) {
         check(m_is_initialized);
         check(handle.type == expected_type);
         check(handle.id < storage.size());
@@ -92,11 +88,9 @@ namespace mantle {
 
     template <typename TData>
     const TData &VulkanResourceManager::get_resource_data(
-        ResourceHandle handle,
-        ResourceType expected_type,
+        ResourceHandle handle, ResourceType expected_type,
         const std::vector<TData> &storage,
-        const std::vector<u32> &generations
-        ) const {
+        const std::vector<u32> &generations) const {
         check(m_is_initialized);
         check(handle.type == expected_type);
         check(handle.id < storage.size());
@@ -105,11 +99,15 @@ namespace mantle {
     }
 
     VkBuffer VulkanResourceManager::get_buffer(ResourceHandle handle) const {
-        return get_resource_data(handle, ResourceType::Buffer, m_buffers, m_buffer_generations).buffer;
+        return get_resource_data(handle, ResourceType::Buffer, m_buffers,
+                                 m_buffer_generations)
+            .buffer;
     }
 
-    void VulkanResourceManager::destroy_buffer(ResourceHandle handle, bool immediate) {
-        auto &buf = get_resource_data(handle, ResourceType::Buffer, m_buffers, m_buffer_generations);
+    void VulkanResourceManager::destroy_buffer(ResourceHandle handle,
+                                               bool immediate) {
+        auto &buf = get_resource_data(handle, ResourceType::Buffer, m_buffers,
+                                      m_buffer_generations);
 
         if (buf.buffer == VK_NULL_HANDLE) {
             return;
@@ -122,8 +120,7 @@ namespace mantle {
             m_deletion_queues[m_current_frame].push(
                 [this, buffer = buf.buffer, allocation = buf.allocation]() {
                     m_allocator.destroy_buffer(buffer, allocation);
-                }
-                );
+                });
         }
 
         buf.buffer = VK_NULL_HANDLE;
@@ -132,16 +129,16 @@ namespace mantle {
         m_buffer_generations[handle.id]++;
     }
 
-    VulkanResourceManager::ResourceHandle VulkanResourceManager::create_image(
-        const VkImageCreateInfo &info,
-        VmaMemoryUsage memory_usage
-        ) {
+    VulkanResourceManager::ResourceHandle
+    VulkanResourceManager::create_image(const VkImageCreateInfo &info,
+                                        VmaMemoryUsage memory_usage) {
         check(m_is_initialized);
 
         VkImage image;
         VmaAllocation allocation;
 
-        vk_verify(m_allocator.create_image(info, memory_usage, &image, &allocation));
+        vk_verify(
+            m_allocator.create_image(info, memory_usage, &image, &allocation));
 
         ResourceID id;
 
@@ -159,20 +156,20 @@ namespace mantle {
             m_image_generations.push_back(1);
         }
 
-        return ResourceHandle{
-            id,
-            ResourceType::Image,
-            m_image_generations[id]
-        };
+        return ResourceHandle{id, ResourceType::Image, m_image_generations[id]};
     }
 
 
     VkImage VulkanResourceManager::get_image(ResourceHandle handle) const {
-        return get_resource_data(handle, ResourceType::Image, m_images, m_image_generations).image;
+        return get_resource_data(handle, ResourceType::Image, m_images,
+                                 m_image_generations)
+            .image;
     }
 
-    void VulkanResourceManager::destroy_image(ResourceHandle handle, bool immediate) {
-        auto &img = get_resource_data(handle, ResourceType::Image, m_images, m_image_generations);
+    void VulkanResourceManager::destroy_image(ResourceHandle handle,
+                                              bool immediate) {
+        auto &img = get_resource_data(handle, ResourceType::Image, m_images,
+                                      m_image_generations);
 
         if (img.image == VK_NULL_HANDLE) {
             return;
@@ -185,8 +182,7 @@ namespace mantle {
             m_deletion_queues[m_current_frame].push(
                 [this, image = img.image, allocation = img.allocation]() {
                     m_allocator.destroy_image(image, allocation);
-                }
-                );
+                });
         }
 
         img.image = VK_NULL_HANDLE;
@@ -203,4 +199,4 @@ namespace mantle {
     }
 
 
-}
+} // namespace mantle

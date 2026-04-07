@@ -19,4 +19,4 @@ namespace mantle {
 
         return buf;
     }
-}
+} // namespace mantle

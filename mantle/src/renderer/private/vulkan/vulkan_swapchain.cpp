@@ -4,23 +4,19 @@
 #include <array>
 #include <vulkan/vulkan.h>
 
-#include "../vulkan/vulkan_types.h"
 #include <spdlog/spdlog.h>
+#include "../vulkan/vulkan_types.h"
 
-#include "vkassert.h"
 #include "core/assert.h"
+#include "vkassert.h"
 
 namespace mantle {
 
-    VulkanSwapchain::~VulkanSwapchain() {
-        destroy();
-    }
+    VulkanSwapchain::~VulkanSwapchain() { destroy(); }
 
-    void VulkanSwapchain::init(VkDevice device,
-                               VkSurfaceKHR surface,
+    void VulkanSwapchain::init(VkDevice device, VkSurfaceKHR surface,
                                const SwapchainSupportDetails &support_details,
-                               const QueueFamilyIndices &indices,
-                               u32 width,
+                               const QueueFamilyIndices &indices, u32 width,
                                u32 height) {
         check(!m_is_initialized);
         check(device != VK_NULL_HANDLE);
@@ -54,10 +50,8 @@ namespace mantle {
             .oldSwapchain = VK_NULL_HANDLE,
         };
 
-        const std::array indices_array = {
-            indices.graphics_family,
-            indices.present_family
-        };
+        const std::array indices_array = {indices.graphics_family,
+                                          indices.present_family};
 
         if (indices_array[0] != indices_array[1]) {
             create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -65,11 +59,14 @@ namespace mantle {
             create_info.pQueueFamilyIndices = indices_array.data();
         }
 
-        vk_verify(vkCreateSwapchainKHR(device, &create_info, nullptr, &m_swapchain));
+        vk_verify(
+            vkCreateSwapchainKHR(device, &create_info, nullptr, &m_swapchain));
 
-        vk_verify(vkGetSwapchainImagesKHR(device, m_swapchain, &image_count, nullptr));
+        vk_verify(vkGetSwapchainImagesKHR(device, m_swapchain, &image_count,
+                                          nullptr));
         std::vector<VkImage> images(image_count);
-        vk_verify(vkGetSwapchainImagesKHR(device, m_swapchain, &image_count, images.data()));
+        vk_verify(vkGetSwapchainImagesKHR(device, m_swapchain, &image_count,
+                                          images.data()));
 
         m_images.resize(image_count);
         for (u32 i = 0; i < image_count; i++) {
@@ -80,23 +77,20 @@ namespace mantle {
                 .image = m_images[i].image,
                 .viewType = VK_IMAGE_VIEW_TYPE_2D,
                 .format = m_surface_format.format,
-                .components = {
-                    VK_COMPONENT_SWIZZLE_IDENTITY,
-                    VK_COMPONENT_SWIZZLE_IDENTITY,
-                    VK_COMPONENT_SWIZZLE_IDENTITY,
-                    VK_COMPONENT_SWIZZLE_IDENTITY
-                },
-                .subresourceRange = {
-                    VK_IMAGE_ASPECT_COLOR_BIT, 0, 1,0,1
-                }
-            };
+                .components = {VK_COMPONENT_SWIZZLE_IDENTITY,
+                               VK_COMPONENT_SWIZZLE_IDENTITY,
+                               VK_COMPONENT_SWIZZLE_IDENTITY,
+                               VK_COMPONENT_SWIZZLE_IDENTITY},
+                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
 
 
-            vk_verify(vkCreateImageView(m_device, &view_info, nullptr, &m_images[i].view));
+            vk_verify(vkCreateImageView(m_device, &view_info, nullptr,
+                                        &m_images[i].view));
         }
 
         m_is_initialized = true;
-        spdlog::info("Swapchain {}x{} created", m_extent.width, m_extent.height);
+        spdlog::info("Swapchain {}x{} created", m_extent.width,
+                     m_extent.height);
     }
 
     void VulkanSwapchain::destroy() {
@@ -137,7 +131,8 @@ namespace mantle {
         return m_surface_format;
     }
 
-    VkSurfaceFormatKHR VulkanSwapchain::pick_surface_format(const std::vector<VkSurfaceFormatKHR> &formats) {
+    VkSurfaceFormatKHR VulkanSwapchain::pick_surface_format(
+        const std::vector<VkSurfaceFormatKHR> &formats) {
         for (const auto &format : formats) {
             if (format.format == VK_FORMAT_R8G8B8A8_SRGB &&
                 format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -147,20 +142,21 @@ namespace mantle {
         fatal(true, "Unsupported surface format");
     }
 
-    VkExtent2D VulkanSwapchain::pick_extent(const VkSurfaceCapabilitiesKHR &capabilities,
-                                            u32 width,
-                                            u32 height) {
+    VkExtent2D
+    VulkanSwapchain::pick_extent(const VkSurfaceCapabilitiesKHR &capabilities,
+                                 u32 width, u32 height) {
         if (capabilities.currentExtent.width != UINT32_MAX) {
             return capabilities.currentExtent;
         }
 
-        return {
-            std::clamp<u32>(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
-            std::clamp<u32>(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height)
-        };
+        return {std::clamp<u32>(width, capabilities.minImageExtent.width,
+                                capabilities.maxImageExtent.width),
+                std::clamp<u32>(height, capabilities.minImageExtent.height,
+                                capabilities.maxImageExtent.height)};
     }
 
-    VkPresentModeKHR VulkanSwapchain::pick_present_mode(const std::vector<VkPresentModeKHR> &present_modes) {
+    VkPresentModeKHR VulkanSwapchain::pick_present_mode(
+        const std::vector<VkPresentModeKHR> &present_modes) {
         for (const auto &mode : present_modes) {
             // vsync on, unlimited frames, best case
             if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -168,12 +164,12 @@ namespace mantle {
             }
 
             // vsync on, sync to monitor refresh rate, first fallback
-             if (mode == VK_PRESENT_MODE_FIFO_KHR) {
+            if (mode == VK_PRESENT_MODE_FIFO_KHR) {
                 return mode;
             }
 
             // this SHOULD be supported on most platforms, last fallback
-             if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+            if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
                 return mode;
             }
         }

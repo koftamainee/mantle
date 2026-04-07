@@ -1,8 +1,8 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
 #include <vector>
 #include <vulkan/vulkan.h>
-#include <GLFW/glfw3.h>
 
 #ifndef NDEBUG
 #define ENABLE_VALIDATION_LAYERS
@@ -10,7 +10,7 @@
 
 namespace mantle {
     class VulkanContext final {
-    public:
+      public:
         VulkanContext() = default;
         ~VulkanContext();
 
@@ -25,7 +25,7 @@ namespace mantle {
         VkInstance get_instance() const;
         VkSurfaceKHR get_surface() const;
 
-    private:
+      private:
         void create_instance();
         void destroy_instance();
 
@@ -37,15 +37,16 @@ namespace mantle {
         void create_surface(GLFWwindow *glfw_window);
         void destroy_surface();
 
-    private:
+      private:
         static std::vector<const char *> get_required_instance_extensions();
 
 #ifdef ENABLE_VALIDATION_LAYERS
-        static VkDebugUtilsMessengerCreateInfoEXT make_debug_messenger_create_info_ext();
+        static VkDebugUtilsMessengerCreateInfoEXT
+        make_debug_messenger_create_info_ext();
         static void check_validation_layers();
 #endif
 
-    private:
+      private:
         bool m_is_initialized = false;
 
 #ifdef ENABLE_VALIDATION_LAYERS
@@ -55,7 +56,7 @@ namespace mantle {
         VkInstance m_instance = VK_NULL_HANDLE;
         VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
-    private:
+      private:
 #ifdef ENABLE_VALIDATION_LAYERS
         inline static const std::vector<const char *> ms_validation_layers{
             "VK_LAYER_KHRONOS_validation",

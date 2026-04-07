@@ -12,9 +12,8 @@ namespace mantle {
         u32 transfer_family = UINT32_MAX;
 
         bool is_complete() const {
-            return graphics_family != UINT32_MAX
-                && present_family != UINT32_MAX
-                && transfer_family != UINT32_MAX;
+            return graphics_family != UINT32_MAX &&
+                present_family != UINT32_MAX && transfer_family != UINT32_MAX;
         }
     };
 

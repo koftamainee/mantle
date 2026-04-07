@@ -1,9 +1,9 @@
+#include <core/assert.h>
 #include <renderer/renderer.h>
+#include <spdlog/spdlog.h>
 #include "../vulkan/vulkan_context.h"
 #include "../vulkan/vulkan_device.h"
 #include "../vulkan/vulkan_swapchain.h"
-#include <core/assert.h>
-#include <spdlog/spdlog.h>
 
 #include "renderer_impl.h"
 
@@ -35,7 +35,8 @@ namespace mantle {
         }
     }
 
-    void Renderer::set_camera(const glm::mat4 &view, const glm::mat4 &projection) const {
+    void Renderer::set_camera(const glm::mat4 &view,
+                              const glm::mat4 &projection) const {
         m_impl->view = view;
         m_impl->projection = projection;
     }
@@ -50,13 +51,16 @@ namespace mantle {
         FrameData &frame = m_impl->get_current_frame();
         VkDevice device = m_impl->device.get_device();
 
-        vk_verify(vkWaitForFences(device, 1, &frame.in_flight, VK_TRUE, UINT64_MAX));
+        vk_verify(
+            vkWaitForFences(device, 1, &frame.in_flight, VK_TRUE, UINT64_MAX));
         vk_verify(vkResetFences(device, 1, &frame.in_flight));
 
-        VkSemaphore acquire_sem = m_impl->acquire_semaphores[m_impl->acquire_index];
+        VkSemaphore acquire_sem =
+            m_impl->acquire_semaphores[m_impl->acquire_index];
 
-        VkResult result = vkAcquireNextImageKHR(device, m_impl->swapchain.get_swapchain(), UINT64_MAX,
-                                                acquire_sem, VK_NULL_HANDLE, &m_impl->image_index);
+        VkResult result = vkAcquireNextImageKHR(
+            device, m_impl->swapchain.get_swapchain(), UINT64_MAX, acquire_sem,
+            VK_NULL_HANDLE, &m_impl->image_index);
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             m_impl->swapchain_dirty = true;
@@ -79,14 +83,14 @@ namespace mantle {
     Renderer::Result Renderer::end_frame() const {
         auto &frame = m_impl->get_current_frame();
 
-        VkSemaphore acquire_sem = m_impl->acquire_semaphores[m_impl->acquire_index];
+        VkSemaphore acquire_sem =
+            m_impl->acquire_semaphores[m_impl->acquire_index];
         VkSemaphore render_sem = m_impl->render_semaphores[m_impl->image_index];
 
         vk_verify(vkEndCommandBuffer(frame.cmd));
 
         VkPipelineStageFlags wait_stages[] = {
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-        };
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
         VkSubmitInfo submit = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -99,12 +103,8 @@ namespace mantle {
             .pSignalSemaphores = &render_sem,
         };
 
-        vk_verify(vkQueueSubmit(
-            m_impl->device.get_graphics_queue(),
-            1,
-            &submit,
-            frame.in_flight
-        ));
+        vk_verify(vkQueueSubmit(m_impl->device.get_graphics_queue(), 1, &submit,
+                                frame.in_flight));
 
         VkSwapchainKHR swapchain = m_impl->swapchain.get_swapchain();
 
@@ -117,10 +117,8 @@ namespace mantle {
             .pImageIndices = &m_impl->image_index,
         };
 
-        VkResult result = vkQueuePresentKHR(
-            m_impl->device.get_present_queue(),
-            &present
-            );
+        VkResult result =
+            vkQueuePresentKHR(m_impl->device.get_present_queue(), &present);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
             m_impl->swapchain_dirty = true;
         }
@@ -128,8 +126,10 @@ namespace mantle {
             vk_verify(result);
         }
 
-        m_impl->current_frame = (m_impl->current_frame + 1) % Impl::frames_in_flight;
-        m_impl->acquire_index = (m_impl->acquire_index + 1) % static_cast<u32>(m_impl->acquire_semaphores.size());
+        m_impl->current_frame =
+            (m_impl->current_frame + 1) % Impl::frames_in_flight;
+        m_impl->acquire_index = (m_impl->acquire_index + 1) %
+            static_cast<u32>(m_impl->acquire_semaphores.size());
 
         if (m_impl->swapchain_dirty) {
             return Result::FrameNeedsResize;
@@ -141,7 +141,8 @@ namespace mantle {
         check(m_is_initialized);
         auto &frame = m_impl->frames[m_impl->current_frame];
 
-        VkImage image = m_impl->swapchain.get_images()[m_impl->image_index].image;
+        VkImage image =
+            m_impl->swapchain.get_images()[m_impl->image_index].image;
 
         VkImageMemoryBarrier barrier_to_attachment = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -152,24 +153,24 @@ namespace mantle {
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = image,
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-            },
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
         };
 
-        vkCmdPipelineBarrier(frame.cmd,
-                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             0, 0, nullptr, 0, nullptr,
-                             1, &barrier_to_attachment);
+        vkCmdPipelineBarrier(frame.cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0,
+                             0, nullptr, 0, nullptr, 1, &barrier_to_attachment);
 
         VkRenderingAttachmentInfo color_attachment = {
             .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-            .imageView = m_impl->swapchain.get_images()[m_impl->image_index].view,
+            .imageView =
+                m_impl->swapchain.get_images()[m_impl->image_index].view,
             .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -212,7 +213,8 @@ namespace mantle {
         auto &frame = m_impl->get_current_frame();
         vkCmdEndRendering(frame.cmd);
 
-        VkImage image = m_impl->swapchain.get_images()[m_impl->image_index].image;
+        VkImage image =
+            m_impl->swapchain.get_images()[m_impl->image_index].image;
 
         VkImageMemoryBarrier barrier_to_present = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -223,23 +225,24 @@ namespace mantle {
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = image,
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-            },
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
         };
 
         vkCmdPipelineBarrier(frame.cmd,
                              VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                             0, 0, nullptr, 0, nullptr,
-                             1, &barrier_to_present);
+                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0,
+                             nullptr, 0, nullptr, 1, &barrier_to_present);
     }
 
-    Renderer::Result Renderer::draw_mesh(MeshHandle handle, const glm::mat4 &model) const {
+    Renderer::Result Renderer::draw_mesh(MeshHandle handle,
+                                         const glm::mat4 &model) const {
         check(m_is_initialized);
         auto &frame = m_impl->get_current_frame();
         if (!m_impl->gpu_resource_manager.is_valid(handle)) {
@@ -247,8 +250,12 @@ namespace mantle {
         }
         auto &mesh = m_impl->gpu_resource_manager.m_impl->get_mesh_data(handle);
 
-        VkBuffer vb = m_impl->gpu_resource_manager.m_impl->vulkan_resources.get_buffer(mesh.vertex_buffer);
-        VkBuffer ib = m_impl->gpu_resource_manager.m_impl->vulkan_resources.get_buffer(mesh.index_buffer);
+        VkBuffer vb =
+            m_impl->gpu_resource_manager.m_impl->vulkan_resources.get_buffer(
+                mesh.vertex_buffer);
+        VkBuffer ib =
+            m_impl->gpu_resource_manager.m_impl->vulkan_resources.get_buffer(
+                mesh.index_buffer);
 
 
         VkDeviceSize offset = 0;
@@ -256,8 +263,9 @@ namespace mantle {
         vkCmdBindIndexBuffer(frame.cmd, ib, 0, VK_INDEX_TYPE_UINT32);
 
         glm::mat4 mvp = m_impl->projection * m_impl->view * model;
-        vkCmdPushConstants(frame.cmd, m_impl->graphics_pipeline.get_layout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
-                           sizeof(glm::mat4), &mvp);
+        vkCmdPushConstants(frame.cmd, m_impl->graphics_pipeline.get_layout(),
+                           VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
+                           &mvp);
 
         vkCmdDrawIndexed(frame.cmd, mesh.index_count, 1, 0, 0, 0);
 
@@ -275,12 +283,9 @@ namespace mantle {
 
         m_impl->swapchain.destroy();
         m_impl->swapchain.init(
-            device,
-            surface,
+            device, surface,
             m_impl->device.get_swapchain_support_details(surface),
-            m_impl->device.get_queue_families(),
-            width, height
-            );
+            m_impl->device.get_queue_families(), width, height);
 
         u32 new_count = static_cast<u32>(m_impl->swapchain.get_images().size());
         if (new_count != old_count) {

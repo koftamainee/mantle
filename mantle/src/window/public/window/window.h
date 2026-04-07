@@ -7,7 +7,7 @@
 
 namespace mantle {
     class Window final {
-    public:
+      public:
         struct Properties {
             struct Size {
                 u32 width;
@@ -18,7 +18,7 @@ namespace mantle {
             Size size;
         };
 
-    public:
+      public:
         Window() = default;
         ~Window();
 
@@ -43,7 +43,7 @@ namespace mantle {
 
         void set_resize_callback(std::function<void(u32, u32)> callback);
 
-    private:
+      private:
         bool m_is_initialized = false;
         GLFWwindow *m_native_window = nullptr;
 
@@ -51,4 +51,4 @@ namespace mantle {
 
         inline static u32 s_windows_count = 0;
     };
-}
+} // namespace mantle

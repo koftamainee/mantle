@@ -1,15 +1,16 @@
 #include "vulkan_graphics_pipeline.h"
 
-#include "vkassert.h"
+#include <array>
 #include "core/assert.h"
 #include "spdlog/spdlog.h"
-#include <array>
+#include "vkassert.h"
 
 #include "mesh/vertex.h"
 
 namespace mantle {
 
-    static VkShaderModule create_shader_module(VkDevice device, std::span<u32> spv) {
+    static VkShaderModule create_shader_module(VkDevice device,
+                                               std::span<u32> spv) {
         VkShaderModuleCreateInfo info = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = spv.size() * sizeof(u32),
@@ -26,7 +27,8 @@ namespace mantle {
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline() { destroy(); }
 
-    void VulkanGraphicsPipeline::init(VkDevice device, const Config &config, std::span<u32> spv) {
+    void VulkanGraphicsPipeline::init(VkDevice device, const Config &config,
+                                      std::span<u32> spv) {
         check(!m_is_initialized);
         m_device = device;
 
@@ -58,7 +60,8 @@ namespace mantle {
             .pushConstantRangeCount = 1,
             .pPushConstantRanges = &push_range,
         };
-        vk_verify(vkCreatePipelineLayout(device, &layout_info, nullptr, &m_pipeline_layout));
+        vk_verify(vkCreatePipelineLayout(device, &layout_info, nullptr,
+                                         &m_pipeline_layout));
 
 
         VkVertexInputBindingDescription binding = {
@@ -85,7 +88,8 @@ namespace mantle {
         };
 
         VkPipelineInputAssemblyStateCreateInfo input_assembly = {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .sType =
+                VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
             .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         };
         VkPipelineRasterizationStateCreateInfo rasterization = {
@@ -100,8 +104,9 @@ namespace mantle {
             .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
         };
         VkPipelineColorBlendAttachmentState blend_attachment = {
-            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
+                VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+                VK_COLOR_COMPONENT_A_BIT,
         };
         VkPipelineColorBlendStateCreateInfo color_blend = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -143,7 +148,8 @@ namespace mantle {
             .layout = m_pipeline_layout,
         };
 
-        vk_verify(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_pipeline));
+        vk_verify(vkCreateGraphicsPipelines(
+            device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_pipeline));
 
         destroy_shader_module(device, shader);
 
@@ -182,4 +188,4 @@ namespace mantle {
         return m_pipeline_layout;
     }
 
-}
+} // namespace mantle

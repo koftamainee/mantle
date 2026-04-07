@@ -8,4 +8,4 @@ namespace mantle {
 
         bool is_valid() const { return generation != 0; }
     };
-}
+} // namespace mantle

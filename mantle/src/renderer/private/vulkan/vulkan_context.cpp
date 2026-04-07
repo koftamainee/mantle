@@ -1,10 +1,10 @@
 #include "../vulkan/vulkan_context.h"
 
+#include <GLFW/glfw3.h>
 #include <core/assert.h>
-#include "vkassert.h"
 #include <cstring>
 #include <iostream>
-#include <GLFW/glfw3.h>
+#include "vkassert.h"
 
 #include <spdlog/spdlog.h>
 
@@ -13,11 +13,11 @@
 namespace {
 
 #ifdef ENABLE_VALIDATION_LAYERS
-    VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-        VkDebugUtilsMessageTypeFlagsEXT type,
-        const VkDebugUtilsMessengerCallbackDataEXT *p_callback_data,
-        void *p_user_data) {
+    VKAPI_ATTR VkBool32 VKAPI_CALL
+    debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+                   VkDebugUtilsMessageTypeFlagsEXT type,
+                   const VkDebugUtilsMessengerCallbackDataEXT *p_callback_data,
+                   void *p_user_data) {
 
         constexpr auto type_to_str =
             [](const VkDebugUtilsMessageTypeFlagsEXT t) -> const char * {
@@ -32,7 +32,8 @@ namespace {
             return "unknown";
         };
 
-        auto msg = fmt::format("[vulkan] [{}] {}", type_to_str(type), p_callback_data->pMessage);
+        auto msg = fmt::format("[vulkan] [{}] {}", type_to_str(type),
+                               p_callback_data->pMessage);
 
         switch (severity) {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
@@ -61,9 +62,7 @@ namespace {
 
 namespace mantle {
 
-    VulkanContext::~VulkanContext() {
-        destroy();
-    }
+    VulkanContext::~VulkanContext() { destroy(); }
 
     void VulkanContext::init(GLFWwindow *window) {
         check(!m_is_initialized);
@@ -91,13 +90,9 @@ namespace mantle {
         }
     }
 
-    VkInstance VulkanContext::get_instance() const {
-        return m_instance;
-    }
+    VkInstance VulkanContext::get_instance() const { return m_instance; }
 
-    VkSurfaceKHR VulkanContext::get_surface() const {
-        return m_surface;
-    }
+    VkSurfaceKHR VulkanContext::get_surface() const { return m_surface; }
 
     void VulkanContext::create_instance() {
         constexpr VkApplicationInfo app_info = {
@@ -110,21 +105,22 @@ namespace mantle {
             .apiVersion = VK_API_VERSION_1_3, // no 1.4 :(
         };
 
-        const std::vector<const char *> extensions = get_required_instance_extensions();
+        const std::vector<const char *> extensions =
+            get_required_instance_extensions();
 
 #ifndef ENABLE_VALIDATION_LAYERS
         const
 #endif
-        VkInstanceCreateInfo instance_create_info = {
-            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .pApplicationInfo = &app_info,
-            .enabledLayerCount = 0,
-            .ppEnabledLayerNames = nullptr,
-            .enabledExtensionCount = static_cast<u32>(extensions.size()),
-            .ppEnabledExtensionNames = extensions.data(),
-        };
+            VkInstanceCreateInfo instance_create_info = {
+                .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .pApplicationInfo = &app_info,
+                .enabledLayerCount = 0,
+                .ppEnabledLayerNames = nullptr,
+                .enabledExtensionCount = static_cast<u32>(extensions.size()),
+                .ppEnabledExtensionNames = extensions.data(),
+            };
 
 #ifdef ENABLE_VALIDATION_LAYERS
         const VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info =
@@ -136,7 +132,8 @@ namespace mantle {
         instance_create_info.ppEnabledLayerNames = ms_validation_layers.data();
 #endif
 
-        vk_verify(vkCreateInstance(&instance_create_info, nullptr, &m_instance));
+        vk_verify(
+            vkCreateInstance(&instance_create_info, nullptr, &m_instance));
         spdlog::info("Vulkan Instance Created");
     }
 
@@ -154,7 +151,8 @@ namespace mantle {
 
         const auto vk_create_debug_utils_messenger =
             reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
-                vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT"));
+                vkGetInstanceProcAddr(m_instance,
+                                      "vkCreateDebugUtilsMessengerEXT"));
 
         check(vk_create_debug_utils_messenger != nullptr);
 
@@ -163,7 +161,8 @@ namespace mantle {
 
         check_validation_layers();
 
-        vk_verify(vk_create_debug_utils_messenger(m_instance, &create_info, nullptr, &m_debug_messenger));
+        vk_verify(vk_create_debug_utils_messenger(m_instance, &create_info,
+                                                  nullptr, &m_debug_messenger));
         spdlog::info("Debug Messenger Created");
     }
 
@@ -173,10 +172,12 @@ namespace mantle {
 
             const auto vk_destroy_debug_utils_messenger =
                 reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
-                    vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
+                    vkGetInstanceProcAddr(m_instance,
+                                          "vkDestroyDebugUtilsMessengerEXT"));
 
             if (vk_destroy_debug_utils_messenger != nullptr) {
-                vk_destroy_debug_utils_messenger(m_instance, m_debug_messenger, nullptr);
+                vk_destroy_debug_utils_messenger(m_instance, m_debug_messenger,
+                                                 nullptr);
             }
 
             m_debug_messenger = VK_NULL_HANDLE;
@@ -188,7 +189,8 @@ namespace mantle {
     void VulkanContext::create_surface(GLFWwindow *glfw_window) {
         check(m_instance != VK_NULL_HANDLE);
 
-        fatal(glfwCreateWindowSurface(m_instance, glfw_window, nullptr, &m_surface) != VK_SUCCESS,
+        fatal(glfwCreateWindowSurface(m_instance, glfw_window, nullptr,
+                                      &m_surface) != VK_SUCCESS,
               "Failed to create surface");
 
         spdlog::info("Surface Created");
@@ -205,7 +207,8 @@ namespace mantle {
         }
     }
 
-    std::vector<const char *> VulkanContext::get_required_instance_extensions() {
+    std::vector<const char *>
+    VulkanContext::get_required_instance_extensions() {
         u32 glfw_extensions_count = 0;
         const char **glfw_extensions =
             glfwGetRequiredInstanceExtensions(&glfw_extensions_count);
@@ -213,10 +216,12 @@ namespace mantle {
         fatal(glfw_extensions_count == 0, "Failed to get GLFW extensions");
 
         u32 vk_extensions_count = 0;
-        vk_verify(vkEnumerateInstanceExtensionProperties(nullptr, &vk_extensions_count, nullptr));
+        vk_verify(vkEnumerateInstanceExtensionProperties(
+            nullptr, &vk_extensions_count, nullptr));
 
         std::vector<VkExtensionProperties> vk_extensions(vk_extensions_count);
-        vk_verify(vkEnumerateInstanceExtensionProperties(nullptr, &vk_extensions_count, vk_extensions.data()));
+        vk_verify(vkEnumerateInstanceExtensionProperties(
+            nullptr, &vk_extensions_count, vk_extensions.data()));
 
         for (u32 i = 0; i < glfw_extensions_count; i++) {
             bool found = false;
@@ -230,11 +235,13 @@ namespace mantle {
             fatal(!found, "Required GLFW extensions are not supported");
         }
 
-        std::vector<const char *> extensions(glfw_extensions, glfw_extensions + glfw_extensions_count);
+        std::vector<const char *> extensions(
+            glfw_extensions, glfw_extensions + glfw_extensions_count);
 
 #ifdef ENABLE_VALIDATION_LAYERS
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        spdlog::info("Validation layers are enabled. Enabling VK_EXT_debug_utils");
+        spdlog::info(
+            "Validation layers are enabled. Enabling VK_EXT_debug_utils");
 #endif
 
         return extensions;
@@ -242,19 +249,18 @@ namespace mantle {
 
 #ifdef ENABLE_VALIDATION_LAYERS
 
-    VkDebugUtilsMessengerCreateInfoEXT VulkanContext::make_debug_messenger_create_info_ext() {
+    VkDebugUtilsMessengerCreateInfoEXT
+    VulkanContext::make_debug_messenger_create_info_ext() {
         return {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .pNext = nullptr,
             .flags = 0,
-            .messageSeverity =
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-            .messageType =
-            VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
             .pfnUserCallback = &debug_callback,
             .pUserData = nullptr,
         };
@@ -262,10 +268,12 @@ namespace mantle {
 
     void VulkanContext::check_validation_layers() {
         u32 vk_layer_properties_count = 0;
-        vk_verify(vkEnumerateInstanceLayerProperties(&vk_layer_properties_count, nullptr));
+        vk_verify(vkEnumerateInstanceLayerProperties(&vk_layer_properties_count,
+                                                     nullptr));
 
         std::vector<VkLayerProperties> vk_layers(vk_layer_properties_count);
-        vk_verify(vkEnumerateInstanceLayerProperties(&vk_layer_properties_count, vk_layers.data()));
+        vk_verify(vkEnumerateInstanceLayerProperties(&vk_layer_properties_count,
+                                                     vk_layers.data()));
 
         for (auto const needed_layer : ms_validation_layers) {
             bool found = false;

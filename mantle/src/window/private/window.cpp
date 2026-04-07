@@ -1,13 +1,11 @@
-#include <window/window.h>
 #include <GLFW/glfw3.h>
+#include <window/window.h>
 
 #include <core/assert.h>
 
 
 namespace mantle {
-    Window::~Window() {
-        destroy();
-    }
+    Window::~Window() { destroy(); }
 
     void Window::init(const Properties &properties) {
         check(!m_is_initialized);
@@ -23,17 +21,18 @@ namespace mantle {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-        m_native_window = glfwCreateWindow(static_cast<int>(properties.size.width),
-                                           static_cast<int>(properties.size.height),
-                                           properties.title.c_str(), nullptr, nullptr);
+        m_native_window =
+            glfwCreateWindow(static_cast<int>(properties.size.width),
+                             static_cast<int>(properties.size.height),
+                             properties.title.c_str(), nullptr, nullptr);
 
         fatal(!m_native_window, "Failed to create GLFW window");
         s_windows_count++;
 
         glfwSetWindowUserPointer(m_native_window, this);
 
-        spdlog::info("Window created: {} ({}x{})",
-                     properties.title.c_str(), properties.size.width, properties.size.height);
+        spdlog::info("Window created: {} ({}x{})", properties.title.c_str(),
+                     properties.size.width, properties.size.height);
         m_is_initialized = true;
     }
 
@@ -62,13 +61,9 @@ namespace mantle {
         return glfwWindowShouldClose(m_native_window);
     }
 
-    u32 Window::get_width() const {
-        return get_size().width;
-    }
+    u32 Window::get_width() const { return get_size().width; }
 
-    u32 Window::get_height() const {
-        return get_size().height;
-    }
+    u32 Window::get_height() const { return get_size().height; }
 
     Window::Properties::Size Window::get_size() const {
         check(m_is_initialized);
@@ -97,11 +92,14 @@ namespace mantle {
 
     void Window::set_resize_callback(std::function<void(u32, u32)> callback) {
         m_resize_callback = std::move(callback);
-        glfwSetFramebufferSizeCallback(m_native_window, [](GLFWwindow *w, int width, int height) {
-            auto *window = static_cast<Window *>(glfwGetWindowUserPointer(w));
-            if (window->m_resize_callback) {
-                window->m_resize_callback(static_cast<u32>(width), static_cast<u32>(height));
-            }
-        });
+        glfwSetFramebufferSizeCallback(
+            m_native_window, [](GLFWwindow *w, int width, int height) {
+                auto *window =
+                    static_cast<Window *>(glfwGetWindowUserPointer(w));
+                if (window->m_resize_callback) {
+                    window->m_resize_callback(static_cast<u32>(width),
+                                              static_cast<u32>(height));
+                }
+            });
     }
-}
+} // namespace mantle

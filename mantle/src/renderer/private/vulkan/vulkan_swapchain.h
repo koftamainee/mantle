@@ -1,17 +1,17 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include <vector>
+#include <vulkan/vulkan.h>
 
-#include "vulkan_types.h"
 #include <GLFW/glfw3.h>
+#include "vulkan_types.h"
 
 #include "core/types.h"
 
 namespace mantle {
 
     class VulkanSwapchain final {
-    public:
+      public:
         VulkanSwapchain() = default;
         ~VulkanSwapchain();
 
@@ -25,12 +25,9 @@ namespace mantle {
             VkImageView view;
         };
 
-        void init(VkDevice device,
-                  VkSurfaceKHR surface,
+        void init(VkDevice device, VkSurfaceKHR surface,
                   const SwapchainSupportDetails &support_details,
-                  const QueueFamilyIndices &indices,
-                  u32 width,
-                  u32 height);
+                  const QueueFamilyIndices &indices, u32 width, u32 height);
 
         void destroy();
 
@@ -39,12 +36,16 @@ namespace mantle {
         VkExtent2D get_extent() const;
         VkSurfaceFormatKHR get_surface_format() const;
 
-    private:
-        static VkSurfaceFormatKHR pick_surface_format(const std::vector<VkSurfaceFormatKHR> &formats);
-        static VkExtent2D pick_extent(const VkSurfaceCapabilitiesKHR &capabilities, u32 width, u32 height);
-        static VkPresentModeKHR pick_present_mode(const std::vector<VkPresentModeKHR> &present_modes);
+      private:
+        static VkSurfaceFormatKHR
+        pick_surface_format(const std::vector<VkSurfaceFormatKHR> &formats);
+        static VkExtent2D
+        pick_extent(const VkSurfaceCapabilitiesKHR &capabilities, u32 width,
+                    u32 height);
+        static VkPresentModeKHR
+        pick_present_mode(const std::vector<VkPresentModeKHR> &present_modes);
 
-    private:
+      private:
         bool m_is_initialized = false;
 
         VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;

@@ -2,4 +2,4 @@
 
 namespace mantle {
     struct Voxel final {};
-}
+} // namespace mantle

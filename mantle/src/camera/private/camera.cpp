@@ -9,6 +9,6 @@ namespace mantle {
     }
 
     glm::mat4 Camera::projection() const {
-return glm::perspective(glm::radians(fov), aspect, near, far);
+        return glm::perspective(glm::radians(fov), aspect, near, far);
     }
-}
+} // namespace mantle

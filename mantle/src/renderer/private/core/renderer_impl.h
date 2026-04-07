@@ -2,13 +2,13 @@
 #include <vulkan/vulkan.h>
 #include "core/types.h"
 
-#include "vulkan/vulkan_device.h"
-#include "vulkan/vulkan_context.h"
-#include "vulkan/vulkan_graphics_pipeline.h"
-#include "resources/vulkan_resource_manager.h"
-#include "vulkan/vulkan_swapchain.h"
 #include "renderer/renderer.h"
 #include "resources/gpu_resource_manager_impl.h"
+#include "resources/vulkan_resource_manager.h"
+#include "vulkan/vulkan_context.h"
+#include "vulkan/vulkan_device.h"
+#include "vulkan/vulkan_graphics_pipeline.h"
+#include "vulkan/vulkan_swapchain.h"
 
 namespace mantle {
     struct FrameData final {
@@ -45,8 +45,8 @@ namespace mantle {
         void destroy_frames();
         FrameData &get_current_frame();
 
-    private:
+      private:
         void create_frame(FrameData &frame) const;
         void destroy_frame(FrameData &frame) const;
     };
-}
+} // namespace mantle

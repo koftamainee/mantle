@@ -12,21 +12,20 @@ namespace mantle {
             VulkanResourceManager::ResourceHandle index_buffer;
             u32 index_count = 0;
         };
-        MeshData& get_mesh_data(MeshHandle handle) {
+        MeshData &get_mesh_data(MeshHandle handle) {
             check(handle.id < meshes.size());
             check(handle.generation == generations[handle.id]);
             return meshes[handle.id];
         }
 
-        VulkanResourceManager& vulkan_resources;
-        VulkanDevice& device;
+        VulkanResourceManager &vulkan_resources;
+        VulkanDevice &device;
 
         std::vector<MeshData> meshes;
         std::vector<u32> free_list;
         std::vector<u32> generations;
 
-        Impl(VulkanResourceManager& vulkan_resources, VulkanDevice& device)
-            : vulkan_resources(vulkan_resources)
-            , device(device) {}
+        Impl(VulkanResourceManager &vulkan_resources, VulkanDevice &device) :
+            vulkan_resources(vulkan_resources), device(device) {}
     };
-}
+} // namespace mantle

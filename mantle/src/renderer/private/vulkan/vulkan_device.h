@@ -5,12 +5,12 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-#include "vulkan_types.h"
 #include "core/types.h"
+#include "vulkan_types.h"
 
 namespace mantle {
     class VulkanDevice final {
-    public:
+      public:
         VulkanDevice() = default;
         ~VulkanDevice();
 
@@ -24,34 +24,41 @@ namespace mantle {
 
         VkDevice get_device() const;
         VkPhysicalDevice get_physical_device() const;
-        SwapchainSupportDetails get_swapchain_support_details(VkSurfaceKHR surface) const;
+        SwapchainSupportDetails
+        get_swapchain_support_details(VkSurfaceKHR surface) const;
 
         u32 get_queue_family_index(VkQueueFlags queue_flags) const;
-        std::optional<u32> get_memory_type(u32 type_bits, VkMemoryPropertyFlags properties) const;
+        std::optional<u32>
+        get_memory_type(u32 type_bits, VkMemoryPropertyFlags properties) const;
         QueueFamilyIndices get_queue_families() const;
 
-        VkResult copy_buffer(VkBuffer src, VkBuffer dst, VkQueue queue, VkDeviceSize size, VkDeviceSize src_offset = 0,
+        VkResult copy_buffer(VkBuffer src, VkBuffer dst, VkQueue queue,
+                             VkDeviceSize size, VkDeviceSize src_offset = 0,
                              VkDeviceSize dst_offset = 0) const;
 
-        VkCommandPool create_command_pool(u32 queue_family_index,
-                                          VkCommandPoolCreateFlags create_flags =
-                                              VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) const;
+        VkCommandPool create_command_pool(
+            u32 queue_family_index,
+            VkCommandPoolCreateFlags create_flags =
+                VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) const;
 
-        VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, VkCommandPool pool, bool begin = false) const;
-        VkCommandBuffer create_command_buffer(VkCommandBufferLevel level, bool begin = false) const;
+        VkCommandBuffer create_command_buffer(VkCommandBufferLevel level,
+                                              VkCommandPool pool,
+                                              bool begin = false) const;
+        VkCommandBuffer create_command_buffer(VkCommandBufferLevel level,
+                                              bool begin = false) const;
 
-        void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, VkCommandPool pool,
+        void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue,
+                                  VkCommandPool pool, bool free = true) const;
+        void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue,
                                   bool free = true) const;
-        void flush_command_buffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true) const;
 
         VkCommandBuffer begin_single_time_commands(VkCommandPool pool) const;
         void end_single_time_commands(VkCommandBuffer command_buffer,
-                                     VkQueue queue,
-                                     VkCommandPool pool) const;
+                                      VkQueue queue, VkCommandPool pool) const;
 
         VkCommandBuffer begin_single_time_commands() const;
         void end_single_time_commands(VkCommandBuffer command_buffer,
-                                     VkQueue queue) const;
+                                      VkQueue queue) const;
 
         bool extension_supported(std::string_view extension) const;
         VkFormat get_supported_depth_format(bool check_sampling_support) const;
@@ -60,28 +67,27 @@ namespace mantle {
         VkQueue get_present_queue() const;
         VkQueue get_transfer_queue() const;
 
-    private:
+      private:
         void create_physical_device(VkInstance instance, VkSurfaceKHR surface);
         void destroy_physical_device();
 
         void create_logical_device(VkInstance instance);
         void destroy_logical_device();
 
-    private:
-        static bool is_physical_device_suitable(
-            VkPhysicalDevice physical_device,
-            VkSurfaceKHR surface,
-            QueueFamilyIndices &queue_family_indices
-            );
+      private:
+        static bool
+        is_physical_device_suitable(VkPhysicalDevice physical_device,
+                                    VkSurfaceKHR surface,
+                                    QueueFamilyIndices &queue_family_indices);
 
-        static bool is_physical_device_supports_required_extensions(VkPhysicalDevice physical_device);
+        static bool is_physical_device_supports_required_extensions(
+            VkPhysicalDevice physical_device);
 
-        static QueueFamilyIndices find_queue_families(
-            VkPhysicalDevice physical_device,
-            VkSurfaceKHR surface
-            );
+        static QueueFamilyIndices
+        find_queue_families(VkPhysicalDevice physical_device,
+                            VkSurfaceKHR surface);
 
-    private:
+      private:
         bool m_is_initialized = false;
 
         VkPhysicalDevice m_physical_device{};
@@ -101,11 +107,12 @@ namespace mantle {
         VkQueue m_transfer_queue{};
 
 
-    private:
+      private:
         inline static const std::vector<const char *> ms_device_extensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 #ifndef NDEBUG
-            VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME, // this is for vma debugging
+            VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME, // this is for vma
+                                                             // debugging
 #endif
         };
     };

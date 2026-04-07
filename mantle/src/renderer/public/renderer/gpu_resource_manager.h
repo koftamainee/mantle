@@ -10,11 +10,11 @@ namespace mantle {
     class VulkanDevice;
 
     class GPUResourceManager final {
-    public:
-        GPUResourceManager(const GPUResourceManager&) = delete;
-        GPUResourceManager& operator=(const GPUResourceManager&) = delete;
-        GPUResourceManager(GPUResourceManager&&) noexcept = delete;
-        GPUResourceManager& operator=(GPUResourceManager&&) noexcept = delete;
+      public:
+        GPUResourceManager(const GPUResourceManager &) = delete;
+        GPUResourceManager &operator=(const GPUResourceManager &) = delete;
+        GPUResourceManager(GPUResourceManager &&) noexcept = delete;
+        GPUResourceManager &operator=(GPUResourceManager &&) noexcept = delete;
 
         ~GPUResourceManager() = default;
 
@@ -24,7 +24,7 @@ namespace mantle {
 
         bool is_valid(MeshHandle handle) const;
 
-    private:
+      private:
         friend class Renderer;
 
         bool m_is_initialized = false;
@@ -32,8 +32,9 @@ namespace mantle {
         GPUResourceManager() = default;
 
         struct Impl;
-        void init(VulkanResourceManager& vulkan_resources, VulkanDevice& device);
+        void init(VulkanResourceManager &vulkan_resources,
+                  VulkanDevice &device);
 
         std::unique_ptr<Impl> m_impl;
     };
-}
+} // namespace mantle

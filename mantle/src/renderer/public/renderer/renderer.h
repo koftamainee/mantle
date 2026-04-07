@@ -1,14 +1,14 @@
 #pragma once
 #include <memory>
-#include "renderer/gpu_resource_manager.h"
 #include "core/types.h"
+#include "renderer/gpu_resource_manager.h"
 
 namespace mantle {
 
     class Window;
 
     class Renderer final {
-    public:
+      public:
         enum class Result {
             Ok,
             FrameNeedsResize,
@@ -26,7 +26,8 @@ namespace mantle {
         void init(const Window &window);
         void destroy();
 
-        void set_camera(const glm::mat4 &view, const glm::mat4 &projection) const;
+        void set_camera(const glm::mat4 &view,
+                        const glm::mat4 &projection) const;
 
         Result begin_frame() const;
         Result end_frame() const;
@@ -38,9 +39,9 @@ namespace mantle {
 
         void resize(u32 width, u32 height) const;
 
-        GPUResourceManager& get_resource_manager() const;
+        GPUResourceManager &get_resource_manager() const;
 
-    private:
+      private:
         bool m_is_initialized = false;
 
         struct Impl;

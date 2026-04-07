@@ -4,14 +4,11 @@
 
 namespace mantle {
     class DeletionQueue {
-    public:
+      public:
         template <typename F>
         void push(F &&fn) {
             m_deletors.emplace_back(
-                [fn = std::forward<F>(fn)]() mutable {
-                    fn();
-                }
-                );
+                [fn = std::forward<F>(fn)]() mutable { fn(); });
         }
 
         void flush() {
@@ -21,7 +18,7 @@ namespace mantle {
             m_deletors.clear();
         }
 
-    private:
+      private:
         std::vector<std::function<void()>> m_deletors;
     };
-}
+} // namespace mantle

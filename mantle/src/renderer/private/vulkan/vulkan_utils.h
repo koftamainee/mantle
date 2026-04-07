@@ -7,4 +7,3 @@
 namespace mantle {
     std::vector<u32> load_spv(std::string_view path);
 }
-

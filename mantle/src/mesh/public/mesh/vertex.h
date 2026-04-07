@@ -6,4 +6,4 @@ namespace mantle {
         glm::vec3 position;
         glm::vec3 normal;
     };
-}
+} // namespace mantle

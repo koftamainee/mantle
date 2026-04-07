@@ -1,12 +1,12 @@
 #pragma once
 #include <span>
-#include "core/types.h"
 #include <string_view>
 #include <vulkan/vulkan_core.h>
+#include "core/types.h"
 
 namespace mantle {
     class VulkanGraphicsPipeline final {
-    public:
+      public:
         struct Config final {
             std::string_view vert_entry = "vert_main";
             std::string_view frag_entry = "frag_main";
@@ -17,9 +17,11 @@ namespace mantle {
         ~VulkanGraphicsPipeline();
 
         VulkanGraphicsPipeline(const VulkanGraphicsPipeline &) = delete;
-        VulkanGraphicsPipeline &operator=(const VulkanGraphicsPipeline &) = delete;
+        VulkanGraphicsPipeline &
+        operator=(const VulkanGraphicsPipeline &) = delete;
         VulkanGraphicsPipeline(VulkanGraphicsPipeline &&) noexcept = delete;
-        VulkanGraphicsPipeline &operator=(VulkanGraphicsPipeline &&) noexcept = delete;
+        VulkanGraphicsPipeline &
+        operator=(VulkanGraphicsPipeline &&) noexcept = delete;
 
         void init(VkDevice device, const Config &config, std::span<u32> spv);
         void destroy();
@@ -29,11 +31,11 @@ namespace mantle {
         VkPipeline get_pipeline() const;
         VkPipelineLayout get_layout() const;
 
-    private:
+      private:
         bool m_is_initialized = false;
 
         VkDevice m_device{};
         VkPipeline m_pipeline{};
         VkPipelineLayout m_pipeline_layout{};
     };
-}
+} // namespace mantle

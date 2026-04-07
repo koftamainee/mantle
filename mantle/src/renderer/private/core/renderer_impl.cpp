@@ -1,9 +1,9 @@
 #include "renderer_impl.h"
 
 #include <spdlog/spdlog.h>
+#include "core/assert.h"
 #include "vulkan/vkassert.h"
 #include "vulkan/vulkan_utils.h"
-#include "core/assert.h"
 #include "window/window.h"
 
 namespace mantle {
@@ -14,9 +14,11 @@ namespace mantle {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
             .flags = VK_FENCE_CREATE_SIGNALED_BIT,
         };
-        vk_verify(vkCreateFence(vkdevice, &fence_info, nullptr, &frame.in_flight));
+        vk_verify(
+            vkCreateFence(vkdevice, &fence_info, nullptr, &frame.in_flight));
 
-        frame.cmd = device.create_command_buffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, false);
+        frame.cmd = device.create_command_buffer(
+            VK_COMMAND_BUFFER_LEVEL_PRIMARY, false);
     }
 
     void Renderer::Impl::destroy_frame(FrameData &frame) const {
@@ -41,8 +43,8 @@ namespace mantle {
         auto [width, height] = window.get_framebuffer_size();
 
         swapchain.init(vkdevice, surface,
-                               device.get_swapchain_support_details(surface),
-                               device.get_queue_families(), width, height);
+                       device.get_swapchain_support_details(surface),
+                       device.get_queue_families(), width, height);
         create_frames();
 
         VulkanGraphicsPipeline::Config pipeline_cfg = {
@@ -84,10 +86,12 @@ namespace mantle {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
         };
         for (auto &sem : acquire_semaphores) {
-            vk_verify(vkCreateSemaphore(device.get_device(), &sem_info, nullptr, &sem));
+            vk_verify(vkCreateSemaphore(device.get_device(), &sem_info, nullptr,
+                                        &sem));
         }
         for (auto &sem : render_semaphores) {
-            vk_verify(vkCreateSemaphore(device.get_device(), &sem_info, nullptr, &sem));
+            vk_verify(vkCreateSemaphore(device.get_device(), &sem_info, nullptr,
+                                        &sem));
         }
 
         spdlog::info("FrameData object are created");
@@ -119,4 +123,4 @@ namespace mantle {
     FrameData &Renderer::Impl::get_current_frame() {
         return frames[current_frame];
     }
-}
+} // namespace mantle

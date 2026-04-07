@@ -1,6 +1,6 @@
 #pragma once
-#include <vector>
 #include <cstdint>
+#include <vector>
 #include "core/types.h"
 
 #include "vertex.h"
@@ -10,4 +10,4 @@ namespace mantle {
         std::vector<Vertex> vertices;
         std::vector<u32> indices;
     };
-}
+} // namespace mantle
