@@ -1,1 +1,1 @@
-mantle_module(NAME math DEPS core)
+mantle_module(NAME math DEPS core glm)
