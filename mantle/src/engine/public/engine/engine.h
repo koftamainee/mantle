@@ -30,7 +30,9 @@ namespace mantle {
         f32 m_mouse_x = 0.0f;
         f32 m_mouse_y = 0.0f;
 
-        static constexpr f32 m_camera_speed = 100.0f;
+        f32 m_camera_speed = m_base_camera_speed;
+
+        static constexpr f32 m_base_camera_speed = 100.0f;
         static constexpr f32 m_mouse_sensitivity = 0.5f;
     };
 } // namespace mantle

@@ -1,7 +1,7 @@
 #include <GLFW/glfw3.h>
-#include <window/window.h>
 #include <array>
 #include <utility>
+#include <window/window.h>
 
 #include <core/assert.h>
 
@@ -66,16 +66,19 @@ namespace mantle {
 
     bool Window::is_key_pressed(Key key) const {
         check(m_is_initialized);
-        std::array<int, 6> glfw_keys = {GLFW_KEY_W,     GLFW_KEY_A,
-                                GLFW_KEY_S,     GLFW_KEY_D,
-                                GLFW_KEY_SPACE, GLFW_KEY_LEFT_SHIFT};
+        // MSVC is garbage that can's deduce this template argument...
+        std::array<int, 7> glfw_keys = {
+            GLFW_KEY_W,           GLFW_KEY_A,     GLFW_KEY_S,
+            GLFW_KEY_D,           GLFW_KEY_SPACE, GLFW_KEY_LEFT_SHIFT,
+            GLFW_KEY_LEFT_CONTROL};
         return glfwGetKey(m_native_window,
                           glfw_keys[std::to_underlying(key)]) == GLFW_PRESS;
     }
 
     bool Window::is_mouse_button_pressed(MouseButton mouse_button) const {
-        std::array<int, 3> glfw_mb = {GLFW_MOUSE_BUTTON_LEFT, GLFW_MOUSE_BUTTON_MIDDLE,
-                              GLFW_MOUSE_BUTTON_RIGHT};
+        std::array<int, 3> glfw_mb = {GLFW_MOUSE_BUTTON_LEFT,
+                                      GLFW_MOUSE_BUTTON_MIDDLE,
+                                      GLFW_MOUSE_BUTTON_RIGHT};
         return glfwGetMouseButton(m_native_window,
                                   glfw_mb[std::to_underlying(mouse_button)]) ==
             GLFW_PRESS;

@@ -28,6 +28,7 @@ namespace mantle {
             D,
             Space,
             Shift,
+            Ctrl,
         };
 
         enum class MouseButton {

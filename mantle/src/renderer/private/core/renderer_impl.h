@@ -47,11 +47,11 @@ namespace mantle {
         void create_frames();
         void destroy_frames();
         FrameData &get_current_frame();
+        void create_depth_image(u32 width, u32 height);
+        void destroy_depth_image();
 
       private:
         void create_frame(FrameData &frame) const;
         void destroy_frame(FrameData &frame) const;
-        void create_depth_image(u32 width, u32 height);
-        void destroy_depth_image();
     };
 } // namespace mantle

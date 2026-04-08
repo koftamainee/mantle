@@ -310,6 +310,8 @@ namespace mantle {
 
         vkDeviceWaitIdle(device);
 
+        m_impl->destroy_depth_image();
+
         u32 old_count = static_cast<u32>(m_impl->acquire_semaphores.size());
 
         m_impl->swapchain.destroy();
@@ -318,6 +320,11 @@ namespace mantle {
             m_impl->device.get_swapchain_support_details(surface),
             m_impl->device.get_queue_families(), width, height);
 
+         m_impl->create_depth_image(width, height);
+
+        // NOTE: I don't sure if this needed
+        // This code handles case when image count in swapchain changes between recreations
+        // This probably not gonna happen ever, but it useful to have
         u32 new_count = static_cast<u32>(m_impl->swapchain.get_images().size());
         if (new_count != old_count) {
             for (auto &sem : m_impl->acquire_semaphores) {

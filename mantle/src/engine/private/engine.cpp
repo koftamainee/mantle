@@ -51,9 +51,9 @@ namespace mantle {
                 resources.upload_mesh(mesh.vertices, mesh.indices));
         };
 
-        for (i32 x = -2; x < 2; x++) {
-            for (i32 y = -2; y < 0; y++) {
-                for (i32 z = -2; z < 2; z++) {
+        for (i32 x = -5; x < 5; x++) {
+            for (i32 y = -5; y < 5; y++) {
+                for (i32 z = -5; z < 5; z++) {
                     m_world.generate_chunk({x, y, z});
                 }
             }
@@ -119,6 +119,11 @@ namespace mantle {
         if (m_window.is_key_pressed(Window::Key::Space)) {
             m_camera.position += Camera::world_up * m_camera_speed * delta_time;
         }
+        if (m_window.is_key_pressed(Window::Key::Ctrl)) {
+            m_camera_speed = m_base_camera_speed * 2;
+        } else {
+            m_camera_speed = m_base_camera_speed;
+        }
     }
 
     void Engine::render() {
@@ -136,7 +141,7 @@ namespace mantle {
         for (i32 i = 0; i < m_meshes.size(); i++) {
             result = m_renderer.draw_mesh(m_meshes[i], m_models[i]);
             if (result == Renderer::Result::InvalidMeshHandle) {
-                spdlog::critical("Invalid mesh handle. Should be unreachable");
+                spdlog::error("Invalid mesh handle. Should be unreachable");
                 break;
             }
         }
