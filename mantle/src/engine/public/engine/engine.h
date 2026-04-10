@@ -10,6 +10,8 @@
 #include <queue>
 #include <unordered_map>
 
+#include "core/memory/arena_allocator.h"
+#include "core/memory/virtual_heap.h"
 #include "world/chunk_storage.h"
 
 namespace mantle {
@@ -29,7 +31,11 @@ namespace mantle {
         Renderer m_renderer{};
         Camera m_camera{};
 
-        ChunkStorage m_chunk_storage;
+        ChunkStorage m_chunk_storage{};
+
+        OSMemory m_os_memory;
+        VirtualHeap m_heap;
+        ArenaAllocator m_scratch_arena;
 
         struct ChunkRenderData {
             MeshHandle mesh{};

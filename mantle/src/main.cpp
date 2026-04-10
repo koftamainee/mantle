@@ -1,3 +1,4 @@
+#include "core/memory/virtual_heap.h"
 #include "engine/engine.h"
 #include "spdlog/spdlog.h"
 int main() {
@@ -11,5 +12,6 @@ int main() {
     engine.init();
     engine.run();
     engine.destroy();
+
     return 0;
 }

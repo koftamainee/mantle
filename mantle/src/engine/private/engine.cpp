@@ -16,12 +16,19 @@
 namespace mantle {
     void Engine::init() {
         check(!m_is_initialized);
+
+        m_os_memory.init();
+        m_heap.init(m_os_memory, 2u * 1024 * 1024 * 1024); // 2GB
+        m_scratch_arena.init(m_heap, 1u * 1024 * 1024); // 1 MB
+
         Window::Properties prop = {
             .title = "Mantle",
             .size = {.width = 2560, .height = 1600},
         };
+        // there is nothing we can do about allocations inside glfw
         m_window.init(prop);
-        m_renderer.init(m_window);
+
+        m_renderer.init(m_window, &m_heap, &m_scratch_arena);
 
         m_camera.aspect = static_cast<f32>(prop.size.width) /
             static_cast<f32>(prop.size.height);
@@ -53,7 +60,7 @@ namespace mantle {
         };
 
 
-        //TODO: carry out this logic to chunk streamer system
+        // TODO: carry out this logic to chunk streamer system
         for (i32 x = -5; x < 5; x++) {
             for (i32 y = -1; y < 5; y++) {
                 for (i32 z = -5; z < 5; z++) {
@@ -142,7 +149,7 @@ namespace mantle {
             glm::ivec3 pos = m_dirty_chunks.front();
             m_dirty_chunks.pop();
 
-            Chunk & chunk = m_chunk_storage.chunks[index(pos.x, pos.y, pos.z)];
+            Chunk &chunk = m_chunk_storage.chunks[index(pos.x, pos.y, pos.z)];
             if (!chunk.is_dirty) {
                 continue;
             }
@@ -162,13 +169,14 @@ namespace mantle {
             auto &resources = m_renderer.get_resource_manager();
             resources.destroy_mesh(render_data.mesh);
 
-            render_data.mesh = resources.upload_mesh(
-                mesh.vertices, mesh.indices);
+            render_data.mesh =
+                resources.upload_mesh(mesh.vertices, mesh.indices);
 
             render_data.model = glm::translate(glm::mat4{1.0f}, world_pos);
 
-            render_data.aabb = {
-                world_pos, world_pos + static_cast<f32>(Chunk::Data::chunk_size)};
+            render_data.aabb = {world_pos,
+                                world_pos +
+                                    static_cast<f32>(Chunk::Data::chunk_size)};
 
             processed++;
         }

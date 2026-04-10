@@ -7,7 +7,7 @@ namespace mantle {
     class OSMemory final {
       public:
         OSMemory() = default;
-        ~OSMemory() = default;
+        ~OSMemory();
 
         OSMemory(const OSMemory &) = delete;
         OSMemory &operator=(const OSMemory &) = delete;
@@ -15,6 +15,7 @@ namespace mantle {
         OSMemory &operator=(OSMemory &&) = delete;
 
         void init();
+        void destroy();
 
         void *reserve(usize size) const;
         void commit(void *ptr, usize size) const;

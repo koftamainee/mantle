@@ -10,6 +10,9 @@
 #include "vulkan/vulkan_graphics_pipeline.h"
 #include "vulkan/vulkan_swapchain.h"
 
+#include "core/memory/arena_resource.h"
+#include "core/memory/persistent_resource.h"
+
 namespace mantle {
     struct FrameData final {
         VkCommandBuffer cmd;
@@ -17,6 +20,10 @@ namespace mantle {
     };
 
     struct Renderer::Impl final {
+        VirtualHeap *heap = nullptr;
+        ArenaAllocator *scratch_arena = nullptr;
+        PersistentResource persistent_resource;
+
         VulkanContext graphics_context;
         VulkanDevice device;
         VulkanResourceManager resource_manager;
@@ -24,9 +31,9 @@ namespace mantle {
         VulkanGraphicsPipeline graphics_pipeline;
         GPUResourceManager gpu_resource_manager;
 
-        std::vector<FrameData> frames;
-        std::vector<VkSemaphore> acquire_semaphores;
-        std::vector<VkSemaphore> render_semaphores;
+        std::pmr::vector<FrameData> frames;
+        std::pmr::vector<VkSemaphore> acquire_semaphores;
+        std::pmr::vector<VkSemaphore> render_semaphores;
 
         VulkanResourceManager::ResourceHandle depth_image;
         VkImageView depth_view;
@@ -41,7 +48,8 @@ namespace mantle {
 
         static constexpr u8 frames_in_flight = 2;
 
-        void init(const Window &window);
+        void init(const Window &window, VirtualHeap *in_heap,
+                  ArenaAllocator *in_scratch_arena);
         void destroy();
 
         void create_frames();

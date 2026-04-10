@@ -1,5 +1,6 @@
 #pragma once
-#include <memory>
+#include "core/memory/arena_allocator.h"
+#include "core/memory/virtual_heap.h"
 #include "core/types.h"
 #include "renderer/gpu_resource_manager.h"
 
@@ -23,7 +24,7 @@ namespace mantle {
         Renderer(Renderer &&) noexcept = delete;
         Renderer &operator=(Renderer &&) noexcept = delete;
 
-        void init(const Window &window);
+        void init(const Window &window, VirtualHeap *heap, ArenaAllocator *scratch_arena);
         void destroy();
 
         void set_camera(const glm::mat4 &view,
@@ -45,7 +46,7 @@ namespace mantle {
         bool m_is_initialized = false;
 
         struct Impl;
-        std::unique_ptr<Impl> m_impl;
+        Impl *m_impl = nullptr;
     };
 
 } // namespace mantle

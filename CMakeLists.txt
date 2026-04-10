@@ -25,6 +25,8 @@ endif()
 add_compile_definitions(
         GLM_FORCE_DEPTH_ZERO_TO_ONE
         GLM_FORCE_RIGHT_HANDED
+
+        MANTLE_DEBUG
 )
 
 function(mantle_module)

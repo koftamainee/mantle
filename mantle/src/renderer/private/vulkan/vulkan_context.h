@@ -2,8 +2,11 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <array>
 #include <vector>
 #include <vulkan/vulkan.h>
+
+#include "core/memory/arena_allocator.h"
 
 #ifndef NDEBUG
 #define ENABLE_VALIDATION_LAYERS
@@ -20,7 +23,7 @@ namespace mantle {
         VulkanContext(VulkanContext &&) noexcept = delete;
         VulkanContext &operator=(VulkanContext &&) noexcept = delete;
 
-        void init(GLFWwindow *window);
+        void init(GLFWwindow *window, ArenaAllocator *scratch_arena);
         void destroy();
 
         VkInstance get_instance() const;
@@ -39,16 +42,18 @@ namespace mantle {
         void destroy_surface();
 
       private:
-        static std::vector<const char *> get_required_instance_extensions();
+        static std::pmr::vector<const char *> get_required_instance_extensions(std::pmr::memory_resource &resource);
 
 #ifdef ENABLE_VALIDATION_LAYERS
         static VkDebugUtilsMessengerCreateInfoEXT
         make_debug_messenger_create_info_ext();
-        static void check_validation_layers();
+        static void check_validation_layers(std::pmr::memory_resource &memory);
 #endif
 
       private:
         bool m_is_initialized = false;
+
+        ArenaAllocator *m_scratch_arena = nullptr;
 
 #ifdef ENABLE_VALIDATION_LAYERS
         VkDebugUtilsMessengerEXT m_debug_messenger = VK_NULL_HANDLE;
@@ -59,7 +64,7 @@ namespace mantle {
 
       private:
 #ifdef ENABLE_VALIDATION_LAYERS
-        inline static const std::vector<const char *> ms_validation_layers{
+        static constexpr std::array<const char *, 2> ms_validation_layers{
             "VK_LAYER_KHRONOS_validation",
             "VK_LAYER_MANGOHUD_overlay_x86_64",
         };

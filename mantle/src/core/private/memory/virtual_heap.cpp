@@ -20,7 +20,6 @@ namespace mantle {
 
     void VirtualHeap::destroy() {
         if (m_is_initialized) {
-
             m_os->release(m_base, m_reserved);
 
             m_os = nullptr;
@@ -31,12 +30,16 @@ namespace mantle {
         }
     }
 
-    void *VirtualHeap::take(usize size) {
+    void *VirtualHeap::take(usize size, usize align) {
         check(m_is_initialized);
         check(m_used + size <= m_reserved);
 
-        void *ptr = static_cast<u8 *>(m_base) + m_used;
-        m_used += size;
+        usize aligned_used = (m_used + (align - 1)) & ~(align - 1);
+        check(aligned_used + size <= m_reserved);
+
+        void *ptr = static_cast<u8 *>(m_base) + aligned_used;
+        m_os->commit(ptr, size);
+        m_used = aligned_used + size;
         return ptr;
     }
 

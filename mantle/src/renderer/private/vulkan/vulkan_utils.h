@@ -5,5 +5,5 @@
 #include "core/types.h"
 
 namespace mantle {
-    std::vector<u32> load_spv(std::string_view path);
+    void load_spv(std::string_view path, std::pmr::vector<u32> &out);
 }

@@ -1,24 +1,25 @@
 #include <core/assert.h>
 #include <renderer/renderer.h>
 #include <spdlog/spdlog.h>
-#include "../vulkan/vulkan_context.h"
-#include "../vulkan/vulkan_device.h"
-#include "../vulkan/vulkan_swapchain.h"
+#include "vulkan/vulkan_context.h"
+#include "vulkan/vulkan_device.h"
+#include "vulkan/vulkan_swapchain.h"
 
 #include "renderer_impl.h"
 
-#include "../vulkan/vkassert.h"
+#include "vulkan/vkassert.h"
 
 namespace mantle {
 
     Renderer::Renderer() = default;
     Renderer::~Renderer() { destroy(); }
 
-    void Renderer::init(const Window &window) {
+    void Renderer::init(const Window &window, VirtualHeap *heap, ArenaAllocator *scratch_arena) {
         check(!m_is_initialized);
+        check(heap != nullptr);
 
-        m_impl = std::make_unique<Impl>();
-        m_impl->init(window);
+        m_impl = heap->emplace<Impl>();
+        m_impl->init(window, heap, scratch_arena);
 
         m_is_initialized = true;
         spdlog::info("Renderer Initialized");
@@ -28,7 +29,7 @@ namespace mantle {
         if (m_is_initialized) {
 
             m_impl->destroy();
-            m_impl.reset();
+            m_impl->~Impl();
 
             spdlog::info("Renderer Destroyed");
             m_is_initialized = false;
@@ -327,6 +328,7 @@ namespace mantle {
         // This probably not gonna happen ever, but it useful to have
         u32 new_count = static_cast<u32>(m_impl->swapchain.get_images().size());
         if (new_count != old_count) {
+            spdlog::warn("POTENTIAL MEMORY LEAK. using virtual heap memory resource to recreate objects");
             for (auto &sem : m_impl->acquire_semaphores) {
                 vkDestroySemaphore(device, sem, nullptr);
             }

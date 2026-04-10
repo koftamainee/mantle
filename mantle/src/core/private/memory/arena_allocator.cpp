@@ -5,30 +5,21 @@ namespace mantle {
 
     ArenaAllocator::~ArenaAllocator() { destroy(); }
 
-    void ArenaAllocator::init(OSMemory &os, VirtualHeap &heap, usize size) {
+    void ArenaAllocator::init(VirtualHeap &heap, usize size) {
         check(!m_is_initialized);
         check(size > 0);
 
-        m_os = &os;
         m_base = heap.take(size);
         m_size = size;
         m_offset = 0;
-        m_committed = 0;
         m_is_initialized = true;
     }
 
     void ArenaAllocator::destroy() {
         if (m_is_initialized) {
-
-            if (m_committed > 0) {
-                m_os->decommit(m_base, m_committed);
-            }
-
-            m_os = nullptr;
             m_base = nullptr;
             m_size = 0;
             m_offset = 0;
-            m_committed = 0;
             m_is_initialized = false;
         }
     }
@@ -40,20 +31,6 @@ namespace mantle {
         usize new_offset = aligned_offset + size;
 
         check(new_offset <= m_size);
-
-        if (new_offset > m_committed) {
-            usize page = m_os->page_size();
-            usize needed = new_offset - m_committed;
-            usize pages = (needed + page - 1) / page;
-            usize to_commit = pages * page;
-
-            to_commit = (m_committed + to_commit > m_size)
-                ? m_size - m_committed
-                : to_commit;
-
-            m_os->commit(static_cast<u8 *>(m_base) + m_committed, to_commit);
-            m_committed += to_commit;
-        }
 
         void *ptr = static_cast<u8 *>(m_base) + aligned_offset;
         m_offset = new_offset;

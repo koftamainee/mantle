@@ -7,6 +7,69 @@
 #include "window/window.h"
 
 namespace mantle {
+    void Renderer::Impl::init(const Window &window, VirtualHeap *in_heap,
+                              ArenaAllocator *in_scratch_arena) {
+        heap = in_heap;
+        scratch_arena = in_scratch_arena;
+        graphics_context.init(window.get_native_window(), scratch_arena);
+        VkInstance instance = graphics_context.get_instance();
+        VkSurfaceKHR surface = graphics_context.get_surface();
+
+        device.init(graphics_context.get_instance(), surface);
+        VkDevice vkdevice = device.get_device();
+        VkPhysicalDevice physical_device = device.get_physical_device();
+
+        resource_manager.init(physical_device, vkdevice, instance);
+
+        auto [width, height] = window.get_framebuffer_size();
+
+        swapchain.init(vkdevice, surface,
+                       device.get_swapchain_support_details(surface),
+                       device.get_queue_families(), width, height);
+
+
+        persistent_resource = PersistentResource(heap);
+
+        frames = std::pmr::vector<FrameData>(&persistent_resource);
+        acquire_semaphores =
+            std::pmr::vector<VkSemaphore>(&persistent_resource);
+        render_semaphores = std::pmr::vector<VkSemaphore>(&persistent_resource);
+
+        create_frames();
+
+        VulkanGraphicsPipeline::Config pipeline_cfg = {
+            .vert_entry = "vert_main",
+            .frag_entry = "frag_main",
+            .color_format = swapchain.get_surface_format().format,
+        };
+
+        ArenaAllocator::Marker tag = scratch_arena->save();
+        ArenaResource resource(scratch_arena);
+        std::pmr::vector<u32> spv(&resource);
+
+        load_spv("assets/shaders/flat.spv", spv);
+
+        graphics_pipeline.init(vkdevice, pipeline_cfg, spv);
+
+        scratch_arena->restore(tag);
+
+        gpu_resource_manager.init(resource_manager, device);
+
+        create_depth_image(width, height);
+    }
+
+    void Renderer::Impl::destroy() {
+        vkDeviceWaitIdle(device.get_device());
+
+        destroy_depth_image();
+        graphics_pipeline.destroy();
+        destroy_frames();
+        swapchain.destroy();
+        resource_manager.destroy();
+        device.destroy();
+        graphics_context.destroy();
+    }
+
     void Renderer::Impl::create_frame(FrameData &frame) const {
         VkDevice vkdevice = device.get_device();
 
@@ -56,57 +119,11 @@ namespace mantle {
 
         vk_verify(vkCreateImageView(device.get_device(), &view_create_info,
                                     nullptr, &depth_view));
-
     }
     void Renderer::Impl::destroy_depth_image() {
         vkDestroyImageView(device.get_device(), depth_view, nullptr);
         resource_manager.destroy_image(depth_image, true);
         depth_view = VK_NULL_HANDLE;
-    }
-
-    void Renderer::Impl::init(const Window &window) {
-        graphics_context.init(window.get_native_window());
-        VkInstance instance = graphics_context.get_instance();
-        VkSurfaceKHR surface = graphics_context.get_surface();
-
-        device.init(graphics_context.get_instance(), surface);
-        VkDevice vkdevice = device.get_device();
-        VkPhysicalDevice physical_device = device.get_physical_device();
-
-        resource_manager.init(physical_device, vkdevice, instance);
-
-        auto [width, height] = window.get_framebuffer_size();
-
-        swapchain.init(vkdevice, surface,
-                       device.get_swapchain_support_details(surface),
-                       device.get_queue_families(), width, height);
-        create_frames();
-
-        VulkanGraphicsPipeline::Config pipeline_cfg = {
-            .vert_entry = "vert_main",
-            .frag_entry = "frag_main",
-            .color_format = swapchain.get_surface_format().format,
-        };
-
-        std::vector<u32> spv = load_spv("assets/shaders/flat.spv");
-
-        graphics_pipeline.init(vkdevice, pipeline_cfg, spv);
-
-        gpu_resource_manager.init(resource_manager, device);
-
-        create_depth_image(width, height);
-    }
-
-    void Renderer::Impl::destroy() {
-        vkDeviceWaitIdle(device.get_device());
-
-        destroy_depth_image();
-        graphics_pipeline.destroy();
-        destroy_frames();
-        swapchain.destroy();
-        resource_manager.destroy();
-        device.destroy();
-        graphics_context.destroy();
     }
 
     void Renderer::Impl::create_frames() {

@@ -5,7 +5,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "vkassert.h"
+#include "core/memory/arena_resource.h"
 
 namespace {
 
@@ -61,8 +61,11 @@ namespace mantle {
 
     VulkanContext::~VulkanContext() { destroy(); }
 
-    void VulkanContext::init(GLFWwindow *window) {
+    void VulkanContext::init(GLFWwindow *window,
+                             ArenaAllocator *scratch_arena) {
         check(!m_is_initialized);
+
+        m_scratch_arena = scratch_arena;
 
         create_instance();
 
@@ -102,8 +105,11 @@ namespace mantle {
             .apiVersion = VK_API_VERSION_1_3, // no 1.4 :(
         };
 
-        const std::vector<const char *> extensions =
-            get_required_instance_extensions();
+        ArenaAllocator::Marker tag = m_scratch_arena->save();
+        ArenaResource resource(m_scratch_arena);
+
+        const std::pmr::vector<const char *> extensions =
+            get_required_instance_extensions(resource);
 
 #ifndef ENABLE_VALIDATION_LAYERS
         const
@@ -131,6 +137,7 @@ namespace mantle {
 
         vk_verify(
             vkCreateInstance(&instance_create_info, nullptr, &m_instance));
+        m_scratch_arena->restore(tag); // used for storing extensions
         spdlog::info("Vulkan Instance Created");
     }
 
@@ -156,7 +163,12 @@ namespace mantle {
         const VkDebugUtilsMessengerCreateInfoEXT create_info =
             make_debug_messenger_create_info_ext();
 
-        check_validation_layers();
+        ArenaAllocator::Marker tag = m_scratch_arena->save();
+        ArenaResource resource(m_scratch_arena);
+
+        check_validation_layers(resource);
+
+        m_scratch_arena->restore(tag);
 
         vk_verify(vk_create_debug_utils_messenger(m_instance, &create_info,
                                                   nullptr, &m_debug_messenger));
@@ -204,8 +216,9 @@ namespace mantle {
         }
     }
 
-    std::vector<const char *>
-    VulkanContext::get_required_instance_extensions() {
+    std::pmr::vector<const char *>
+    VulkanContext::get_required_instance_extensions(
+        std::pmr::memory_resource &resource) {
         u32 glfw_extensions_count = 0;
         const char **glfw_extensions =
             glfwGetRequiredInstanceExtensions(&glfw_extensions_count);
@@ -216,7 +229,8 @@ namespace mantle {
         vk_verify(vkEnumerateInstanceExtensionProperties(
             nullptr, &vk_extensions_count, nullptr));
 
-        std::vector<VkExtensionProperties> vk_extensions(vk_extensions_count);
+        std::pmr::vector<VkExtensionProperties> vk_extensions(&resource);
+        vk_extensions.resize(vk_extensions_count);
         vk_verify(vkEnumerateInstanceExtensionProperties(
             nullptr, &vk_extensions_count, vk_extensions.data()));
 
@@ -232,11 +246,18 @@ namespace mantle {
             fatal(!found, "Required GLFW extensions are not supported");
         }
 
-        std::vector<const char *> extensions(
-            glfw_extensions, glfw_extensions + glfw_extensions_count);
+        std::pmr::vector<const char *> extensions(&resource);
+#ifdef ENABLE_VALIDATION_LAYERS
+        extensions.resize(glfw_extensions_count + 1);
+#else
+        extensions.resize(glfw_extensions_count);
+#endif
+
+        std::memcpy(extensions.data(), glfw_extensions,
+                    sizeof(const char *) * glfw_extensions_count);
 
 #ifdef ENABLE_VALIDATION_LAYERS
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        extensions[glfw_extensions_count] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
         spdlog::info(
             "Validation layers are enabled. Enabling VK_EXT_debug_utils");
 #endif
@@ -263,12 +284,14 @@ namespace mantle {
         };
     }
 
-    void VulkanContext::check_validation_layers() {
+    void
+    VulkanContext::check_validation_layers(std::pmr::memory_resource &memory) {
         u32 vk_layer_properties_count = 0;
         vk_verify(vkEnumerateInstanceLayerProperties(&vk_layer_properties_count,
                                                      nullptr));
 
-        std::vector<VkLayerProperties> vk_layers(vk_layer_properties_count);
+        std::pmr::vector<VkLayerProperties> vk_layers(&memory);
+        vk_layers.resize(vk_layer_properties_count);
         vk_verify(vkEnumerateInstanceLayerProperties(&vk_layer_properties_count,
                                                      vk_layers.data()));
 

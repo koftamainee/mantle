@@ -10,6 +10,10 @@
 
 namespace mantle {
 
+    OSMemory::~OSMemory() { destroy(); }
+
+    void OSMemory::destroy() { m_is_initialized = false; }
+
     void OSMemory::init() {
         check(!m_is_initialized);
 

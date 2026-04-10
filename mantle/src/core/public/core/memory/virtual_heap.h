@@ -1,11 +1,14 @@
 #pragma once
+#include <cstddef>
+#include <utility>
+
 #include "core/memory/os_memory.h"
 #include "core/types.h"
 
 namespace mantle {
 
     class VirtualHeap final {
-      public:
+    public:
         VirtualHeap() = default;
         ~VirtualHeap();
 
@@ -17,12 +20,18 @@ namespace mantle {
         void init(OSMemory &os, usize reserve_size);
         void destroy();
 
-        [[nodiscard]] void *take(usize size);
+        [[nodiscard]] void *take(usize size, usize align = alignof(std::max_align_t));
+
+        template <typename T, typename... Args>
+        [[nodiscard]] T *emplace(Args &&...args) {
+            void *mem = take(sizeof(T), alignof(T));
+            return new (mem) T(std::forward<Args>(args)...);
+        }
 
         usize reserved() const;
         usize used() const;
 
-      private:
+    private:
         OSMemory *m_os = nullptr;
         void *m_base = nullptr;
         usize m_reserved = 0;
