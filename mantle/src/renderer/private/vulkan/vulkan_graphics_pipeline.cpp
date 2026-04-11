@@ -9,30 +9,35 @@
 
 namespace mantle {
 
-    static VkShaderModule create_shader_module(VkDevice device,
-                                               std::span<u32> spv) {
+    static VkShaderModule
+    create_shader_module(VkDevice device, std::span<u32> spv,
+                         const VkAllocationCallbacks *alloc) {
         VkShaderModuleCreateInfo info = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = spv.size() * sizeof(u32),
             .pCode = spv.data(),
         };
         VkShaderModule mod;
-        vk_verify(vkCreateShaderModule(device, &info, nullptr, &mod));
+        vk_verify(vkCreateShaderModule(device, &info, alloc, &mod));
         return mod;
     }
 
-    static void destroy_shader_module(VkDevice device, VkShaderModule mod) {
-        vkDestroyShaderModule(device, mod, nullptr);
+    static void destroy_shader_module(VkDevice device, VkShaderModule mod,
+                                      VkAllocationCallbacks const *alloc) {
+        vkDestroyShaderModule(device, mod, alloc);
     }
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline() { destroy(); }
 
     void VulkanGraphicsPipeline::init(VkDevice device, const Config &config,
-                                      std::span<u32> spv) {
+                                      std::span<u32> spv,
+                                      VkAllocationCallbacks *vk_callbacks) {
         check(!m_is_initialized);
         m_device = device;
+        m_alloc_callbacks = vk_callbacks;
 
-        VkShaderModule shader = create_shader_module(m_device, spv);
+        VkShaderModule shader =
+            create_shader_module(m_device, spv, m_alloc_callbacks);
 
         VkPipelineShaderStageCreateInfo stages[] = {
             {
@@ -60,8 +65,8 @@ namespace mantle {
             .pushConstantRangeCount = 1,
             .pPushConstantRanges = &push_range,
         };
-        vk_verify(vkCreatePipelineLayout(device, &layout_info, nullptr,
-                                         &m_pipeline_layout));
+        vk_verify(vkCreatePipelineLayout(
+            device, &layout_info, m_alloc_callbacks, &m_pipeline_layout));
 
 
         VkVertexInputBindingDescription binding = {
@@ -165,10 +170,11 @@ namespace mantle {
             .layout = m_pipeline_layout,
         };
 
-        vk_verify(vkCreateGraphicsPipelines(
-            device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_pipeline));
+        vk_verify(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
+                                            &pipeline_info, m_alloc_callbacks,
+                                            &m_pipeline));
 
-        destroy_shader_module(device, shader);
+        destroy_shader_module(device, shader, m_alloc_callbacks);
 
 
         m_is_initialized = true;
@@ -178,11 +184,12 @@ namespace mantle {
     void VulkanGraphicsPipeline::destroy() {
         if (m_is_initialized) {
             if (m_pipeline != VK_NULL_HANDLE) {
-                vkDestroyPipeline(m_device, m_pipeline, nullptr);
+                vkDestroyPipeline(m_device, m_pipeline, m_alloc_callbacks);
                 m_pipeline = VK_NULL_HANDLE;
             }
             if (m_pipeline_layout != VK_NULL_HANDLE) {
-                vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
+                vkDestroyPipelineLayout(m_device, m_pipeline_layout,
+                                        m_alloc_callbacks);
                 m_pipeline_layout = VK_NULL_HANDLE;
             }
             spdlog::info("Vulkan graphics pipeline destroyed");

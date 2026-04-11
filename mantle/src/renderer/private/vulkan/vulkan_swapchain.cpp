@@ -17,10 +17,12 @@ namespace mantle {
     void VulkanSwapchain::init(VkDevice device, VkSurfaceKHR surface,
                                const SwapchainSupportDetails &support_details,
                                const QueueFamilyIndices &indices, u32 width,
-                               u32 height) {
+                               u32 height,
+                               VkAllocationCallbacks *vk_callbacks) {
         check(!m_is_initialized);
         check(device != VK_NULL_HANDLE);
-        this->m_device = device;
+        m_device = device;
+        m_alloc_callbacks = vk_callbacks;
 
         m_surface_format = pick_surface_format(support_details.formats);
         m_extent = pick_extent(support_details.capabilities, width, height);
@@ -60,7 +62,7 @@ namespace mantle {
         }
 
         vk_verify(
-            vkCreateSwapchainKHR(device, &create_info, nullptr, &m_swapchain));
+            vkCreateSwapchainKHR(device, &create_info, m_alloc_callbacks, &m_swapchain));
 
         vk_verify(vkGetSwapchainImagesKHR(device, m_swapchain, &image_count,
                                           nullptr));
@@ -84,7 +86,7 @@ namespace mantle {
                 .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
 
 
-            vk_verify(vkCreateImageView(m_device, &view_info, nullptr,
+            vk_verify(vkCreateImageView(m_device, &view_info, m_alloc_callbacks,
                                         &m_images[i].view));
         }
 
@@ -98,11 +100,11 @@ namespace mantle {
             check(m_device != VK_NULL_HANDLE);
 
             for (auto [_, view] : m_images) {
-                vkDestroyImageView(m_device, view, nullptr);
+                vkDestroyImageView(m_device, view, m_alloc_callbacks);
             }
             m_images.clear();
 
-            vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+            vkDestroySwapchainKHR(m_device, m_swapchain, m_alloc_callbacks);
 
             m_device = VK_NULL_HANDLE;
             m_is_initialized = false;

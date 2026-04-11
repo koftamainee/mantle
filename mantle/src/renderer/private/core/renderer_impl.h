@@ -9,6 +9,7 @@
 #include "vulkan/vulkan_device.h"
 #include "vulkan/vulkan_graphics_pipeline.h"
 #include "vulkan/vulkan_swapchain.h"
+#include "vulkan/vulkan_cpu_allocator.h"
 
 #include "core/memory/pmr/persistent_resource.h"
 
@@ -22,6 +23,9 @@ namespace mantle {
         VirtualHeap *heap = nullptr;
         ArenaAllocator *scratch_arena = nullptr;
         PersistentResource persistent_resource;
+
+        TlsfAllocator tlsf_vulkan_allocator;
+        VulkanCPUAllocator vulkan_cpu_allocator;
 
         VulkanContext graphics_context;
         VulkanDevice device;

@@ -3,7 +3,7 @@
 #include "core/types.h"
 
 #include "deletion_queue.h"
-#include "vulkan_allocator.h"
+#include "vulkan_gpu_allocator.h"
 
 #include <array>
 
@@ -31,7 +31,7 @@ namespace mantle {
         operator=(VulkanResourceManager &&) noexcept = delete;
 
         void init(VkPhysicalDevice physical_device, VkDevice device,
-                  VkInstance instance);
+                  VkInstance instance, VkAllocationCallbacks *vk_callbacks);
         void destroy();
 
         ResourceHandle create_buffer(VkDeviceSize size,
@@ -55,7 +55,7 @@ namespace mantle {
         u32 m_current_frame = 0;
         std::array<DeletionQueue, ms_frame_lag> m_deletion_queues{};
 
-        VulkanAllocator m_allocator;
+        VulkanGPUAllocator m_allocator;
 
         struct BufferData {
             VkBuffer buffer;

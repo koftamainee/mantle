@@ -4,18 +4,18 @@
 #include "vma/vk_mem_alloc.h"
 
 namespace mantle {
-    class VulkanAllocator final {
+    class VulkanGPUAllocator final {
       public:
-        VulkanAllocator() = default;
-        ~VulkanAllocator();
+        VulkanGPUAllocator() = default;
+        ~VulkanGPUAllocator();
 
-        VulkanAllocator(const VulkanAllocator &) = delete;
-        VulkanAllocator &operator=(const VulkanAllocator &) = delete;
-        VulkanAllocator(VulkanAllocator &&) noexcept = delete;
-        VulkanAllocator &operator=(VulkanAllocator &&) noexcept = delete;
+        VulkanGPUAllocator(const VulkanGPUAllocator &) = delete;
+        VulkanGPUAllocator &operator=(const VulkanGPUAllocator &) = delete;
+        VulkanGPUAllocator(VulkanGPUAllocator &&) noexcept = delete;
+        VulkanGPUAllocator &operator=(VulkanGPUAllocator &&) noexcept = delete;
 
         void init(VkPhysicalDevice physical_device, VkDevice device,
-                  VkInstance instance);
+                  VkInstance instance, VkAllocationCallbacks *vk_callbacks);
         void destroy();
 
         VkResult create_buffer(VkDeviceSize size, VkBufferUsageFlags usage,

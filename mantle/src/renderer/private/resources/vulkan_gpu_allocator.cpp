@@ -1,21 +1,22 @@
 #define VMA_IMPLEMENTATION
 #include "vma/vk_mem_alloc.h"
 
-#include "vulkan_allocator.h"
+#include "vulkan_gpu_allocator.h"
 
 #include "../vulkan/vkassert.h"
 #include "core/assert.h"
 
 namespace mantle {
-    VulkanAllocator::~VulkanAllocator() { destroy(); }
+    VulkanGPUAllocator::~VulkanGPUAllocator() { destroy(); }
 
-    void VulkanAllocator::init(VkPhysicalDevice physical_device,
-                               VkDevice device, VkInstance instance) {
+    void VulkanGPUAllocator::init(VkPhysicalDevice physical_device,
+                                  VkDevice device, VkInstance instance, VkAllocationCallbacks *vk_callbacks) {
         check(!m_is_initialized);
 
         VmaAllocatorCreateInfo create_info = {
             .physicalDevice = physical_device,
             .device = device,
+            .pAllocationCallbacks = vk_callbacks,
             .instance = instance,
         };
 
@@ -28,9 +29,9 @@ namespace mantle {
 
         m_is_initialized = true;
         spdlog::info("VulkanMemoryAllocator is initialized");
-    }
+    } // namespace mantle
 
-    void VulkanAllocator::destroy() {
+    void VulkanGPUAllocator::destroy() {
         if (m_is_initialized) {
             vmaDestroyAllocator(m_allocator);
             m_allocator = VK_NULL_HANDLE;
@@ -39,12 +40,12 @@ namespace mantle {
         }
     }
 
-    VkResult VulkanAllocator::create_buffer(VkDeviceSize size,
-                                            VkBufferUsageFlags usage,
-                                            VmaMemoryUsage memory_usage,
-                                            VkBuffer *buffer,
-                                            VmaAllocation *allocation,
-                                            void **mapped_data) const {
+    VkResult VulkanGPUAllocator::create_buffer(VkDeviceSize size,
+                                               VkBufferUsageFlags usage,
+                                               VmaMemoryUsage memory_usage,
+                                               VkBuffer *buffer,
+                                               VmaAllocation *allocation,
+                                               void **mapped_data) const {
         check(m_is_initialized);
         VkBufferCreateInfo buffer_info = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -75,27 +76,26 @@ namespace mantle {
         return VK_SUCCESS;
     }
 
-    void VulkanAllocator::destroy_buffer(VkBuffer buffer,
-                                         VmaAllocation allocation) const {
+    void VulkanGPUAllocator::destroy_buffer(VkBuffer buffer,
+                                            VmaAllocation allocation) const {
         check(m_is_initialized);
         vmaDestroyBuffer(m_allocator, buffer, allocation);
     }
 
-    VkResult VulkanAllocator::map_memory(VmaAllocation allocation,
-                                         void **data) const {
+    VkResult VulkanGPUAllocator::map_memory(VmaAllocation allocation,
+                                            void **data) const {
         check(m_is_initialized);
         return vmaMapMemory(m_allocator, allocation, data);
     }
 
-    void VulkanAllocator::unmap_memory(VmaAllocation allocation) const {
+    void VulkanGPUAllocator::unmap_memory(VmaAllocation allocation) const {
         check(m_is_initialized);
         vmaUnmapMemory(m_allocator, allocation);
     }
 
-    VkResult VulkanAllocator::create_image(const VkImageCreateInfo &image_info,
-                                           VmaMemoryUsage memory_usage,
-                                           VkImage *image,
-                                           VmaAllocation *allocation) const {
+    VkResult VulkanGPUAllocator::create_image(
+        const VkImageCreateInfo &image_info, VmaMemoryUsage memory_usage,
+        VkImage *image, VmaAllocation *allocation) const {
         check(m_is_initialized);
 
         VmaAllocationCreateInfo alloc_info = {
@@ -106,14 +106,14 @@ namespace mantle {
                               allocation, nullptr);
     }
 
-    void VulkanAllocator::destroy_image(VkImage image,
-                                        VmaAllocation allocation) const {
+    void VulkanGPUAllocator::destroy_image(VkImage image,
+                                           VmaAllocation allocation) const {
         check(m_is_initialized);
         vmaDestroyImage(m_allocator, image, allocation);
     }
 
     VkDeviceMemory
-    VulkanAllocator::get_allocation_memory(VmaAllocation allocation) const {
+    VulkanGPUAllocator::get_allocation_memory(VmaAllocation allocation) const {
         check(m_is_initialized);
         VmaAllocationInfo info = {};
         vmaGetAllocationInfo(m_allocator, allocation, &info);
@@ -121,7 +121,7 @@ namespace mantle {
     }
 
     VkDeviceSize
-    VulkanAllocator::get_allocation_size(VmaAllocation allocation) const {
+    VulkanGPUAllocator::get_allocation_size(VmaAllocation allocation) const {
         VmaAllocationInfo info = {};
         vmaGetAllocationInfo(m_allocator, allocation, &info);
         return info.size;

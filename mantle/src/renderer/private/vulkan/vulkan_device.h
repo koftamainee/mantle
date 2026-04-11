@@ -19,7 +19,7 @@ namespace mantle {
         VulkanDevice(VulkanDevice &&) noexcept = delete;
         VulkanDevice &operator=(VulkanDevice &&) noexcept = delete;
 
-        void init(VkInstance instance, VkSurfaceKHR surface);
+        void init(VkInstance instance, VkSurfaceKHR surface, VkAllocationCallbacks *vk_callbacks);
         void destroy();
 
         VkDevice get_device() const;
@@ -89,6 +89,8 @@ namespace mantle {
 
       private:
         bool m_is_initialized = false;
+
+        VkAllocationCallbacks *m_alloc_callbacks = nullptr;
 
         VkPhysicalDevice m_physical_device{};
         VkDevice m_device{};

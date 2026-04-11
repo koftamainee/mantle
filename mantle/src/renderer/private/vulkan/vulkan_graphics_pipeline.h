@@ -24,7 +24,7 @@ namespace mantle {
         VulkanGraphicsPipeline &
         operator=(VulkanGraphicsPipeline &&) noexcept = delete;
 
-        void init(VkDevice device, const Config &config, std::span<u32> spv);
+        void init(VkDevice device, const Config &config, std::span<u32> spv, VkAllocationCallbacks *vk_callbacks);
         void destroy();
 
         void bind(VkCommandBuffer cmd) const;
@@ -34,6 +34,8 @@ namespace mantle {
 
       private:
         bool m_is_initialized = false;
+
+        VkAllocationCallbacks *m_alloc_callbacks = nullptr;
 
         VkDevice m_device{};
         VkPipeline m_pipeline{};

@@ -14,8 +14,11 @@ namespace mantle {
 
     VulkanDevice::~VulkanDevice() { destroy(); }
 
-    void VulkanDevice::init(VkInstance instance, VkSurfaceKHR surface) {
+    void VulkanDevice::init(VkInstance instance, VkSurfaceKHR surface,
+                            VkAllocationCallbacks *vk_callbacks) {
         check(!m_is_initialized);
+
+        m_alloc_callbacks = vk_callbacks;
 
         create_physical_device(instance, surface);
 
@@ -66,13 +69,13 @@ namespace mantle {
         if (m_is_initialized) {
             if (m_command_pool != VK_NULL_HANDLE) {
                 check(m_device != VK_NULL_HANDLE);
-                vkDestroyCommandPool(m_device, m_command_pool, nullptr);
+                vkDestroyCommandPool(m_device, m_command_pool, m_alloc_callbacks);
                 m_command_pool = VK_NULL_HANDLE;
             }
             if (m_transfer_command_pool != VK_NULL_HANDLE) {
                 check(m_device != VK_NULL_HANDLE);
                 vkDestroyCommandPool(m_device, m_transfer_command_pool,
-                                     nullptr);
+                                     m_alloc_callbacks);
                 m_transfer_command_pool = VK_NULL_HANDLE;
             }
             destroy_logical_device();
@@ -84,6 +87,8 @@ namespace mantle {
             m_memory_properties = {};
             m_queue_family_properties.resize(0);
             m_supported_extensions.resize(0);
+
+            m_alloc_callbacks = nullptr;
             m_is_initialized = false;
         }
     }
@@ -218,7 +223,7 @@ namespace mantle {
             .flags = create_flags,
             .queueFamilyIndex = queue_family_index};
         VkCommandPool pool;
-        vk_verify(vkCreateCommandPool(m_device, &cmd_pool_create_info, nullptr,
+        vk_verify(vkCreateCommandPool(m_device, &cmd_pool_create_info, m_alloc_callbacks,
                                       &pool));
         return pool;
     }
@@ -275,11 +280,11 @@ namespace mantle {
         };
         VkFence fence;
 
-        vk_verify(vkCreateFence(m_device, &fence_create_info, nullptr, &fence));
+        vk_verify(vkCreateFence(m_device, &fence_create_info, m_alloc_callbacks, &fence));
         vk_verify(vkQueueSubmit(queue, 1, &submit_info, fence));
 
         vk_verify(vkWaitForFences(m_device, 1, &fence, VK_TRUE, UINT64_MAX));
-        vkDestroyFence(m_device, fence, nullptr);
+        vkDestroyFence(m_device, fence, m_alloc_callbacks);
 
         if (free) {
             vkFreeCommandBuffers(m_device, pool, 1, &command_buffer);
@@ -434,7 +439,7 @@ namespace mantle {
 
         VkPhysicalDeviceFeatures2 features2 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-            .features ={.samplerAnisotropy = VK_TRUE},
+            .features = {.samplerAnisotropy = VK_TRUE},
         };
         VkPhysicalDeviceVulkan11Features vulkan11_features = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
@@ -470,7 +475,7 @@ namespace mantle {
         };
 
         vk_verify(vkCreateDevice(m_physical_device, &device_create_info,
-                                 nullptr, &m_device));
+                                 m_alloc_callbacks, &m_device));
 
 
         vkGetDeviceQueue(m_device, m_queue_indices.graphics_family, 0,
@@ -485,7 +490,7 @@ namespace mantle {
 
     void VulkanDevice::destroy_logical_device() {
         if (m_device != VK_NULL_HANDLE) {
-            vkDestroyDevice(m_device, nullptr);
+            vkDestroyDevice(m_device, m_alloc_callbacks);
 
             m_device = VK_NULL_HANDLE;
 
@@ -535,10 +540,6 @@ namespace mantle {
             return false;
 
         queue_family_indices = indices;
-        spdlog::debug("Queue families:");
-        spdlog::debug("  graphics: {}", indices.graphics_family);
-        spdlog::debug("  present:  {}", indices.present_family);
-        spdlog::debug("  transfer: {}", indices.transfer_family);
 
         return true;
     }

@@ -23,7 +23,7 @@ namespace mantle {
         VulkanContext(VulkanContext &&) noexcept = delete;
         VulkanContext &operator=(VulkanContext &&) noexcept = delete;
 
-        void init(GLFWwindow *window, ArenaAllocator *scratch_arena);
+        void init(GLFWwindow *window, ArenaAllocator *scratch_arena, VkAllocationCallbacks *vk_callbacks);
         void destroy();
 
         VkInstance get_instance() const;
@@ -54,6 +54,7 @@ namespace mantle {
         bool m_is_initialized = false;
 
         ArenaAllocator *m_scratch_arena = nullptr;
+        VkAllocationCallbacks *m_alloc_callbacks = nullptr;
 
 #ifdef ENABLE_VALIDATION_LAYERS
         VkDebugUtilsMessengerEXT m_debug_messenger = VK_NULL_HANDLE;

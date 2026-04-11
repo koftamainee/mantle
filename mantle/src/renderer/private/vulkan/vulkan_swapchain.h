@@ -27,7 +27,7 @@ namespace mantle {
 
         void init(VkDevice device, VkSurfaceKHR surface,
                   const SwapchainSupportDetails &support_details,
-                  const QueueFamilyIndices &indices, u32 width, u32 height);
+                  const QueueFamilyIndices &indices, u32 width, u32 height, VkAllocationCallbacks *vk_callbacks);
 
         void destroy();
 
@@ -47,6 +47,8 @@ namespace mantle {
 
       private:
         bool m_is_initialized = false;
+
+        VkAllocationCallbacks *m_alloc_callbacks = nullptr;
 
         VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
         std::vector<Image> m_images{};

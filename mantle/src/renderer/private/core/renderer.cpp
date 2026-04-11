@@ -16,7 +16,8 @@ namespace mantle {
     Renderer::Renderer() = default;
     Renderer::~Renderer() { destroy(); }
 
-    void Renderer::init(const Window &window, VirtualHeap *heap, ArenaAllocator *scratch_arena) {
+    void Renderer::init(const Window &window, VirtualHeap *heap,
+                        ArenaAllocator *scratch_arena) {
         check(!m_is_initialized);
         check(heap != nullptr);
 
@@ -127,8 +128,7 @@ namespace mantle {
             vkQueuePresentKHR(m_impl->device.get_present_queue(), &present);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
             m_impl->swapchain_dirty = true;
-        }
-        else {
+        } else {
             vk_verify(result);
         }
 
@@ -324,16 +324,19 @@ namespace mantle {
         m_impl->swapchain.init(
             device, surface,
             m_impl->device.get_swapchain_support_details(surface),
-            m_impl->device.get_queue_families(), width, height);
+            m_impl->device.get_queue_families(), width, height,
+            m_impl->vulkan_cpu_allocator.vk_allocator());
 
-         m_impl->create_depth_image(width, height);
+        m_impl->create_depth_image(width, height);
 
         // NOTE: I don't sure if this needed
-        // This code handles case when image count in swapchain changes between recreations
-        // This probably not gonna happen ever, but it useful to have
+        // This code handles case when image count in swapchain changes between
+        // recreations This probably not gonna happen ever, but it useful to
+        // have
         u32 new_count = static_cast<u32>(m_impl->swapchain.get_images().size());
         if (new_count != old_count) {
-            spdlog::warn("POTENTIAL MEMORY LEAK. using virtual heap memory resource to recreate objects");
+            spdlog::warn("POTENTIAL MEMORY LEAK. using virtual heap memory "
+                         "resource to recreate objects");
             for (auto &sem : m_impl->acquire_semaphores) {
                 vkDestroySemaphore(device, sem, nullptr);
             }

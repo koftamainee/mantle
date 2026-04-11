@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 #include "core/assert.h"
+#include "core/memory/memory_units.h"
 #include "core/memory/pmr/arena_resource.h"
 #include "core/memory/scope_arena.h"
 #include "vulkan/vkassert.h"
@@ -13,21 +14,29 @@ namespace mantle {
                               ArenaAllocator *in_scratch_arena) {
         heap = in_heap;
         scratch_arena = in_scratch_arena;
-        graphics_context.init(window.get_native_window(), scratch_arena);
+
+        tlsf_vulkan_allocator.init(heap->take(megabytes(100)));
+        vulkan_cpu_allocator.init(&tlsf_vulkan_allocator);
+
+        graphics_context.init(window.get_native_window(), scratch_arena,
+                              vulkan_cpu_allocator.vk_allocator());
         VkInstance instance = graphics_context.get_instance();
         VkSurfaceKHR surface = graphics_context.get_surface();
 
-        device.init(graphics_context.get_instance(), surface);
+        device.init(graphics_context.get_instance(), surface,
+                    vulkan_cpu_allocator.vk_allocator());
         VkDevice vkdevice = device.get_device();
         VkPhysicalDevice physical_device = device.get_physical_device();
 
-        resource_manager.init(physical_device, vkdevice, instance);
+        resource_manager.init(physical_device, vkdevice, instance,
+                              vulkan_cpu_allocator.vk_allocator());
 
         auto [width, height] = window.get_framebuffer_size();
 
         swapchain.init(vkdevice, surface,
                        device.get_swapchain_support_details(surface),
-                       device.get_queue_families(), width, height);
+                       device.get_queue_families(), width, height,
+                       vulkan_cpu_allocator.vk_allocator());
 
 
         persistent_resource = PersistentResource(heap);
@@ -39,20 +48,20 @@ namespace mantle {
 
         create_frames();
 
-        VulkanGraphicsPipeline::Config pipeline_cfg = {
-            .vert_entry = "vert_main",
-            .frag_entry = "frag_main",
-            .color_format = swapchain.get_surface_format().format,
-        };
-
         {
+            VulkanGraphicsPipeline::Config pipeline_cfg = {
+                .vert_entry = "vert_main",
+                .frag_entry = "frag_main",
+                .color_format = swapchain.get_surface_format().format,
+            };
             ScopeArena scope_arena(scratch_arena);
             ArenaResource resource(scratch_arena);
             std::pmr::vector<u32> spv(&resource);
 
             load_spv("assets/shaders/flat.spv", spv);
 
-            graphics_pipeline.init(vkdevice, pipeline_cfg, spv);
+            graphics_pipeline.init(vkdevice, pipeline_cfg, spv,
+                                   vulkan_cpu_allocator.vk_allocator());
         }
 
         gpu_resource_manager.init(resource_manager, device);

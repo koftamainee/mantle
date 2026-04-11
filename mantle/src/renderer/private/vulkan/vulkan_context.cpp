@@ -62,10 +62,11 @@ namespace mantle {
 
     VulkanContext::~VulkanContext() { destroy(); }
 
-    void VulkanContext::init(GLFWwindow *window,
-                             ArenaAllocator *scratch_arena) {
+    void VulkanContext::init(GLFWwindow *window, ArenaAllocator *scratch_arena,
+                             VkAllocationCallbacks *vk_callbacks) {
         check(!m_is_initialized);
 
+        m_alloc_callbacks = vk_callbacks;
         m_scratch_arena = scratch_arena;
 
         create_instance();
@@ -87,6 +88,7 @@ namespace mantle {
 #endif
 
             destroy_instance();
+            m_alloc_callbacks = nullptr;
             m_is_initialized = false;
         }
     }
@@ -106,7 +108,7 @@ namespace mantle {
             .apiVersion = VK_API_VERSION_1_3, // no 1.4 :(
         };
 
-        ArenaAllocator::Marker tag = m_scratch_arena->save();
+        ScopeArena scope(m_scratch_arena);
         ArenaResource resource(m_scratch_arena);
 
         const std::pmr::vector<const char *> extensions =
@@ -136,15 +138,14 @@ namespace mantle {
         instance_create_info.ppEnabledLayerNames = ms_validation_layers.data();
 #endif
 
-        vk_verify(
-            vkCreateInstance(&instance_create_info, nullptr, &m_instance));
-        m_scratch_arena->restore(tag); // used for storing extensions
+        vk_verify(vkCreateInstance(&instance_create_info, m_alloc_callbacks,
+                                   &m_instance));
         spdlog::info("Vulkan Instance Created");
     }
 
     void VulkanContext::destroy_instance() {
         if (m_instance != VK_NULL_HANDLE) {
-            vkDestroyInstance(m_instance, nullptr);
+            vkDestroyInstance(m_instance, m_alloc_callbacks);
             m_instance = VK_NULL_HANDLE;
             spdlog::info("Vulkan Instance Destroyed");
         }
@@ -169,8 +170,8 @@ namespace mantle {
         check_validation_layers(resource);
 
 
-        vk_verify(vk_create_debug_utils_messenger(m_instance, &create_info,
-                                                  nullptr, &m_debug_messenger));
+        vk_verify(vk_create_debug_utils_messenger(
+            m_instance, &create_info, m_alloc_callbacks, &m_debug_messenger));
         spdlog::info("Debug Messenger Created");
     }
 
@@ -185,7 +186,7 @@ namespace mantle {
 
             if (vk_destroy_debug_utils_messenger != nullptr) {
                 vk_destroy_debug_utils_messenger(m_instance, m_debug_messenger,
-                                                 nullptr);
+                                                 m_alloc_callbacks);
             }
 
             m_debug_messenger = VK_NULL_HANDLE;
@@ -197,7 +198,8 @@ namespace mantle {
     void VulkanContext::create_surface(GLFWwindow *glfw_window) {
         check(m_instance != VK_NULL_HANDLE);
 
-        fatal(glfwCreateWindowSurface(m_instance, glfw_window, nullptr,
+        fatal(glfwCreateWindowSurface(m_instance, glfw_window,
+                                      m_alloc_callbacks,
                                       &m_surface) != VK_SUCCESS,
               "Failed to create surface");
 
@@ -208,7 +210,7 @@ namespace mantle {
         if (m_surface != VK_NULL_HANDLE) {
             check(m_instance != VK_NULL_HANDLE);
 
-            vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+            vkDestroySurfaceKHR(m_instance, m_surface, m_alloc_callbacks);
             m_surface = VK_NULL_HANDLE;
 
             spdlog::info("Surface destroyed");

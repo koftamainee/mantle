@@ -6,9 +6,9 @@ namespace mantle {
     VulkanResourceManager::~VulkanResourceManager() { destroy(); }
 
     void VulkanResourceManager::init(VkPhysicalDevice physical_device,
-                                     VkDevice device, VkInstance instance) {
+                                     VkDevice device, VkInstance instance, VkAllocationCallbacks *vk_callbacks) {
         check(!m_is_initialized);
-        m_allocator.init(physical_device, device, instance);
+        m_allocator.init(physical_device, device, instance, vk_callbacks);
         m_buffers.clear();
         m_images.clear();
 
