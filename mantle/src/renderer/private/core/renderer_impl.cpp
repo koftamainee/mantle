@@ -45,14 +45,15 @@ namespace mantle {
             .color_format = swapchain.get_surface_format().format,
         };
 
-        ScopeArena scope_arena(scratch_arena);
+        {
+            ScopeArena scope_arena(scratch_arena);
+            ArenaResource resource(scratch_arena);
+            std::pmr::vector<u32> spv(&resource);
 
-        ArenaResource resource(scratch_arena);
-        std::pmr::vector<u32> spv(&resource);
+            load_spv("assets/shaders/flat.spv", spv);
 
-        load_spv("assets/shaders/flat.spv", spv);
-
-        graphics_pipeline.init(vkdevice, pipeline_cfg, spv);
+            graphics_pipeline.init(vkdevice, pipeline_cfg, spv);
+        }
 
         gpu_resource_manager.init(resource_manager, device);
 

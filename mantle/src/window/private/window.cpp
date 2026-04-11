@@ -5,20 +5,27 @@
 
 #include <core/assert.h>
 
+#include "../public/window/glfw_allocator.h"
+#include "core/memory/memory_units.h"
+#include "core/memory/tlsf_allocator.h"
+
 
 namespace mantle {
     Window::~Window() { destroy(); }
 
-    void Window::init(const Properties &properties) {
+    void Window::init(const Properties &properties, VirtualHeap *heap) {
         check(!m_is_initialized);
 
-        if (s_windows_count == 0) {
-            glfwSetErrorCallback([](int error, const char *desc) {
-                spdlog::error("GLFW error {}: {}", error, desc);
-            });
-            fatal(!glfwInit(), "Failed to initialize GLFW");
-            spdlog::info("GLFW initialized");
-        }
+        m_tlsf_alloc.init(heap->take(megabytes(100)));
+        m_glfw_alloc.init(&m_tlsf_alloc);
+
+        glfwInitAllocator(m_glfw_alloc.glfw_allocator());
+
+        glfwSetErrorCallback([](int error, const char *desc) {
+            spdlog::error("GLFW error {}: {}", error, desc);
+        });
+        fatal(!glfwInit(), "Failed to initialize GLFW");
+        spdlog::info("GLFW initialized");
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -30,7 +37,6 @@ namespace mantle {
 
         fatal(!m_native_window, "Failed to create GLFW window");
         glfwSetInputMode(m_native_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        s_windows_count++;
 
         glfwSetWindowUserPointer(m_native_window, this);
 
@@ -44,12 +50,10 @@ namespace mantle {
             std::string title = glfwGetWindowTitle(m_native_window);
             glfwDestroyWindow(m_native_window);
             m_native_window = nullptr;
-            s_windows_count--;
             spdlog::info("{} window destroyed", title.c_str());
-            if (s_windows_count == 0) {
-                glfwTerminate();
-                spdlog::info("GLFW terminated");
-            }
+            glfwTerminate();
+            spdlog::info("GLFW terminated");
+
             m_is_initialized = false;
         }
     }

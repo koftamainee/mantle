@@ -5,6 +5,7 @@
 
 #include "camera/camera.h"
 #include "core/assert.h"
+#include "core/memory/memory_units.h"
 #include "glm/gtx/transform.hpp"
 #include "mesh/mesh.h"
 #include "renderer/renderer.h"
@@ -18,16 +19,16 @@ namespace mantle {
         check(!m_is_initialized);
 
         m_os_memory.init();
-        m_heap.init(m_os_memory, 2u * 1024 * 1024 * 1024); // 2 GB
-        MemoryBlock memory = m_heap.take(1u * 1024 * 1024); // 1 MB
+        m_heap.init(m_os_memory, gigabytes(2));
+        MemoryBlock memory = m_heap.take(megabytes(1));
         m_scratch_arena.init(memory);
 
         Window::Properties prop = {
             .title = "Mantle",
             .size = {.width = 2560, .height = 1600},
         };
-        // there is nothing we can do about allocations inside glfw
-        m_window.init(prop);
+
+        m_window.init(prop, &m_heap);
 
         m_renderer.init(m_window, &m_heap, &m_scratch_arena);
 

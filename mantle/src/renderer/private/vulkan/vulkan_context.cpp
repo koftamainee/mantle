@@ -5,7 +5,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "../../../core/public/core/memory/pmr/arena_resource.h"
+#include "core/memory/pmr/arena_resource.h"
 #include "core/memory/scope_arena.h"
 
 namespace {
@@ -164,13 +164,10 @@ namespace mantle {
         const VkDebugUtilsMessengerCreateInfoEXT create_info =
             make_debug_messenger_create_info_ext();
 
-        ArenaAllocator::Marker tag = m_scratch_arena->save();
         ScopeArena scope(m_scratch_arena);
         ArenaResource resource(m_scratch_arena);
-
         check_validation_layers(resource);
 
-        m_scratch_arena->restore(tag);
 
         vk_verify(vk_create_debug_utils_messenger(m_instance, &create_info,
                                                   nullptr, &m_debug_messenger));

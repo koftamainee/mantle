@@ -1,1 +1,1 @@
-mantle_module(NAME core DEPS spdlog::spdlog)
+mantle_module(NAME core DEPS spdlog::spdlog tlsf)

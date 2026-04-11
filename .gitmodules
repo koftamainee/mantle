@@ -10,3 +10,6 @@
 [submodule "mantle/third_party/googletest"]
 	path = mantle/third_party/googletest
 	url = https://github.com/google/googletest.git
+[submodule "mantle/third_party/tlsf"]
+	path = mantle/third_party/tlsf
+	url = https://github.com/mattconte/tlsf.git

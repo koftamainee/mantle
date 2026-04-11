@@ -2,8 +2,12 @@
 
 #include <functional>
 #include <string>
+
 #include "GLFW/glfw3.h"
+#include "core/memory/tlsf_allocator.h"
+#include "core/memory/virtual_heap.h"
 #include "core/types.h"
+#include "glfw_allocator.h"
 
 namespace mantle {
     class Window final {
@@ -44,7 +48,7 @@ namespace mantle {
         Window(Window &&) noexcept = delete;
         Window &operator=(Window &&) noexcept = delete;
 
-        void init(const Properties &properties);
+        void init(const Properties &properties, VirtualHeap *heap);
         void destroy();
 
         void update() const;
@@ -68,8 +72,9 @@ namespace mantle {
         bool m_is_initialized = false;
         GLFWwindow *m_native_window = nullptr;
 
-        std::function<void(u32, u32)> m_resize_callback{};
+        TlsfAllocator m_tlsf_alloc;
+        GlfwAllocator m_glfw_alloc;
 
-        inline static u32 s_windows_count = 0;
+        std::function<void(u32, u32)> m_resize_callback{};
     };
 } // namespace mantle
