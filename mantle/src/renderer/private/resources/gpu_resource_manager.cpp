@@ -1,12 +1,18 @@
 #include "renderer/gpu_resource_manager.h"
 #include "core/assert.h"
+#include "core/memory/persistent_allocator.h"
+#include "core/memory/virtual_heap.h"
 #include "gpu_resource_manager_impl.h"
+#include "vulkan/vulkan_device.h"
 
 namespace mantle {
     void GPUResourceManager::init(VulkanResourceManager &vulkan_resources,
-                                  VulkanDevice &device) {
+                                  VulkanDevice &device, VirtualHeap *heap) {
         check(!m_is_initialized);
-        m_impl = std::make_unique<Impl>(vulkan_resources, device);
+        PersistentAllocator alloc;
+        alloc.init(heap);
+        m_impl = alloc.emplace<Impl>(vulkan_resources, device, heap);
+
         m_is_initialized = true;
         spdlog::info("GPU resource manager is initialized");
     }
@@ -69,8 +75,7 @@ namespace mantle {
             m_impl->free_list.pop_back();
             m_impl->meshes[id] = mesh_data;
             m_impl->generations[id]++;
-        }
-        else {
+        } else {
             id = static_cast<u32>(m_impl->meshes.size());
             m_impl->meshes.push_back(mesh_data);
             m_impl->generations.push_back(1);

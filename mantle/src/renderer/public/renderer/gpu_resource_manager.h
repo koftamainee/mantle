@@ -1,6 +1,7 @@
 #pragma once
-#include <memory>
 #include <span>
+
+#include "core/memory/virtual_heap.h"
 #include "mesh/mesh_handle.h"
 #include "mesh/vertex.h"
 
@@ -33,8 +34,8 @@ namespace mantle {
 
         struct Impl;
         void init(VulkanResourceManager &vulkan_resources,
-                  VulkanDevice &device);
+                  VulkanDevice &device, VirtualHeap *heap);
 
-        std::unique_ptr<Impl> m_impl;
+        Impl *m_impl = nullptr;
     };
 } // namespace mantle

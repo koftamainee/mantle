@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include "../resources/vulkan_resource_manager.h"
-#include "../vulkan/vulkan_device.h"
 #include "core/assert.h"
 #include "renderer/gpu_resource_manager.h"
 
@@ -18,14 +17,16 @@ namespace mantle {
             return meshes[handle.id];
         }
 
+        VirtualHeap *heap = nullptr;
+
         VulkanResourceManager &vulkan_resources;
         VulkanDevice &device;
 
-        std::vector<MeshData> meshes;
-        std::vector<u32> free_list;
-        std::vector<u32> generations;
+        std::pmr::vector<MeshData> meshes;
+        std::pmr::vector<u32> free_list;
+        std::pmr::vector<u32> generations;
 
-        Impl(VulkanResourceManager &vulkan_resources, VulkanDevice &device) :
-            vulkan_resources(vulkan_resources), device(device) {}
+        Impl(VulkanResourceManager &vulkan_resources, VulkanDevice &device, VirtualHeap *in_heap) :
+            heap(in_heap), vulkan_resources(vulkan_resources), device(device) {}
     };
 } // namespace mantle

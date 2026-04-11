@@ -18,7 +18,7 @@ namespace mantle {
 
         void init(TlsfAllocator *tlsf);
 
-        const GLFWallocator *glfw_allocator() const;
+        const GLFWallocator *glfw_alloc() const;
 
     private:
         static void *glfw_alloc(usize size, void *user);

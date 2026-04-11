@@ -19,7 +19,7 @@ namespace mantle {
         m_tlsf_alloc.init(heap->take(kilobytes(128)));
         m_glfw_alloc.init(&m_tlsf_alloc);
 
-        glfwInitAllocator(m_glfw_alloc.glfw_allocator());
+        glfwInitAllocator(m_glfw_alloc.glfw_alloc());
 
         glfwSetErrorCallback([](int error, const char *desc) {
             spdlog::error("GLFW error {}: {}", error, desc);

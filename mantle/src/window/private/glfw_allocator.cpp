@@ -13,7 +13,7 @@ namespace mantle {
         m_allocator.user = this;
     }
 
-    const GLFWallocator *GlfwAllocator::glfw_allocator() const {
+    const GLFWallocator *GlfwAllocator::glfw_alloc() const {
         return &m_allocator;
     }
 
