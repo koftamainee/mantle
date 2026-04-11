@@ -13,3 +13,6 @@
 [submodule "mantle/third_party/tlsf"]
 	path = mantle/third_party/tlsf
 	url = https://github.com/mattconte/tlsf.git
+[submodule "mantle/third_party/imgui"]
+	path = mantle/third_party/imgui
+	url = https://github.com/ocornut/imgui.git

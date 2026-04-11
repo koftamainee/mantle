@@ -1,6 +1,8 @@
 #include <core/assert.h>
 #include <renderer/renderer.h>
 #include <spdlog/spdlog.h>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
 #include "vulkan/vulkan_context.h"
 #include "vulkan/vulkan_device.h"
 #include "vulkan/vulkan_swapchain.h"
@@ -10,6 +12,7 @@
 #include "renderer_impl.h"
 
 #include "vulkan/vkassert.h"
+#include "window/window.h"
 
 namespace mantle {
 
@@ -26,6 +29,18 @@ namespace mantle {
 
         m_impl = alloc.emplace<Impl>();
         m_impl->init(window, heap, scratch_arena);
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::StyleColorsDark();
+
+        ImGui_ImplGlfw_InitForVulkan(window.get_native_window(), true);
+        /* TODO:
+         * 1. Add vulkan descriptor pools, sets and set layouts handling
+         * 2. Initialize vulkan backend for imgui
+         * 3. Probably carry this out into separate ImGui only class
+         * 4. Renderer and m_impl are becoming too big, refactor them later
+         */
 
         m_is_initialized = true;
         spdlog::info("Renderer Initialized");
