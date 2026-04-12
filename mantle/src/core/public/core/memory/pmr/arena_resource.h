@@ -3,6 +3,7 @@
 #include <memory_resource>
 
 #include "../arena_allocator.h"
+#include "core/assert.h"
 
 namespace mantle {
     class ArenaResource final : public std::pmr::memory_resource {
