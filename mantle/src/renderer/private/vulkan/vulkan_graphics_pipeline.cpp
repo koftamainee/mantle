@@ -55,49 +55,13 @@ namespace mantle {
             },
         };
 
-        VkPushConstantRange push_range = {
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-            .offset = 0,
-            .size = sizeof(glm::mat4),
-        };
 
         VkPipelineLayoutCreateInfo layout_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            .pushConstantRangeCount = 1,
-            .pPushConstantRanges = &push_range,
         };
         vk_verify(vkCreatePipelineLayout(
             device, &layout_info, m_alloc_callbacks, &m_pipeline_layout));
 
-
-        VkVertexInputBindingDescription binding = {
-            .binding = 0,
-            .stride = sizeof(Vertex),
-            .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-        };
-
-        std::array<VkVertexInputAttributeDescription, 2> attrs = {{
-            {
-                .location = 0,
-                .binding = 0,
-                .format = VK_FORMAT_R32G32B32_SFLOAT,
-                .offset = offsetof(Vertex, position),
-            },
-            {
-                .location = 1,
-                .binding = 0,
-                .format = VK_FORMAT_R32G32B32_SFLOAT,
-                .offset = offsetof(Vertex, normal),
-            },
-        }};
-
-        VkPipelineVertexInputStateCreateInfo vertex_input = {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = 1,
-            .pVertexBindingDescriptions = &binding,
-            .vertexAttributeDescriptionCount = static_cast<u32>(attrs.size()),
-            .pVertexAttributeDescriptions = attrs.data(),
-        };
 
         VkPipelineInputAssemblyStateCreateInfo input_assembly = {
             .sType =
@@ -160,7 +124,6 @@ namespace mantle {
             .pNext = &rendering,
             .stageCount = 2,
             .pStages = stages,
-            .pVertexInputState = &vertex_input,
             .pInputAssemblyState = &input_assembly,
             .pViewportState = &viewport_state,
             .pRasterizationState = &rasterization,
