@@ -35,7 +35,7 @@ namespace mantle {
         void destroy_buffer(BufferHandle handle);
 
         ImageHandle create_image(const ImageDesc &desc);
-        void destroy_image(ImageHandle image);
+        void destroy_image(ImageHandle handle);
 
         SamplerHandle create_sampler(const SamplerDesc &desc);
         void destroy_sampler(SamplerHandle sampler);

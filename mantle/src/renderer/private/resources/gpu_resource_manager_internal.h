@@ -2,7 +2,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include "core/memory/persistent_allocator.h"
 #include "core/memory/pmr/persistent_resource.h"
 #include "deletion_queue.h"
 #include "renderer/gpu_resource_manager.h"
@@ -21,6 +20,15 @@ namespace mantle {
 
         void* mapped = nullptr;
     };
+    struct ImageResource final {
+        VkImage image = VK_NULL_HANDLE;
+        VmaAllocation allocation = VK_NULL_HANDLE;
+        VkImageView view = VK_NULL_HANDLE;
+        VkFormat format = VK_FORMAT_UNDEFINED;
+    };
+    struct SamplerResource final {
+        VkSampler sampler = VK_NULL_HANDLE;
+    };
 
 
     struct GPUResourceManager::Impl final {
@@ -38,7 +46,6 @@ namespace mantle {
 
         void next_frame();
 
-
         VulkanBackend *backend = nullptr;
         VulkanGPUAllocator gpu_allocator{};
 
@@ -49,5 +56,11 @@ namespace mantle {
 
         std::pmr::vector<Slot<BufferResource>> buffers;
         std::pmr::vector<u32> buffers_free_list;
+
+        std::pmr::vector<Slot<SamplerResource>> samplers;
+        std::pmr::vector<u32> samplers_free_list;
+
+        std::pmr::vector<Slot<ImageResource>> images;
+        std::pmr::vector<u32> images_free_list;
     };
 } // namespace mantle

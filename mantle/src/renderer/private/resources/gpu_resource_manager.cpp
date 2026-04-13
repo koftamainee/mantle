@@ -113,14 +113,195 @@ namespace mantle {
     }
 
     ImageHandle GPUResourceManager::create_image(const ImageDesc &desc) {
-        return {};
+        check(m_is_initialized);
+        check(desc.width > 0);
+        check(desc.height > 0);
+        check(desc.mip_levels > 0);
+        check(desc.array_layers > 0);
+
+        VkImage image;
+        VmaAllocation allocation;
+
+        const u32 depth = desc.depth > 0 ? desc.depth : 1;
+
+        VkImageCreateInfo image_create_info = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .imageType = (depth > 1) ? VK_IMAGE_TYPE_3D : VK_IMAGE_TYPE_2D,
+            .format = to_vk(desc.format),
+            .extent =
+                VkExtent3D{
+                    .width = desc.width,
+                    .height = desc.height,
+                    .depth = depth,
+                },
+            .mipLevels = desc.mip_levels,
+            .arrayLayers = desc.array_layers,
+            .samples = to_vk(desc.sample_count),
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = to_vk(desc.usage),
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        };
+
+        m_impl->gpu_allocator.create_image(
+            image_create_info, VMA_MEMORY_USAGE_GPU_ONLY, &image, &allocation);
+
+        VkImageViewCreateInfo view_create_info = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .image = image,
+            .viewType =
+                (depth > 1) ? VK_IMAGE_VIEW_TYPE_3D : VK_IMAGE_VIEW_TYPE_2D,
+            .format = to_vk(desc.format),
+            .components =
+                {
+                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+                },
+            .subresourceRange =
+                {
+                    .aspectMask = to_vk_aspect(desc.format),
+                    .baseMipLevel = 0,
+                    .levelCount = desc.mip_levels,
+                    .baseArrayLayer = 0,
+                    .layerCount = desc.array_layers,
+                },
+        };
+
+        VkImageView view = VK_NULL_HANDLE;
+        if (desc.create_view) {
+            vkCreateImageView(
+                m_impl->backend->m_device.get_device(), &view_create_info,
+                m_impl->backend->m_vk_allocator.vk_allocator(), &view);
+        }
+        u32 index = 0;
+        u32 generation = 0;
+        u32 free_list_size = m_impl->images_free_list.size();
+        if (free_list_size > 0) {
+            index = m_impl->images_free_list[free_list_size - 1];
+            check(index < m_impl->images.size());
+            m_impl->images_free_list.pop_back();
+            generation = m_impl->images[index].generation;
+            m_impl->images[index].resource = {
+                .image = image,
+                .allocation = allocation,
+                .view = view,
+            };
+        } else {
+            index = m_impl->images.size();
+            generation = 0;
+            m_impl->images.push_back(
+                {{.image = image, .allocation = allocation, .view = view},
+                 generation});
+        }
+
+        return {
+            .index = index,
+            .generation = generation,
+        };
     }
 
-    void GPUResourceManager::destroy_image(ImageHandle image) {}
+    void GPUResourceManager::destroy_image(ImageHandle handle) {
+        check(m_is_initialized);
+        check(handle.index < m_impl->images.size());
 
-    SamplerHandle GPUResourceManager::create_sampler(const SamplerDesc &desc) {}
+        auto &image = m_impl->images[handle.index];
+        fatal(handle.generation != image.generation, "Invalid image handle");
 
-    void GPUResourceManager::destroy_sampler(SamplerHandle sampler) {}
+        image.generation++;
+        m_impl->images_free_list.push_back(handle.index);
+
+        auto del = [img = image.resource.image,
+                    alloc = image.resource.allocation,
+                    view = image.resource.view, this]() {
+            if (view != VK_NULL_HANDLE) {
+                vkDestroyImageView(
+                    m_impl->backend->m_device.get_device(), view,
+                    m_impl->backend->m_vk_allocator.vk_allocator());
+            }
+            m_impl->gpu_allocator.destroy_image(img, alloc);
+        };
+
+        m_impl->deletion_queues[m_impl->current_frame].push(del);
+    }
+
+    SamplerHandle GPUResourceManager::create_sampler(const SamplerDesc &desc) {
+        check(m_is_initialized);
+
+        VkSamplerCreateInfo sampler_create_info = {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .magFilter = to_vk(desc.mag_filter),
+            .minFilter = to_vk(desc.min_filter),
+            .mipmapMode = to_vk_mip(desc.mip_filter),
+            .addressModeU = to_vk(desc.address_u),
+            .addressModeV = to_vk(desc.address_v),
+            .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .mipLodBias = 0.0f,
+            .anisotropyEnable = desc.max_anisotropy > 1.0f ? VK_TRUE : VK_FALSE,
+            .maxAnisotropy = desc.max_anisotropy,
+            .compareEnable = VK_FALSE,
+            .compareOp = VK_COMPARE_OP_ALWAYS,
+            .minLod = desc.min_lod,
+            .maxLod = desc.max_lod,
+            .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+            .unnormalizedCoordinates = VK_FALSE,
+        };
+
+        VkSampler sampler;
+        vkCreateSampler(
+            m_impl->backend->m_device.get_device(), &sampler_create_info,
+            m_impl->backend->m_vk_allocator.vk_allocator(), &sampler);
+
+        u32 index = 0;
+        u32 generation = 0;
+        u32 free_list_size = m_impl->samplers_free_list.size();
+        if (free_list_size > 0) {
+            index = m_impl->samplers_free_list[free_list_size - 1];
+            check(index < m_impl->samplers.size());
+            m_impl->samplers_free_list.pop_back();
+            generation = m_impl->samplers[index].generation;
+            m_impl->samplers[index].resource = {
+                .sampler = sampler,
+            };
+        } else {
+            index = m_impl->samplers.size();
+            generation = 0;
+            m_impl->samplers.push_back({{.sampler = sampler}, generation});
+        }
+
+        return {
+            .index = index,
+            .generation = generation,
+        };
+    }
+
+    void GPUResourceManager::destroy_sampler(SamplerHandle handle) {
+        check(m_is_initialized);
+        check(handle.index < m_impl->samplers.size());
+
+        auto &sampler = m_impl->samplers[handle.index];
+        fatal(handle.generation != sampler.generation,
+              "Invalid sampler handle");
+
+        sampler.generation++;
+        m_impl->samplers_free_list.push_back(handle.index);
+
+        auto del = [s = sampler.resource.sampler, this]() {
+            vkDestroySampler(m_impl->backend->m_device.get_device(), s,
+                             m_impl->backend->m_vk_allocator.vk_allocator());
+        };
+
+        m_impl->deletion_queues[m_impl->current_frame].push(del);
+    }
 
     u32 GPUResourceManager::get_bindless_index(SamplerHandle sampler) {}
 
@@ -149,6 +330,13 @@ namespace mantle {
             std::pmr::vector<Slot<BufferResource>>(&m_impl->resource);
         m_impl->buffers_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
+        m_impl->images =
+            std::pmr::vector<Slot<ImageResource>>(&m_impl->resource);
+        m_impl->images_free_list = std::pmr::vector<u32>(&m_impl->resource);
+
+        m_impl->samplers =
+            std::pmr::vector<Slot<SamplerResource>>(&m_impl->resource);
+        m_impl->samplers_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
         m_impl->gpu_allocator.init(backend->m_device.get_physical_device(),
                                    backend->m_device.get_device(),
@@ -173,10 +361,28 @@ namespace mantle {
 
     u32 GPUResourceManager::get_bindless_index(BufferHandle buffer) {}
 
-    VkImage GPUResourceManager::Impl::get_vk_image(ImageHandle handle) const {}
+    VkImage GPUResourceManager::Impl::get_vk_image(ImageHandle handle) const {
+        check(handle.index < images.size());
+        auto &image = images[handle.index];
+        if (image.generation != handle.generation) {
+            spdlog::error("Attempting to get invalid buffer");
+            return VK_NULL_HANDLE;
+        }
+
+        return image.resource.image;
+    }
 
     VkImageView
-    GPUResourceManager::Impl::get_vk_image_view(ImageHandle handle) const {}
+    GPUResourceManager::Impl::get_vk_image_view(ImageHandle handle) const {
+        check(handle.index < images.size());
+        auto &image = images[handle.index];
+        if (image.generation != handle.generation) {
+            spdlog::error("Attempting to get invalid buffer");
+            return VK_NULL_HANDLE;
+        }
+
+        return image.resource.view;
+    }
 
     VkBuffer
     GPUResourceManager::Impl::get_vk_buffer(BufferHandle handle) const {

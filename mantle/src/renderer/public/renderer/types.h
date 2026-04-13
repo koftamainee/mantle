@@ -58,14 +58,20 @@ namespace mantle {
         D32S8,
     };
     
-    enum class ImageUsage {
-        Storage = 1 << 0,
-        Sampled = 1 << 1,
-        Color = 1 << 2,
-        Depth = 1 << 3,
-        TransferSrc = 1 << 4,
-        TransferDst = 1 << 5,
-        MaxEnum = (1 << 6) - 1,
+    enum class ImageUsage : u32 {
+        None        = 0,
+
+        Sampled     = 1 << 0,
+        Storage     = 1 << 1,
+
+        Color       = 1 << 2,
+        Depth       = 1 << 3,
+        Stencil     = 1 << 4,
+
+        TransferSrc = 1 << 5,
+        TransferDst = 1 << 6,
+
+        MaxEnum = (1 << 7) - 1
     };
     struct ImageDesc final {
         u32 width = 0;
@@ -76,6 +82,7 @@ namespace mantle {
         u32 sample_count = 1;
         ImageFormat format{};
         ImageUsage usage{};
+        bool create_view = true;
     };
 
     struct GraphicsPipelineDesc final {}; // TODO
@@ -95,6 +102,7 @@ namespace mantle {
     struct SamplerDesc final {
         Filter min_filter = Filter::Linear;
         Filter mag_filter = Filter::Linear;
+        Filter mip_filter = Filter::Linear;
         AddressMode address_u = AddressMode::Repeat;
         AddressMode address_v = AddressMode::Repeat;
         f32 max_anisotropy = 1.0f;
