@@ -2,18 +2,22 @@
 #include "core/memory/arena_allocator.h"
 #include "core/types.h"
 #include "renderer/handles.h"
+#include "../resources/vulkan_gpu_allocator.h"
+#include "vulkan_context.h"
+#include "vulkan_cpu_allocator.h"
+#include "vulkan_device.h"
+#include "vulkan_swapchain.h"
 #include "window/window.h"
 
 namespace mantle {
-
-    enum class AcquireResult {
+    enum class SwapchainResult {
         Ok,
         Suboptimal,
         OutOfDate,
     };
 
     struct AcquiredImage final {
-        AcquireResult result;
+        SwapchainResult result;
         u32 image_index;
     };
 
@@ -43,15 +47,26 @@ namespace mantle {
         void rebuild_swapchain(u32 width, u32 height);
         SwapchainInfo get_swapchain_info() const;
 
-        AcquiredImage acquire_next_image(u32 semaphore_index) const;
-        void present(u32 image_index, u32 semaphore_index) const;
-
-        struct InternalAccess;
-        InternalAccess get_internal() const;
+        AcquiredImage acquire_next_image(VkSemaphore image_available) const;
+        SwapchainResult present(u32 image_index, VkSemaphore render_finished) const;
 
       private:
-        struct Impl;
-        Impl *m_impl = nullptr;
+        friend class FrameScheduler;
+        friend class GPUResourceManager;
+
+        bool m_is_initialized = false;
+
+        VulkanContext m_context{};
+        VulkanDevice m_device{};
+        VulkanSwapchain m_swapchain{};
+        VulkanGPUAllocator m_gpu_allocator{};
+
+        VirtualHeap *m_heap = nullptr;
+        ArenaAllocator *m_scratch_arena = nullptr;
+        TlsfAllocator m_tlsf_allocator{};
+        VulkanCPUAllocator m_vk_allocator{};
+
+        bool m_vsync = true;
     };
 
 
