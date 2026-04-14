@@ -57,48 +57,58 @@ namespace mantle {
     }
 
     void CommandRecorder::begin_rendering(const RenderingInfo &info) const {
-        VkImageView color_view =
-            m_resources->m_impl->get_image(info.color.image).view;
+        std::vector<VkRenderingAttachmentInfo>
+            color_attachments; // TODO: use custom scratch arena alloc
+        color_attachments.reserve(info.colors.size());
 
-        VkRenderingAttachmentInfo color_attachment = {
-            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-            .imageView = color_view,
-            .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .loadOp = info.color.load == AttachmentLoad::Clear
-                ? VK_ATTACHMENT_LOAD_OP_CLEAR
-                : info.color.load == AttachmentLoad::Load
-                ? VK_ATTACHMENT_LOAD_OP_LOAD
-                : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            .storeOp = info.color.store == AttachmentStore::Store
-                ? VK_ATTACHMENT_STORE_OP_STORE
-                : VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .clearValue = {.color = {.float32 = {info.color.clear_r,
-                                                 info.color.clear_g,
-                                                 info.color.clear_b,
-                                                 info.color.clear_a}}},
-        };
+        const VkRenderingAttachmentInfo *p_depth_attachment = nullptr;
 
-        VkRenderingAttachmentInfo depth_attachment = {
-            .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-            .imageView = m_resources->m_impl->get_image(info.depth.image).view,
-            .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
-            .loadOp = to_vk(info.depth.load),
-            .storeOp = to_vk(info.depth.store),
-            .clearValue = {.depthStencil = {.depth = info.depth.clear_value}},
-        };
+        for (const auto &color : info.colors) {
+            if (color.image.index != 0) {
+                color_attachments.push_back({
+                    .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                    .imageView =
+                        m_resources->m_impl->get_image(color.image).view,
+                    .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    .loadOp = to_vk(color.load),
+                    .storeOp = to_vk(color.store),
+                    .clearValue =
+                        {.color = {.float32 = {color.clear_r, color.clear_g,
+                                               color.clear_b, color.clear_a}}},
+                });
+            }
+        }
+
+        VkRenderingAttachmentInfo depth_attachment;
+        if (info.depth.image.index != 0) {
+            depth_attachment = {
+                .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                .imageView =
+                    m_resources->m_impl->get_image(info.depth.image).view,
+                .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                .loadOp = to_vk(info.depth.load),
+                .storeOp = to_vk(info.depth.store),
+                .clearValue = {.depthStencil = {.depth =
+                                                    info.depth.clear_value}},
+            };
+            p_depth_attachment = &depth_attachment;
+        }
 
         VkRenderingInfo rendering_info = {
             .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
             .renderArea = {.offset = {0, 0},
                            .extent = {info.width, info.height}},
             .layerCount = 1,
-            .colorAttachmentCount = 1,
-            .pColorAttachments = &color_attachment,
-            .pDepthAttachment = &depth_attachment,
+            .colorAttachmentCount =
+                static_cast<uint32_t>(color_attachments.size()),
+            .pColorAttachments = color_attachments.data(),
+            .pDepthAttachment = p_depth_attachment,
         };
 
         vkCmdBeginRendering(m_cmd, &rendering_info);
     }
+
+    void CommandRecorder::end_rendering() const { vkCmdEndRendering(m_cmd); }
 
 
     void

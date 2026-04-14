@@ -2,20 +2,13 @@
 #include <string_view>
 #include <vector>
 
-
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"
 #include "core/memory/scope_arena.h"
 #include "gpu_resource_manager.h"
+#include <renderer/types.h>
 
 namespace mantle {
-    struct RGBufferHandle final {
-        u32 index;
-    };
-    struct RGImageHandle final {
-        u32 index;
-    };
-
     class RenderGraphBuilder final {
       public:
         RenderGraphBuilder() = delete;
@@ -34,7 +27,6 @@ namespace mantle {
         RGImageHandle write(RGImageHandle image);
         RGBufferHandle read(RGBufferHandle buffer);
         RGBufferHandle write(RGBufferHandle buffer);
-
       private:
         // TODO
     };
@@ -53,12 +45,17 @@ namespace mantle {
         void bind_pipeline(GraphicsPipelineHandle pipeline);
         void bind_pipeline(ComputePipelineHandle pipeline);
 
-        void draw(u32 vertex_count, u32 instance_count, u32 first_vertex,
-                  u32 first_instance);
-        void draw_indexed(u32 index_count, u32 instance_count, u32 first_index,
-                          i32 vertex_offset, u32 first_instance);
+        void begin_rendering(const RGRenderingInfo& info);
+        void end_rendering();
 
-        void dispatch(u32 x, u32 y, u32 z);
+        void draw(const DrawInfo &info);
+        void draw_indexed(const DrawIndexedInfo &info);
+
+        void dispatch(const DispatchInfo &info);
+
+        void copy_buffer(const RGBufferCopyInfo &info);
+        void copy_buffer_to_image(const RGBufferImageCopyInfo &info);
+
         void push_constants(const void *data, u32 size, u32 offset = 0);
 
       private:

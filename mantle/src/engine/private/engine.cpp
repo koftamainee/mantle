@@ -109,11 +109,6 @@ namespace mantle {
     }
 
     void Engine::render() {
-        glm::mat4 view = m_camera.view();
-        glm::mat4 projection = m_camera.projection();
-
-        m_frustum.extract(projection * view);
-
         Renderer::Result result = m_renderer.begin_frame();
         if (result == Renderer::Result::FrameNeedsResize) {
             auto [width, height] = m_window.get_framebuffer_size();
@@ -126,6 +121,7 @@ namespace mantle {
         struct VoxelPass final {
             RGImageHandle out_image;
         };
+
         struct PresentPass final {
             RGImageHandle in_image;
             RGImageHandle out_backbuffer;
@@ -134,33 +130,55 @@ namespace mantle {
         RGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
         auto [width, height] = m_window.get_framebuffer_size();
 
-        auto voxel_pass = graph.add_pass<VoxelPass>(
+        auto &voxel_pass_data = graph.add_pass<VoxelPass>(
             "Voxel Pass",
             [&](RenderGraphBuilder &builder, VoxelPass &pass) {
                 pass.out_image = builder.create_image({
                     .width = width,
                     .height = height,
                     .depth = 1,
+                    .mip_levels = 1,
+                    .array_layers = 1,
+                    .sample_count = SampleCount::x1,
                     .format = ImageFormat::Rgba16f,
                     .usage = ImageUsage::Storage | ImageUsage::Sampled,
+                    .create_view = true,
                 });
                 pass.out_image = builder.write(pass.out_image);
             },
             [width, height, this](RenderPassContext &ctx,
                                   const VoxelPass &pass) {
                 ctx.bind_pipeline(m_dda_pipeline);
-                ctx.dispatch(width / 8, height / 8, 1);
+                ctx.dispatch({.x = width / 8, .y = height / 8, .z = 1});
             });
 
         graph.add_pass<PresentPass>(
             "Present Pass",
             [&](RenderGraphBuilder &builder, PresentPass &pass) {
-                pass.in_image = builder.read(voxel_pass.out_image);
+                pass.in_image = builder.read(voxel_pass_data.out_image);
                 pass.out_backbuffer = builder.write(backbuffer);
             },
-            [this](RenderPassContext &ctx, const PresentPass &pass) {
+            [backbuffer, width, height, this](RenderPassContext &ctx,
+                                              const PresentPass &pass) {
+                std::array<RGColorAttachment, 1> color_attachments = {{{
+                    .image = backbuffer,
+                    .load = AttachmentLoad::Clear,
+                    .store = AttachmentStore::Store,
+                    .clear_r = 0.1f,
+                    .clear_g = 0.2f,
+                    .clear_b = 0.3f,
+                    .clear_a = 1.0f,
+                }}};
+                ctx.begin_rendering({
+                    .colors = color_attachments,
+                    .width = width,
+                    .height = height,
+                });
+
                 ctx.bind_pipeline(m_present_pipeline);
-                ctx.draw(3, 1, 0, 0);
+                ctx.draw({.vertex_count = 3});
+
+                ctx.end_rendering();
             });
 
         CompiledRenderGraph compiled =

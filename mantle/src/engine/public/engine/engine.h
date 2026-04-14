@@ -33,8 +33,6 @@ namespace mantle {
         ComputePipelineHandle m_dda_pipeline{};
         GraphicsPipelineHandle m_present_pipeline{};
 
-        Frustum m_frustum{};
-
         f32 m_last_time = 0.0f;
 
         f32 m_mouse_x = 0.0f;

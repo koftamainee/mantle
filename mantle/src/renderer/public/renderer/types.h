@@ -1,37 +1,38 @@
 #pragma once
-#include "core/types.h"
 #include "core/enum_flags.h"
+#include <span>
 
 namespace mantle {
-
     struct BufferHandle final {
         u32 index;
         u32 generation;
     };
-
     struct ImageHandle final {
         u32 index;
         u32 generation;
     };
-
     struct SamplerHandle final {
         u32 index;
         u32 generation;
     };
-
     struct ShaderHandle final {
         u32 index;
         u32 generation;
     };
-
     struct GraphicsPipelineHandle final {
         u32 index;
         u32 generation;
     };
-
     struct ComputePipelineHandle final {
         u32 index;
         u32 generation;
+    };
+
+    struct RGBufferHandle final {
+        u32 index;
+    };
+    struct RGImageHandle final {
+        u32 index;
     };
 
     enum class BufferUsage : u32 {
@@ -41,12 +42,10 @@ namespace mantle {
         Storage = 1 << 3,
         Transfer = 1 << 4,
     };
-
     enum class MemoryType {
         Gpu,
         CpuToGpu,
     };
-
     struct BufferDesc final {
         usize size = 0;
         BufferUsage usage = {};
@@ -65,7 +64,6 @@ namespace mantle {
         D24S8,
         D32S8,
     };
-
     enum class ImageUsage : u32 {
         None = 0,
         Sampled = 1 << 0,
@@ -76,7 +74,6 @@ namespace mantle {
         TransferDst = 1 << 5,
         MaxEnum = (1 << 6) - 1,
     };
-
     enum class SampleCount : u8 {
         x1 = 1,
         x2 = 2,
@@ -102,13 +99,11 @@ namespace mantle {
         Nearest,
         Linear,
     };
-
     enum class AddressMode {
         Repeat,
         ClampToEdge,
         ClampToBorder,
     };
-
     struct SamplerDesc final {
         Filter min_filter = Filter::Linear;
         Filter mag_filter = Filter::Linear;
@@ -123,8 +118,8 @@ namespace mantle {
     enum class AttachmentLoad { Clear, Load, DontCare };
     enum class AttachmentStore { Store, DontCare };
 
-    struct ColorAttachment final {
-        ImageHandle image = {};
+    struct RGColorAttachment final {
+        RGImageHandle image = {};
         AttachmentLoad load = AttachmentLoad::Clear;
         AttachmentStore store = AttachmentStore::Store;
         f32 clear_r = 0.0f;
@@ -133,16 +128,16 @@ namespace mantle {
         f32 clear_a = 1.0f;
     };
 
-    struct DepthAttachment final {
-        ImageHandle image = {};
+    struct RGDepthAttachment final {
+        RGImageHandle image = {};
         AttachmentLoad load = AttachmentLoad::Clear;
         AttachmentStore store = AttachmentStore::DontCare;
         f32 clear_value = 1.0f;
     };
 
-    struct RenderingInfo final {
-        ColorAttachment color = {};
-        DepthAttachment depth = {};
+    struct RGRenderingInfo final {
+        std::span<RGColorAttachment> colors = {};
+        RGDepthAttachment depth = {};
         u32 width = 0;
         u32 height = 0;
     };
@@ -168,17 +163,17 @@ namespace mantle {
         u32 z = 1;
     };
 
-    struct BufferCopyInfo final {
-        BufferHandle src = {};
-        BufferHandle dst = {};
+    struct RGBufferCopyInfo final {
+        RGBufferHandle src = {};
+        RGBufferHandle dst = {};
         usize src_offset = 0;
         usize dst_offset = 0;
         usize size = 0;
     };
 
-    struct BufferImageCopyInfo final {
-        BufferHandle src = {};
-        ImageHandle dst = {};
+    struct RGBufferImageCopyInfo final {
+        RGBufferHandle src = {};
+        RGImageHandle dst = {};
         usize buffer_offset = 0;
         u32 mip_level = 0;
     };

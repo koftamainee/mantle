@@ -1,23 +1,10 @@
 #pragma once
-#include <vulkan/vulkan.h>
 #include "core/types.h"
 #include "renderer/types.h"
 #include "core/enum_flags.h"
+#include <span>
 
 namespace mantle {
-
-    enum class RGResourceType : u8 {
-        Image,
-        Buffer,
-    };
-
-    enum class RGAccessType : u8 {
-        None,
-        Read,
-        Write,
-        ReadWrite,
-    };
-
     enum class ImageLayout : u8 {
         Undefined,
         General,
@@ -60,25 +47,43 @@ namespace mantle {
         VkAccessFlags2 dst_access = 0;
     };
 
-    struct RGImageResource final {
-        ImageHandle physical = {};
-        ImageDesc desc = {};
-        ImageLayout layout = ImageLayout::Undefined;
-        RGAccessType access = RGAccessType::None;
-        bool imported = false;
+    struct ColorAttachment final {
+        ImageHandle image = {};
+        AttachmentLoad load = AttachmentLoad::Clear;
+        AttachmentStore store = AttachmentStore::Store;
+        f32 clear_r = 0.0f;
+        f32 clear_g = 0.0f;
+        f32 clear_b = 0.0f;
+        f32 clear_a = 1.0f;
     };
 
-    struct RGBufferResource final {
-        BufferHandle physical = {};
-        BufferDesc desc = {};
-        RGAccessType access = RGAccessType::None;
-        bool imported = false;
+    struct DepthAttachment final {
+        ImageHandle image = {};
+        AttachmentLoad load = AttachmentLoad::Clear;
+        AttachmentStore store = AttachmentStore::DontCare;
+        f32 clear_value = 1.0f;
     };
 
-    struct RGResourceAccess final {
-        u32 index = 0;
-        RGResourceType type = {};
-        RGAccessType access = RGAccessType::None;
+    struct RenderingInfo final {
+        std::span<ColorAttachment> colors = {};
+        DepthAttachment depth = {};
+        u32 width = 0;
+        u32 height = 0;
+    };
+
+    struct BufferCopyInfo final {
+        BufferHandle src = {};
+        BufferHandle dst = {};
+        usize src_offset = 0;
+        usize dst_offset = 0;
+        usize size = 0;
+    };
+
+    struct BufferImageCopyInfo final {
+        BufferHandle src = {};
+        ImageHandle dst = {};
+        usize buffer_offset = 0;
+        u32 mip_level = 0;
     };
 
 } // namespace mantle

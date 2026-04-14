@@ -297,65 +297,6 @@ namespace mantle {
         }
     }
 
-    ImageLayout infer_layout(RGAccessType access, ImageUsage usage) {
-        using U = std::underlying_type_t<ImageUsage>;
-        U u = static_cast<U>(usage);
-
-        auto has = [&](ImageUsage bit) {
-            return (u & static_cast<U>(bit)) != 0;
-        };
-
-        if (has(ImageUsage::TransferSrc) && access == RGAccessType::Read)
-            return ImageLayout::TransferSrc;
-
-        if (has(ImageUsage::TransferDst) && access == RGAccessType::Write)
-            return ImageLayout::TransferDst;
-
-        if (has(ImageUsage::Depth))
-            return ImageLayout::DepthAttachment;
-
-        if (has(ImageUsage::Color) && access == RGAccessType::Write)
-            return ImageLayout::ColorAttachment;
-
-        if (has(ImageUsage::Storage))
-            return ImageLayout::General;
-
-        if (has(ImageUsage::Sampled) && access == RGAccessType::Read)
-            return ImageLayout::ShaderReadOnly;
-
-        if (has(ImageUsage::Color) && access == RGAccessType::Read)
-            return ImageLayout::ShaderReadOnly;
-
-        fatal(true, "cannot infer ImageLayout");
-    }
-
-    PipelineStage infer_stage(RGAccessType access, ImageUsage usage) {
-        using U = std::underlying_type_t<ImageUsage>;
-        U u = static_cast<U>(usage);
-
-        auto has = [&](ImageUsage bit) {
-            return (u & static_cast<U>(bit)) != 0;
-        };
-
-        if (has(ImageUsage::TransferSrc) || has(ImageUsage::TransferDst))
-            return PipelineStage::Transfer;
-
-        if (has(ImageUsage::Depth))
-            return access == RGAccessType::Read
-                ? PipelineStage::EarlyDepth
-                : static_cast<PipelineStage>(
-                      static_cast<u32>(PipelineStage::EarlyDepth) |
-                      static_cast<u32>(PipelineStage::LateDepth));
-
-        if (has(ImageUsage::Color) && access == RGAccessType::Write)
-            return PipelineStage::ColorOutput;
-
-        if (has(ImageUsage::Storage) || has(ImageUsage::Sampled) ||
-            has(ImageUsage::Color))
-            return PipelineStage::FragmentShader;
-
-        fatal(true, "cannot infer PipelineStage");
-    }
 
     VkSampleCountFlagBits to_vk(SampleCount count) {
         switch (count) {
