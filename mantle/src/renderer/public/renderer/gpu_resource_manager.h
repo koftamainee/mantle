@@ -20,7 +20,7 @@ namespace mantle {
         operator=(GPUResourceManager &&other) noexcept = delete;
 
         ShaderHandle create_shader(std::span<const u32> spir_v);
-        void destroy_shader(ShaderHandle shader);
+        void destroy_shader(ShaderHandle handle);
 
         GraphicsPipelineHandle
         create_graphics_pipeline(const GraphicsPipelineDesc &desc);

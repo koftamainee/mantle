@@ -3,6 +3,7 @@
 #include "core/assert.h"
 #include "core/memory/persistent_allocator.h"
 #include "gpu_resource_manager_internal.h"
+#include "vulkan/vkassert.h"
 #include "vulkan/vulkan_backend.h"
 #include "vulkan/vulkan_utils.h"
 
@@ -11,10 +12,59 @@ namespace mantle {
 
     ShaderHandle
     GPUResourceManager::create_shader(std::span<const u32> spir_v) {
-        return {};
+        VkShaderModuleCreateInfo info = {
+            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            .codeSize = spir_v.size_bytes(),
+            .pCode = spir_v.data(),
+        };
+        VkShaderModule shader_module = VK_NULL_HANDLE;
+        vk_verify(vkCreateShaderModule(
+            m_impl->backend->m_device.get_device(), &info,
+            m_impl->backend->m_vk_allocator.vk_allocator(), &shader_module));
+
+        u32 index = 0;
+        u32 generation = 0;
+        u32 free_list_size = m_impl->shaders_free_list.size();
+        if (!m_impl->shaders_free_list.empty()) {
+            index = m_impl->shaders_free_list[free_list_size - 1];
+            check(index < m_impl->shaders.size());
+            m_impl->shaders_free_list.pop_back();
+            generation = m_impl->shaders[index].generation;
+            m_impl->shaders[index].resource = {
+                .shader = shader_module,
+            };
+        } else {
+            index = m_impl->shaders.size();
+            generation = 0;
+            m_impl->shaders.push_back({{shader_module}, generation});
+        }
+
+        return {
+            .index = index,
+            .generation = generation,
+        };
     }
 
-    void GPUResourceManager::destroy_shader(ShaderHandle shader) {}
+    void GPUResourceManager::destroy_shader(ShaderHandle handle) {
+        check(m_is_initialized);
+        check(handle.index < m_impl->shaders.size());
+
+        auto &shader = m_impl->shaders[handle.index];
+        fatal(handle.generation != shader.generation, "Invalid shader handle");
+
+        shader.generation++;
+        m_impl->images_free_list.push_back(handle.index);
+
+        auto del = [shader_module = shader.resource.shader, this]() {
+            if (shader_module != VK_NULL_HANDLE) {
+                vkDestroyShaderModule(
+                    m_impl->backend->m_device.get_device(), shader_module,
+                    m_impl->backend->m_vk_allocator.vk_allocator());
+            }
+        };
+
+        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+    }
 
     GraphicsPipelineHandle GPUResourceManager::create_graphics_pipeline(
         const GraphicsPipelineDesc &desc) {
@@ -56,7 +106,7 @@ namespace mantle {
         u32 index = 0;
         u32 generation = 0;
         u32 free_list_size = m_impl->buffers_free_list.size();
-        if (m_impl->buffers_free_list.size() > 0) {
+        if (!m_impl->buffers_free_list.empty()) {
             index = m_impl->buffers_free_list[free_list_size - 1];
             check(index < m_impl->buffers.size());
             m_impl->buffers_free_list.pop_back();
@@ -109,7 +159,7 @@ namespace mantle {
             m_impl->gpu_allocator.destroy_buffer(buf, alloc);
         };
 
-        m_impl->deletion_queues[m_impl->current_frame].push(del);
+        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
     }
 
     ImageHandle GPUResourceManager::create_image(const ImageDesc &desc) {
@@ -126,8 +176,6 @@ namespace mantle {
 
         VkImageCreateInfo image_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
             .imageType = (depth > 1) ? VK_IMAGE_TYPE_3D : VK_IMAGE_TYPE_2D,
             .format = to_vk(desc.format),
             .extent =
@@ -152,8 +200,6 @@ namespace mantle {
 
         VkImageViewCreateInfo view_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
             .image = image,
             .viewType =
                 (depth > 1) ? VK_IMAGE_VIEW_TYPE_3D : VK_IMAGE_VIEW_TYPE_2D,
@@ -177,9 +223,9 @@ namespace mantle {
 
         VkImageView view = VK_NULL_HANDLE;
         if (desc.create_view) {
-            vkCreateImageView(
+            vk_verify(vkCreateImageView(
                 m_impl->backend->m_device.get_device(), &view_create_info,
-                m_impl->backend->m_vk_allocator.vk_allocator(), &view);
+                m_impl->backend->m_vk_allocator.vk_allocator(), &view));
         }
         u32 index = 0;
         u32 generation = 0;
@@ -229,7 +275,7 @@ namespace mantle {
             }
         };
 
-        m_impl->deletion_queues[m_impl->current_frame].push(del);
+        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
     }
 
     SamplerHandle GPUResourceManager::create_sampler(const SamplerDesc &desc) {
@@ -237,8 +283,6 @@ namespace mantle {
 
         VkSamplerCreateInfo sampler_create_info = {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
             .magFilter = to_vk(desc.mag_filter),
             .minFilter = to_vk(desc.min_filter),
             .mipmapMode = to_vk_mip(desc.mip_filter),
@@ -257,9 +301,9 @@ namespace mantle {
         };
 
         VkSampler sampler;
-        vkCreateSampler(
+        vk_verify(vkCreateSampler(
             m_impl->backend->m_device.get_device(), &sampler_create_info,
-            m_impl->backend->m_vk_allocator.vk_allocator(), &sampler);
+            m_impl->backend->m_vk_allocator.vk_allocator(), &sampler));
 
         u32 index = 0;
         u32 generation = 0;
@@ -300,7 +344,7 @@ namespace mantle {
                              m_impl->backend->m_vk_allocator.vk_allocator());
         };
 
-        m_impl->deletion_queues[m_impl->current_frame].push(del);
+        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
     }
 
     u32 GPUResourceManager::get_bindless_index(SamplerHandle sampler) {}
@@ -351,8 +395,8 @@ namespace mantle {
         for (auto &image : images) {
             destroy_image(image);
         }
-        // images.resize(0); // don't sure if this will work with persistent
-        // alloc
+        images
+            .clear(); // removes images, but capacity remains, so no memory leak
     }
 
     void GPUResourceManager::init(VulkanBackend *backend) {
@@ -379,11 +423,18 @@ namespace mantle {
             std::pmr::vector<Slot<SamplerResource>>(&m_impl->resource);
         m_impl->samplers_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
+        m_impl->shaders =
+            std::pmr::vector<Slot<ShaderResource>>(&m_impl->resource);
+        m_impl->shaders_free_list = std::pmr::vector<u32>(&m_impl->resource);
+
         m_impl->gpu_allocator.init(backend->m_device.get_physical_device(),
                                    backend->m_device.get_device(),
                                    backend->m_context.get_instance(),
                                    backend->m_vk_allocator.vk_allocator());
 
+        for (auto &queue : m_impl->deletion_queues) {
+            queue.init(m_impl->backend->m_heap);
+        }
 
         m_is_initialized = true;
         spdlog::info("GPU resource manager is initialized");

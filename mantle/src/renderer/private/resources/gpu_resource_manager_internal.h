@@ -29,6 +29,9 @@ namespace mantle {
     struct SamplerResource final {
         VkSampler sampler = VK_NULL_HANDLE;
     };
+    struct ShaderResource final {
+        VkShaderModule shader = VK_NULL_HANDLE;
+    };
 
 
     struct GPUResourceManager::Impl final {
@@ -57,10 +60,13 @@ namespace mantle {
         std::pmr::vector<Slot<BufferResource>> buffers;
         std::pmr::vector<u32> buffers_free_list;
 
+        std::pmr::vector<Slot<ImageResource>> images;
+        std::pmr::vector<u32> images_free_list;
+
         std::pmr::vector<Slot<SamplerResource>> samplers;
         std::pmr::vector<u32> samplers_free_list;
 
-        std::pmr::vector<Slot<ImageResource>> images;
-        std::pmr::vector<u32> images_free_list;
+        std::pmr::vector<Slot<ShaderResource>> shaders;
+        std::pmr::vector<u32> shaders_free_list;
     };
 } // namespace mantle
