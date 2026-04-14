@@ -118,48 +118,19 @@ namespace mantle {
 
         RenderGraph graph(&m_rendering_arena);
 
-        struct VoxelPass final {
-            RGImageHandle out_image;
-        };
-
-        struct PresentPass final {
-            RGImageHandle in_image;
+        struct TrianglePass final {
             RGImageHandle out_backbuffer;
         };
 
         RGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
         auto [width, height] = m_window.get_framebuffer_size();
-
-        auto &voxel_pass_data = graph.add_pass<VoxelPass>(
-            "Voxel Pass",
-            [&](RenderGraphBuilder &builder, VoxelPass &pass) {
-                pass.out_image = builder.create_image({
-                    .width = width,
-                    .height = height,
-                    .depth = 1,
-                    .mip_levels = 1,
-                    .array_layers = 1,
-                    .sample_count = SampleCount::x1,
-                    .format = ImageFormat::Rgba16f,
-                    .usage = ImageUsage::Storage | ImageUsage::Sampled,
-                    .create_view = true,
-                });
-                pass.out_image = builder.write(pass.out_image);
-            },
-            [width, height, this](RenderPassContext &ctx,
-                                  const VoxelPass &pass) {
-                ctx.bind_pipeline(m_dda_pipeline);
-                ctx.dispatch({.x = width / 8, .y = height / 8, .z = 1});
-            });
-
-        graph.add_pass<PresentPass>(
-            "Present Pass",
-            [&](RenderGraphBuilder &builder, PresentPass &pass) {
-                pass.in_image = builder.read(voxel_pass_data.out_image);
+        graph.add_pass<TrianglePass>(
+            "Triangle Pass",
+            [&](RenderGraphBuilder &builder, TrianglePass &pass) {
                 pass.out_backbuffer = builder.write(backbuffer);
             },
             [width, height, this](RenderPassContext &ctx,
-                                              const PresentPass &pass) {
+                                              const TrianglePass &pass) {
                 std::array<RGColorAttachment, 1> color_attachments = {{{
                     .image = pass.out_backbuffer,
                     .load = AttachmentLoad::Clear,
