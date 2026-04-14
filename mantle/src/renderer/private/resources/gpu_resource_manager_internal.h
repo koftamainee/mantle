@@ -17,17 +17,18 @@ namespace mantle {
     struct BufferResource final {
         VkBuffer buffer = VK_NULL_HANDLE;
         VmaAllocation allocation = VK_NULL_HANDLE;
-
-        void* mapped = nullptr;
+        void *mapped = nullptr;
+        BufferDesc desc = {};
     };
     struct ImageResource final {
         VkImage image = VK_NULL_HANDLE;
         VmaAllocation allocation = VK_NULL_HANDLE;
         VkImageView view = VK_NULL_HANDLE;
-        VkFormat format = VK_FORMAT_UNDEFINED;
+        ImageDesc desc = {};
     };
     struct SamplerResource final {
         VkSampler sampler = VK_NULL_HANDLE;
+        SamplerDesc desc = {};
     };
     struct ShaderResource final {
         VkShaderModule shader = VK_NULL_HANDLE;
@@ -37,9 +38,12 @@ namespace mantle {
     struct GPUResourceManager::Impl final {
         static constexpr u32 frame_lag = 3;
 
-        VkImage get_vk_image(ImageHandle handle) const;
-        VkImageView get_vk_image_view(ImageHandle handle) const;
-        VkBuffer get_vk_buffer(BufferHandle handle) const;
+        ImageResource &get_image(ImageHandle handle);
+        BufferResource &get_buffer(BufferHandle handle);
+        SamplerResource &get_sampler(SamplerHandle handle);
+        ShaderResource &get_shader(ShaderHandle handle);
+
+        //TODO new signatures
         VkPipeline get_vk_pipeline(GraphicsPipelineHandle handle) const;
         VkPipeline get_vk_pipeline(ComputePipelineHandle handle) const;
         VkPipelineLayout

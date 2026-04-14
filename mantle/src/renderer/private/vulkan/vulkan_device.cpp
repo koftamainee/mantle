@@ -69,7 +69,8 @@ namespace mantle {
         if (m_is_initialized) {
             if (m_command_pool != VK_NULL_HANDLE) {
                 check(m_device != VK_NULL_HANDLE);
-                vkDestroyCommandPool(m_device, m_command_pool, m_alloc_callbacks);
+                vkDestroyCommandPool(m_device, m_command_pool,
+                                     m_alloc_callbacks);
                 m_command_pool = VK_NULL_HANDLE;
             }
             if (m_transfer_command_pool != VK_NULL_HANDLE) {
@@ -223,8 +224,8 @@ namespace mantle {
             .flags = create_flags,
             .queueFamilyIndex = queue_family_index};
         VkCommandPool pool;
-        vk_verify(vkCreateCommandPool(m_device, &cmd_pool_create_info, m_alloc_callbacks,
-                                      &pool));
+        vk_verify(vkCreateCommandPool(m_device, &cmd_pool_create_info,
+                                      m_alloc_callbacks, &pool));
         return pool;
     }
 
@@ -280,7 +281,8 @@ namespace mantle {
         };
         VkFence fence;
 
-        vk_verify(vkCreateFence(m_device, &fence_create_info, m_alloc_callbacks, &fence));
+        vk_verify(vkCreateFence(m_device, &fence_create_info, m_alloc_callbacks,
+                                &fence));
         vk_verify(vkQueueSubmit(queue, 1, &submit_info, fence));
 
         vk_verify(vkWaitForFences(m_device, 1, &fence, VK_TRUE, UINT64_MAX));
@@ -338,7 +340,7 @@ namespace mantle {
         check(m_is_initialized);
         const std::vector<VkFormat> depth_formats = {
             VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT,
-            VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT,
             VK_FORMAT_D16_UNORM};
 
         for (const auto &format : depth_formats) {

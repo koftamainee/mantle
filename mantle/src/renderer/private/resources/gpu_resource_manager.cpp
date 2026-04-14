@@ -168,6 +168,8 @@ namespace mantle {
         check(desc.height > 0);
         check(desc.mip_levels > 0);
         check(desc.array_layers > 0);
+        checkf(!(desc.depth > 1 && desc.array_layers > 1),
+               "3D array textures are not supported");
 
         VkImage image;
         VmaAllocation allocation;
@@ -198,11 +200,13 @@ namespace mantle {
         m_impl->gpu_allocator.create_image(
             image_create_info, VMA_MEMORY_USAGE_GPU_ONLY, &image, &allocation);
 
+
         VkImageViewCreateInfo view_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image,
-            .viewType =
-                (depth > 1) ? VK_IMAGE_VIEW_TYPE_3D : VK_IMAGE_VIEW_TYPE_2D,
+            .viewType = desc.depth > 1  ? VK_IMAGE_VIEW_TYPE_3D
+                : desc.array_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY
+                                        : VK_IMAGE_VIEW_TYPE_2D,
             .format = to_vk(desc.format),
             .components =
                 {
@@ -381,10 +385,23 @@ namespace mantle {
                 m_impl->images.push_back({{}, generation});
             }
 
-            m_impl->images[index].resource = {.image = image,
-                                              .allocation = VK_NULL_HANDLE,
-                                              .view = view,
-                                              .format = format};
+            const auto &extent = m_impl->backend->m_swapchain.get_extent();
+
+            m_impl->images[index].resource = {
+                .image = image,
+                .allocation = VK_NULL_HANDLE,
+                .view = view,
+                .desc =
+                    {
+                        .width = extent.width,
+                        .height = extent.height,
+                        .depth = 1,
+                        .mip_levels = 1,
+                        .format = from_vk(format),
+                        .usage = ImageUsage::Color, // also usage::present, but
+                                                    // its internal
+                    },
+            };
 
             out_images[i] = {.index = index, .generation = generation};
         }
@@ -453,39 +470,44 @@ namespace mantle {
 
     u32 GPUResourceManager::get_bindless_index(BufferHandle buffer) {}
 
-    VkImage GPUResourceManager::Impl::get_vk_image(ImageHandle handle) const {
+    ImageResource &GPUResourceManager::Impl::get_image(ImageHandle handle) {
         check(handle.index < images.size());
         auto &image = images[handle.index];
         if (image.generation != handle.generation) {
-            spdlog::error("Attempting to get invalid buffer");
-            return VK_NULL_HANDLE;
+            fatal(true, "Attempting to get invalid buffer");
         }
 
-        return image.resource.image;
+        return image.resource;
     }
 
-    VkImageView
-    GPUResourceManager::Impl::get_vk_image_view(ImageHandle handle) const {
-        check(handle.index < images.size());
-        auto &image = images[handle.index];
-        if (image.generation != handle.generation) {
-            spdlog::error("Attempting to get invalid buffer");
-            return VK_NULL_HANDLE;
-        }
-
-        return image.resource.view;
-    }
-
-    VkBuffer
-    GPUResourceManager::Impl::get_vk_buffer(BufferHandle handle) const {
+    BufferResource &GPUResourceManager::Impl::get_buffer(BufferHandle handle) {
         check(handle.index < buffers.size());
         auto &buffer = buffers[handle.index];
         if (buffer.generation != handle.generation) {
-            spdlog::error("Attempting to get invalid buffer");
-            return VK_NULL_HANDLE;
+            fatal(true, "Attempting to get invalid buffer");
         }
 
-        return buffer.resource.buffer;
+        return buffer.resource;
+    }
+    SamplerResource &
+    GPUResourceManager::Impl::get_sampler(SamplerHandle handle) {
+        check(handle.index < samplers.size());
+        auto &sampler = samplers[handle.index];
+        if (sampler.generation != handle.generation) {
+            fatal(true, "Attempting to get invalid sampler");
+        }
+
+        return sampler.resource;
+    }
+
+    ShaderResource &GPUResourceManager::Impl::get_shader(ShaderHandle handle) {
+        check(handle.index < shaders.size());
+        auto &shader = shaders[handle.index];
+        if (shader.generation != handle.generation) {
+            fatal(true, "Attempting to get invalid shader");
+        }
+
+        return shader.resource;
     }
 
     VkPipeline GPUResourceManager::Impl::get_vk_pipeline(

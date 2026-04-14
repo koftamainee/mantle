@@ -1,8 +1,8 @@
 #include "command_recorder.h"
 
 #include <vulkan/vulkan_core.h>
-#include "vulkan/vulkan_utils.h"
 #include "resources/gpu_resource_manager_internal.h"
+#include "vulkan/vulkan_utils.h"
 
 #include "core/assert.h"
 
@@ -17,7 +17,7 @@ namespace mantle {
     }
 
     void CommandRecorder::image_barrier(const ImageBarrier &barrier) const {
-        VkImage image = m_resources->m_impl->get_vk_image(barrier.image);
+        VkImage image = m_resources->m_impl->get_image(barrier.image).image;
 
         VkImageMemoryBarrier2 vk_barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
@@ -33,10 +33,10 @@ namespace mantle {
             .subresourceRange =
                 {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .baseMipLevel = barrier.base_mip,
-                    .levelCount = barrier.mip_count,
+                    .baseMipLevel = 0,
+                    .levelCount = VK_REMAINING_MIP_LEVELS,
                     .baseArrayLayer = 0,
-                    .layerCount = 1,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
                 },
         };
 
@@ -58,12 +58,12 @@ namespace mantle {
 
     void CommandRecorder::begin_rendering(const RenderingInfo &info) const {
         VkImageView color_view =
-            m_resources->m_impl->get_vk_image_view(info.color.image);
+            m_resources->m_impl->get_image(info.color.image).view;
 
         VkRenderingAttachmentInfo color_attachment = {
             .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
             .imageView = color_view,
-            .imageLayout = to_vk(info.color.layout),
+            .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .loadOp = info.color.load == AttachmentLoad::Clear
                 ? VK_ATTACHMENT_LOAD_OP_CLEAR
                 : info.color.load == AttachmentLoad::Load
@@ -80,12 +80,10 @@ namespace mantle {
 
         VkRenderingAttachmentInfo depth_attachment = {
             .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-            .imageView =
-                m_resources->m_impl->get_vk_image_view(info.depth.image),
-            .imageLayout = to_vk(info.depth.layout),
-            .loadOp = info.depth.clear ? VK_ATTACHMENT_LOAD_OP_CLEAR
-                                       : VK_ATTACHMENT_LOAD_OP_LOAD,
-            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .imageView = m_resources->m_impl->get_image(info.depth.image).view,
+            .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+            .loadOp = to_vk(info.depth.load),
+            .storeOp = to_vk(info.depth.store),
             .clearValue = {.depthStencil = {.depth = info.depth.clear_value}},
         };
 
@@ -157,45 +155,46 @@ namespace mantle {
                          info.first_instance);
     }
 
-    void CommandRecorder::dispatch(u32 x, u32 y, u32 z) const {
-        vkCmdDispatch(m_cmd, x, y, z);
+    void CommandRecorder::dispatch(const DispatchInfo &info) const {
+        vkCmdDispatch(m_cmd, info.x, info.y, info.z);
     }
 
-    void CommandRecorder::copy_buffer(BufferHandle src, BufferHandle dst,
-                                      usize size, usize src_offset,
-                                      usize dst_offset) const {
+    void CommandRecorder::copy_buffer(const BufferCopyInfo &info) const {
         auto *impl = m_resources->m_impl;
         VkBufferCopy region = {
-            .srcOffset = src_offset,
-            .dstOffset = dst_offset,
-            .size = size,
+            .srcOffset = info.src_offset,
+            .dstOffset = info.dst_offset,
+            .size = info.size,
         };
-        vkCmdCopyBuffer(m_cmd, impl->get_vk_buffer(src),
-                        impl->get_vk_buffer(dst), 1, &region);
+        vkCmdCopyBuffer(m_cmd, impl->get_buffer(info.src).buffer,
+                        impl->get_buffer(info.dst).buffer, 1, &region);
     }
 
-    void CommandRecorder::copy_buffer_to_image(BufferHandle src,
-                                               ImageHandle dst, u32 width,
-                                               u32 height) const {
+    void CommandRecorder::copy_buffer_to_image(
+        const BufferImageCopyInfo &info) const {
         auto *impl = m_resources->m_impl;
+        auto &image = impl->get_image(info.dst);
+        u32 width = image.desc.width >> info.mip_level;
+        u32 height = image.desc.height >> info.mip_level;
+
         VkBufferImageCopy region = {
-            .bufferOffset = 0,
+            .bufferOffset = info.buffer_offset,
             .bufferRowLength = 0,
             .bufferImageHeight = 0,
             .imageSubresource =
                 {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .mipLevel = 0,
+                    .mipLevel = info.mip_level,
                     .baseArrayLayer = 0,
                     .layerCount = 1,
                 },
             .imageOffset = {0, 0, 0},
             .imageExtent = {width, height, 1},
         };
+
         vkCmdCopyBufferToImage(
-            m_cmd, impl->get_vk_buffer(src), impl->get_vk_image(dst),
+            m_cmd, impl->get_buffer(info.src).buffer, image.image,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
     }
-
     void CommandRecorder::bind_descriptor_set() const {} // TODO
 } // namespace mantle

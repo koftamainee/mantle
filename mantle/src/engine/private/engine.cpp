@@ -141,7 +141,7 @@ namespace mantle {
                     .width = width,
                     .height = height,
                     .depth = 1,
-                    .format = ImageFormat::Rgba32,
+                    .format = ImageFormat::Rgba16f,
                     .usage = ImageUsage::Storage | ImageUsage::Sampled,
                 });
                 pass.out_image = builder.write(pass.out_image);

@@ -4,6 +4,7 @@
 #include "core/types.h"
 #include "renderer/gpu_resource_manager.h"
 #include "renderer/types.h"
+#include "types.h"
 
 namespace mantle {
     class CommandRecorder final {
@@ -34,12 +35,9 @@ namespace mantle {
         void draw(const DrawInfo &info) const;
         void draw_indexed(const DrawIndexedInfo &info) const;
 
-        void dispatch(u32 x, u32 y, u32 z) const;
-
-        void copy_buffer(BufferHandle src, BufferHandle dst, usize size,
-                         usize src_offset = 0, usize dst_offset = 0) const;
-        void copy_buffer_to_image(BufferHandle src, ImageHandle dst, u32 width,
-                                  u32 height) const;
+        void dispatch(const DispatchInfo &info) const;
+        void copy_buffer(const BufferCopyInfo &info) const;
+        void copy_buffer_to_image(const BufferImageCopyInfo &info) const;
 
         void push_constants(const void *data, u32 size) const;
         void bind_descriptor_set() const;
