@@ -401,4 +401,45 @@ namespace mantle {
         u32 mip_level = 0;
     };
 
+    struct RGImageBufferCopyInfo final {
+        RGImageHandle src = {};
+        RGBufferHandle dst = {};
+        usize buffer_offset = 0;
+        u32 mip_level = 0;
+    };
+
+    struct RGImageCopyInfo final {
+        RGImageHandle src = {};
+        RGImageHandle dst = {};
+        u32 src_mip_level = 0;
+        u32 dst_mip_level = 0;
+        u32 src_array_layer = 0;
+        u32 dst_array_layer = 0;
+    };
+
+    struct RGImageRegion final {
+        u32 mip_level = 0;
+        u32 array_layer = 0;
+        i32 offset_x = 0;
+        i32 offset_y = 0;
+        u32 width = 0;
+        u32 height = 0;
+    };
+
+    struct RGImageBlitInfo final {
+        RGImageHandle src = {};
+        RGImageHandle dst = {};
+        RGImageRegion src_region = {};
+        RGImageRegion dst_region = {};
+        Filter filter = Filter::Linear;
+    };
+
+    struct SwapchainInfo final {
+        u32 image_count;
+        u32 width;
+        u32 height;
+        ImageFormat surface_format;
+        ImageFormat depth_format;
+    };
+
 } // namespace mantle

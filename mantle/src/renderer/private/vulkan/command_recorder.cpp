@@ -116,7 +116,7 @@ namespace mantle {
         auto *impl = m_resources->m_impl;
         auto &pipeline_ref = impl->get_graphics_pipeline(pipeline);
         m_current_layout = pipeline_ref.layout;
-        vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
+        vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
                           pipeline_ref.pipeline);
     }
 
@@ -127,11 +127,6 @@ namespace mantle {
         m_current_layout = pipeline_ref.layout;
         vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
                           pipeline_ref.pipeline);
-    }
-
-    void CommandRecorder::push_constants(const void *data, u32 size) const {
-        vkCmdPushConstants(m_cmd, m_current_layout, VK_SHADER_STAGE_ALL, 0,
-                           size, data);
     }
 
     void CommandRecorder::set_viewport(f32 x, f32 y, f32 width,
@@ -208,5 +203,38 @@ namespace mantle {
             m_cmd, impl->get_buffer(info.src).buffer, image.image,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
     }
-    void CommandRecorder::bind_descriptor_set() const {} // TODO
+
+    // TODO
+
+    void CommandRecorder::copy_image(const ImageCopyInfo &info) const {}
+
+    void CommandRecorder::blit_image(const ImageBlitInfo &info) const {}
+
+    void CommandRecorder::copy_image_to_buffer(
+        const ImageBufferCopyInfo &info) const {}
+
+    void CommandRecorder::clear_color_image(ImageHandle image, f32 r, f32 g,
+                                            f32 b, f32 a) const {}
+
+    void CommandRecorder::clear_depth_image(ImageHandle image,
+                                            f32 depth) const {}
+
+    void CommandRecorder::bind_vertex_buffer(BufferHandle buffer, u32 binding,
+                                             usize offset) const {
+        auto *impl = m_resources->m_impl;
+        vkCmdBindVertexBuffers(m_cmd, 0, 1, &impl->get_buffer(buffer).buffer,
+                               &offset);
+    }
+
+    void CommandRecorder::bind_index_buffer(BufferHandle buffer,
+                                            usize offset) const {
+        auto *impl = m_resources->m_impl;
+        vkCmdBindIndexBuffer(m_cmd, impl->get_buffer(buffer).buffer, offset,
+                             VK_INDEX_TYPE_UINT32);
+    }
+
+    void CommandRecorder::push_constants(const void *data, u32 size,
+                                         u32 offset) const {}
+
+    void CommandRecorder::bind_descriptor_set() const {}
 } // namespace mantle

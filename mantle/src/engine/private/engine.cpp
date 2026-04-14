@@ -30,7 +30,7 @@ namespace mantle {
             static_cast<f32>(prop.size.height);
 
         m_window.set_resize_callback([&](u32 w, u32 h) {
-            m_renderer.resize(w, h);
+            m_renderer.resize_swapchain(w, h);
             m_camera.aspect = static_cast<f32>(w) / static_cast<f32>(h);
         });
 
@@ -50,7 +50,7 @@ namespace mantle {
             {"frag_main", ShaderStage::Fragment, shader},
         };
 
-        ImageFormat color_format = ImageFormat::Bgra8Srgb; // FIXME
+        ImageFormat color_format = m_renderer.get_swapchain_info().surface_format;
 
         GraphicsPipelineDesc desc = {
             .shaders = shader_modules,
@@ -157,7 +157,7 @@ namespace mantle {
         Renderer::Result result = m_renderer.begin_frame();
         if (result == Renderer::Result::FrameNeedsResize) {
             auto [width, height] = m_window.get_framebuffer_size();
-            m_renderer.resize(width, height);
+            m_renderer.resize_swapchain(width, height);
             return;
         }
 
@@ -207,7 +207,7 @@ namespace mantle {
             Window::Properties::Size size = m_window.get_framebuffer_size();
             width = size.width;
             height = size.height;
-            m_renderer.resize(width, height);
+            m_renderer.resize_swapchain(width, height);
         }
     }
 } // namespace mantle

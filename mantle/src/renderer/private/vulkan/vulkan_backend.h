@@ -20,13 +20,6 @@ namespace mantle {
         u32 image_index;
     };
 
-    struct SwapchainInfo final {
-        u32 image_count;
-        u32 width;
-        u32 height;
-        ImageFormat surface_format;
-        ImageFormat depth_format;
-    };
 
     class VulkanBackend final {
       public:

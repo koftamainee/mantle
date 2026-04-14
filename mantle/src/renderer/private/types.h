@@ -90,4 +90,38 @@ namespace mantle {
     using DrawIndexedInfo = RGDrawIndexedInfo;
     using DispatchInfo = RGDispatchInfo;
 
+
+    struct ImageBufferCopyInfo final {
+        ImageHandle src = {};
+        BufferHandle dst = {};
+        usize buffer_offset = 0;
+        u32 mip_level = 0;
+    };
+
+    struct ImageCopyInfo final {
+        ImageHandle src = {};
+        ImageHandle dst = {};
+        u32 src_mip_level = 0;
+        u32 dst_mip_level = 0;
+        u32 src_array_layer = 0;
+        u32 dst_array_layer = 0;
+    };
+
+    struct ImageRegion final {
+        u32 mip_level = 0;
+        u32 array_layer = 0;
+        i32 offset_x = 0;
+        i32 offset_y = 0;
+        u32 width = 0;
+        u32 height = 0;
+    };
+
+    struct ImageBlitInfo final {
+        ImageHandle src = {};
+        ImageHandle dst = {};
+        ImageRegion src_region = {};
+        ImageRegion dst_region = {};
+        Filter filter = Filter::Linear;
+    };
+
 } // namespace mantle

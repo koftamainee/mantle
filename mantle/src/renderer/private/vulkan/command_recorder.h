@@ -38,8 +38,17 @@ namespace mantle {
         void dispatch(const DispatchInfo &info) const;
         void copy_buffer(const BufferCopyInfo &info) const;
         void copy_buffer_to_image(const BufferImageCopyInfo &info) const;
+        void copy_image(const ImageCopyInfo &info) const;
+        void blit_image(const ImageBlitInfo &info) const;
+        void copy_image_to_buffer(const ImageBufferCopyInfo &info) const;
 
-        void push_constants(const void *data, u32 size) const;
+        void clear_color_image(ImageHandle image, f32 r, f32 g, f32 b, f32 a) const;
+        void clear_depth_image(ImageHandle image, f32 depth) const;
+
+        void bind_vertex_buffer(BufferHandle buffer, u32 binding, usize offset = 0) const;
+        void bind_index_buffer(BufferHandle buffer, usize offset = 0) const;
+
+        void push_constants(const void *data, u32 size, u32 offset = 0) const;
         void bind_descriptor_set() const;
 
       private:
@@ -47,5 +56,8 @@ namespace mantle {
         GPUResourceManager *m_resources = nullptr;
 
         VkPipelineLayout m_current_layout = VK_NULL_HANDLE;
+
+        //TODO: use custom allocator
+        std::pmr::vector<PushConstantsRange> m_current_push_ranges;
     };
 } // namespace mantle

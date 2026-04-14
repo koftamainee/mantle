@@ -99,7 +99,7 @@ namespace mantle {
         return Result::Ok;
     }
 
-    void Renderer::resize(u32 width, u32 height) {
+    void Renderer::resize_swapchain(u32 width, u32 height) {
         check(m_is_initialized);
         m_impl->backend.wait_idle();
 
@@ -113,6 +113,12 @@ namespace mantle {
 
         m_impl->resource_manager.import_swapchain_images(
             m_impl->swapchain_images);
+    }
+
+    SwapchainInfo Renderer::get_swapchain_info() {
+        check(m_is_initialized);
+
+        return m_impl->backend.get_swapchain_info();
     }
 
     ImageHandle Renderer::backbuffer() const {

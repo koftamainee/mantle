@@ -49,23 +49,27 @@ namespace mantle {
         void begin_rendering(const RGRenderingInfo &info);
         void end_rendering();
 
+        void set_viewport(f32 x, f32 y, f32 width, f32 height);
+        void set_scissor(i32 x, i32 y, u32 width, u32 height);
+
+        void bind_vertex_buffer(RGBufferHandle buffer, u32 binding,
+                                usize offset = 0);
+        void bind_index_buffer(RGBufferHandle buffer, usize offset = 0);
+
         void draw(const RGDrawInfo &info);
         void draw_indexed(const RGDrawIndexedInfo &info);
-
         void dispatch(const RGDispatchInfo &info);
 
         void copy_buffer(const RGBufferCopyInfo &info);
         void copy_buffer_to_image(const RGBufferImageCopyInfo &info);
+        void copy_image_to_buffer(const RGImageBufferCopyInfo &info);
+        void copy_image(const RGImageCopyInfo &info);
+        void blit_image(const RGImageBlitInfo &info);
 
-        /* TODO:
-         * 1. add copy_image and blit_image, copy_image_to_buffer,set_viewport,
-         * set_scissors, clear_color_image, clear_depth_image,
-         * bind_vertex_buffer, bind_index_buffer
-         *
-         * 2. Change push_constants signature to accept info struct
-         */
+        void clear_color_image(RGImageHandle image, f32 r, f32 g, f32 b, f32 a);
+        void clear_depth_image(RGImageHandle image, f32 depth);
 
-        void push_constants(const void *data, u32 size, u32 offset = 0);
+        void push_constants(const void *data, const PushConstantsRange &range);
 
       private:
         // TODO
