@@ -41,7 +41,7 @@ namespace mantle {
         m_camera.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
 
-        std::pmr::vector<u32> spv;
+        std::pmr::vector<u32> spv; // TODO: use custom allocator
         load_spv("assets/shaders/flat.spv", spv);
         ShaderHandle shader = m_renderer.resource_manager().create_shader(spv);
 
@@ -67,7 +67,7 @@ namespace mantle {
                 },
             .multisample =
                 {
-                    .rasterization_samples = SampleCount::x1,
+                    .rasterization_samples = SampleCount::x8,
                 },
             .depth_stencil =
                 {
@@ -87,7 +87,7 @@ namespace mantle {
         m_triangle_pipeline =
             m_renderer.resource_manager().create_graphics_pipeline(desc);
 
-        m_renderer.resource_manager().destroy_shader(shader);
+        m_renderer.resource_manager().destroy_shader(shader, true);
 
         m_rendering_arena.init(m_heap.take(megabytes(100)));
 
@@ -169,6 +169,7 @@ namespace mantle {
 
         RGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
         auto [width, height] = m_window.get_framebuffer_size();
+
         graph.add_pass<TrianglePass>(
             "Triangle Pass",
             [&](RenderGraphBuilder &builder, TrianglePass &pass) {

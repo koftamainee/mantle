@@ -107,7 +107,6 @@ namespace mantle {
         }
 
         vk_verify(vkResetFences(vk_device, 1, &frame.fence));
-        // vk_verify(vkResetCommandBuffer(frame.cmd, 0));
 
         VkCommandBufferBeginInfo begin_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

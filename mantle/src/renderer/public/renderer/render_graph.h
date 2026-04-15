@@ -69,7 +69,7 @@ namespace mantle {
         void clear_color_image(RGImageHandle image, f32 r, f32 g, f32 b, f32 a);
         void clear_depth_image(RGImageHandle image, f32 depth);
 
-        void push_constants(const void *data, const PushConstantsRange &range);
+        void push_constants(const void *data, ShaderStage stage);
 
       private:
         // TODO

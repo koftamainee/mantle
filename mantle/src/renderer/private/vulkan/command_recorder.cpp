@@ -5,6 +5,7 @@
 #include "vulkan/vulkan_utils.h"
 
 #include "core/assert.h"
+#include "spdlog/fmt/bundled/os.h"
 
 namespace mantle {
 
@@ -17,43 +18,92 @@ namespace mantle {
     }
 
     void CommandRecorder::image_barrier(const ImageBarrier &barrier) const {
-        VkImage image = m_resources->m_impl->get_image(barrier.image).image;
+        std::array<ImageBarrier, 1> arr{barrier};
+        image_barriers(arr);
+    }
 
-        VkImageMemoryBarrier2 vk_barrier = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-            .srcStageMask = to_vk(barrier.src_stage),
-            .srcAccessMask = infer_access(barrier.from, true),
-            .dstStageMask = to_vk(barrier.dst_stage),
-            .dstAccessMask = infer_access(barrier.to, false),
-            .oldLayout = to_vk(barrier.from),
-            .newLayout = to_vk(barrier.to),
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange =
-                {
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .baseMipLevel = 0,
-                    .levelCount = VK_REMAINING_MIP_LEVELS,
-                    .baseArrayLayer = 0,
-                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
-                },
-        };
+    void CommandRecorder::image_barriers(
+        std::span<const ImageBarrier> barriers) const {
+        if (barriers.empty()) {
+            return;
+        }
+
+        // TODO: use custom allocator
+        std::pmr::vector<VkImageMemoryBarrier2> vk_barriers;
+        vk_barriers.reserve(barriers.size());
+
+        for (const auto &barrier : barriers) {
+            auto &image = m_resources->m_impl->get_image(barrier.image);
+
+            vk_barriers.push_back({
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                .srcStageMask = to_vk(barrier.src_stage),
+                .srcAccessMask =
+                    infer_image_access(barrier.from, barrier.src_access),
+                .dstStageMask = to_vk(barrier.dst_stage),
+                .dstAccessMask =
+                    infer_image_access(barrier.to, barrier.dst_access),
+                .oldLayout = to_vk(barrier.from),
+                .newLayout = to_vk(barrier.to),
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = image.image,
+                .subresourceRange =
+                    {
+                        .aspectMask = to_vk_aspect(image.desc.format),
+                        .baseMipLevel = 0,
+                        .levelCount = VK_REMAINING_MIP_LEVELS,
+                        .baseArrayLayer = 0,
+                        .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                    },
+            });
+        }
 
         VkDependencyInfo dep_info = {
             .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-            .imageMemoryBarrierCount = 1,
-            .pImageMemoryBarriers = &vk_barrier,
+            .imageMemoryBarrierCount = static_cast<u32>(vk_barriers.size()),
+            .pImageMemoryBarriers = vk_barriers.data(),
         };
 
         vkCmdPipelineBarrier2(m_cmd, &dep_info);
     }
 
-    void CommandRecorder::pipeline_barriers(
-        std::span<const ImageBarrier> barriers) const {
-        for (const auto &barrier : barriers) {
-            image_barrier(barrier);
+    void CommandRecorder::buffer_barrier(const BufferBarrier &barrier) const {
+        std::array<BufferBarrier, 1> arr{barrier};
+        buffer_barriers(arr);
+    }
+
+    void CommandRecorder::buffer_barriers(
+        std::span<const BufferBarrier> barriers) const {
+        if (barriers.empty()) {
+            return;
         }
+        // TODO: use custom allocator
+        std::pmr::vector<VkBufferMemoryBarrier2> vk_barriers;
+        vk_barriers.reserve(barriers.size());
+        for (const auto &barrier : barriers) {
+            auto &buffer = m_resources->m_impl->get_buffer(barrier.buffer);
+            vk_barriers.push_back({
+                .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+                .srcStageMask = to_vk(barrier.src_stage),
+                .srcAccessMask =
+                    infer_buffer_access(barrier.src_stage, barrier.src_access),
+                .dstStageMask = to_vk(barrier.dst_stage),
+                .dstAccessMask =
+                    infer_buffer_access(barrier.dst_stage, barrier.dst_access),
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .buffer = buffer.buffer,
+                .offset = 0,
+                .size = VK_WHOLE_SIZE,
+            });
+        }
+        VkDependencyInfo dep_info = {
+            .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+            .bufferMemoryBarrierCount = static_cast<u32>(vk_barriers.size()),
+            .pBufferMemoryBarriers = vk_barriers.data(),
+        };
+        vkCmdPipelineBarrier2(m_cmd, &dep_info);
     }
 
     void CommandRecorder::begin_rendering(const RenderingInfo &info) const {
@@ -116,6 +166,7 @@ namespace mantle {
         auto *impl = m_resources->m_impl;
         auto &pipeline_ref = impl->get_graphics_pipeline(pipeline);
         m_current_layout = pipeline_ref.layout;
+        m_push_constants = pipeline_ref.desc.push_constants;
         vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
                           pipeline_ref.pipeline);
     }
@@ -125,6 +176,8 @@ namespace mantle {
         auto *impl = m_resources->m_impl;
         auto &pipeline_ref = impl->get_compute_pipeline(pipeline);
         m_current_layout = pipeline_ref.layout;
+        m_push_constants =
+            std::span<PushConstantsRange>(&pipeline_ref.desc.push_constants, 1);
         vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
                           pipeline_ref.pipeline);
     }
@@ -168,23 +221,37 @@ namespace mantle {
 
     void CommandRecorder::copy_buffer(const BufferCopyInfo &info) const {
         auto *impl = m_resources->m_impl;
-        VkBufferCopy region = {
+
+        VkBufferCopy2 region = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_COPY_2,
             .srcOffset = info.src_offset,
             .dstOffset = info.dst_offset,
             .size = info.size,
         };
-        vkCmdCopyBuffer(m_cmd, impl->get_buffer(info.src).buffer,
-                        impl->get_buffer(info.dst).buffer, 1, &region);
+
+        VkCopyBufferInfo2 copy_info = {
+            .sType = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2,
+            .srcBuffer = impl->get_buffer(info.src).buffer,
+            .dstBuffer = impl->get_buffer(info.dst).buffer,
+            .regionCount = 1,
+            .pRegions = &region,
+        };
+
+        vkCmdCopyBuffer2(m_cmd, &copy_info);
     }
 
     void CommandRecorder::copy_buffer_to_image(
         const BufferImageCopyInfo &info) const {
+
         auto *impl = m_resources->m_impl;
         auto &image = impl->get_image(info.dst);
+
         u32 width = image.desc.width >> info.mip_level;
         u32 height = image.desc.height >> info.mip_level;
 
-        VkBufferImageCopy region = {
+        VkBufferImageCopy2 region{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2,
+            .pNext = nullptr,
             .bufferOffset = info.buffer_offset,
             .bufferRowLength = 0,
             .bufferImageHeight = 0,
@@ -199,25 +266,166 @@ namespace mantle {
             .imageExtent = {width, height, 1},
         };
 
-        vkCmdCopyBufferToImage(
-            m_cmd, impl->get_buffer(info.src).buffer, image.image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+        VkCopyBufferToImageInfo2 copy_info{
+            .sType = VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2,
+            .pNext = nullptr,
+            .srcBuffer = impl->get_buffer(info.src).buffer,
+            .dstImage = image.image,
+            .dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .regionCount = 1,
+            .pRegions = &region,
+        };
+
+        vkCmdCopyBufferToImage2(m_cmd, &copy_info);
     }
 
-    // TODO
+    void CommandRecorder::copy_image(const ImageCopyInfo &info) const {
+        auto *impl = m_resources->m_impl;
+        auto &src = impl->get_image(info.src);
+        auto &dst = impl->get_image(info.dst);
 
-    void CommandRecorder::copy_image(const ImageCopyInfo &info) const {}
+        u32 src_width = src.desc.width >> info.src_mip_level;
+        u32 src_height = src.desc.height >> info.src_mip_level;
 
-    void CommandRecorder::blit_image(const ImageBlitInfo &info) const {}
+        VkExtent3D extent = {
+            .width = info.width ? info.width : src_width,
+            .height = info.height ? info.height : src_height,
+            .depth = 1,
+        };
+
+        VkImageCopy2 region = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_COPY_2,
+            .srcSubresource =
+                {
+                    .aspectMask = to_vk_aspect(src.desc.format),
+                    .mipLevel = info.src_mip_level,
+                    .baseArrayLayer = info.src_array_layer,
+                    .layerCount = 1,
+                },
+            .srcOffset = {0, 0, 0},
+            .dstSubresource =
+                {
+                    .aspectMask = to_vk_aspect(dst.desc.format),
+                    .mipLevel = info.dst_mip_level,
+                    .baseArrayLayer = info.dst_array_layer,
+                    .layerCount = 1,
+                },
+            .dstOffset = {0, 0, 0},
+            .extent = extent,
+        };
+
+        VkCopyImageInfo2 copy_info = {
+            .sType = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2,
+            .srcImage = src.image,
+            .srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .dstImage = dst.image,
+            .dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .regionCount = 1,
+            .pRegions = &region,
+        };
+
+        vkCmdCopyImage2(m_cmd, &copy_info);
+    }
+
+    void CommandRecorder::blit_image(const ImageBlitInfo &info) const {
+        auto *impl = m_resources->m_impl;
+        auto &src = impl->get_image(info.src);
+        auto &dst = impl->get_image(info.dst);
+
+        VkImageBlit2 region = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
+            .srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .srcOffsets = {{0, 0, 0},
+                           {static_cast<i32>(src.desc.width),
+                            static_cast<i32>(src.desc.height), 1}},
+            .dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .dstOffsets = {{0, 0, 0},
+                           {static_cast<i32>(dst.desc.width),
+                            static_cast<i32>(dst.desc.height), 1}},
+        };
+        VkBlitImageInfo2 blit_info = {
+            .sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
+            .srcImage = src.image,
+            .srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .dstImage = dst.image,
+            .dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .regionCount = 1,
+            .pRegions = &region,
+            .filter = VK_FILTER_LINEAR,
+        };
+        vkCmdBlitImage2(m_cmd, &blit_info);
+    }
 
     void CommandRecorder::copy_image_to_buffer(
-        const ImageBufferCopyInfo &info) const {}
+        const ImageBufferCopyInfo &info) const {
+        auto *impl = m_resources->m_impl;
+        auto &image = impl->get_image(info.src);
+        auto &buffer = impl->get_buffer(info.dst);
+
+        u32 width = image.desc.width >> info.mip_level;
+        u32 height = image.desc.height >> info.mip_level;
+
+        VkBufferImageCopy2 region = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2,
+            .bufferOffset = info.buffer_offset,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource =
+                {
+                    .aspectMask = to_vk_aspect(image.desc.format),
+                    .mipLevel = info.mip_level,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+            .imageOffset = {0, 0, 0},
+            .imageExtent = {width, height, 1},
+        };
+
+        VkCopyImageToBufferInfo2 copy_info = {
+            .sType = VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2,
+            .srcImage = image.image,
+            .srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .dstBuffer = buffer.buffer,
+            .regionCount = 1,
+            .pRegions = &region,
+        };
+
+        vkCmdCopyImageToBuffer2(m_cmd, &copy_info);
+    }
 
     void CommandRecorder::clear_color_image(ImageHandle image, f32 r, f32 g,
-                                            f32 b, f32 a) const {}
+                                            f32 b, f32 a) const {
+        auto &img = m_resources->m_impl->get_image(image);
+        VkClearColorValue clear = {.float32 = {r, g, b, a}};
+        VkImageSubresourceRange range = {VK_IMAGE_ASPECT_COLOR_BIT, 0,
+                                         VK_REMAINING_MIP_LEVELS, 0,
+                                         VK_REMAINING_ARRAY_LAYERS};
+        vkCmdClearColorImage(m_cmd, img.image,
+                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear, 1,
+                             &range);
+    }
 
     void CommandRecorder::clear_depth_image(ImageHandle image,
-                                            f32 depth) const {}
+                                            f32 depth) const {
+        auto &img = m_resources->m_impl->get_image(image);
+
+        VkClearDepthStencilValue clear = {
+            .depth = depth,
+            .stencil = 0,
+        };
+
+        VkImageSubresourceRange range = {
+            .aspectMask = to_vk_aspect(img.desc.format),
+            .baseMipLevel = 0,
+            .levelCount = VK_REMAINING_MIP_LEVELS,
+            .baseArrayLayer = 0,
+            .layerCount = VK_REMAINING_ARRAY_LAYERS,
+        };
+
+        vkCmdClearDepthStencilImage(m_cmd, img.image,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    &clear, 1, &range);
+    }
 
     void CommandRecorder::bind_vertex_buffer(BufferHandle buffer, u32 binding,
                                              usize offset) const {
@@ -233,8 +441,17 @@ namespace mantle {
                              VK_INDEX_TYPE_UINT32);
     }
 
-    void CommandRecorder::push_constants(const void *data, u32 size,
-                                         u32 offset) const {}
+    void CommandRecorder::push_constants(const void *data,
+                                         ShaderStage stage) const {
+        for (const auto &pc : m_push_constants) {
+            if (pc.stage == stage) {
+                vkCmdPushConstants(m_cmd, m_current_layout, to_vk(stage),
+                                   pc.offset, pc.size, data);
+                return;
+            }
+        }
+        fatal(true, "Invalid stage for push constant");
+    }
 
     void CommandRecorder::bind_descriptor_set() const {}
 } // namespace mantle

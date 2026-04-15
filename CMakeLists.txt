@@ -14,12 +14,8 @@ endforeach()
 
 if(MSVC)
     set(MANTLE_COMPILE_FLAGS /W4 /GR-)
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-stdlib=libc++)
-    add_link_options(-stdlib=libc++)
-    set(MANTLE_COMPILE_FLAGS -fno-rtti -fno-exceptions)
 else()
-    message(FATAL_ERROR "Unsupported compiler on Linux: use Clang")
+    set(MANTLE_COMPILE_FLAGS -fno-rtti -fno-exceptions)
 endif()
 
 add_compile_definitions(

@@ -291,8 +291,8 @@ namespace mantle {
 
     struct PushConstantsRange final {
         ShaderStage stage{};
-        u32 offset = 0;
         u32 size = 0;
+        u32 offset = 0;
     };
 
     struct GraphicsPipelineDesc final {
@@ -315,7 +315,7 @@ namespace mantle {
 
     struct ComputePipelineDesc final {
         ShaderModule shader;
-        u32 push_constant_size = 0;
+        PushConstantsRange push_constants;
     };
 
     enum class Filter {

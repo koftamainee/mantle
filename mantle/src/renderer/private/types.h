@@ -1,11 +1,11 @@
 #pragma once
+#include <span>
+#include "core/enum_flags.h"
 #include "core/types.h"
 #include "renderer/types.h"
-#include "core/enum_flags.h"
-#include <span>
 
 namespace mantle {
-    enum class ImageLayout : u8 {
+    enum class ImageLayout {
         Undefined,
         General,
         ColorAttachment,
@@ -16,7 +16,7 @@ namespace mantle {
         Present,
     };
 
-    enum class PipelineStage : u32 {
+    enum class PipelineStage {
         None = 0,
         Top = 1 << 0,
         Bottom = 1 << 1,
@@ -28,8 +28,13 @@ namespace mantle {
         EarlyDepth = 1 << 7,
         LateDepth = 1 << 8,
         Transfer = 1 << 9,
-        MaxEnum = (1 << 10) - 1,
+        VertexInput = 1 << 10,
+        DrawIndirect = 1 << 11,
+        Host = 1 << 12,
+        MaxEnum = (1 << 13) - 1,
     };
+
+    enum class AccessType { None, Read, Write, ReadWrite };
 
     struct ImageBarrier final {
         ImageHandle image = {};
@@ -37,14 +42,16 @@ namespace mantle {
         ImageLayout to = ImageLayout::Undefined;
         PipelineStage src_stage = PipelineStage::None;
         PipelineStage dst_stage = PipelineStage::None;
+        AccessType src_access = AccessType::None;
+        AccessType dst_access = AccessType::None;
     };
 
     struct BufferBarrier final {
         BufferHandle buffer = {};
         PipelineStage src_stage = PipelineStage::None;
         PipelineStage dst_stage = PipelineStage::None;
-        VkAccessFlags2 src_access = 0;
-        VkAccessFlags2 dst_access = 0;
+        AccessType src_access = AccessType::None;
+        AccessType dst_access = AccessType::None;
     };
 
     struct ColorAttachment final {
@@ -105,6 +112,10 @@ namespace mantle {
         u32 dst_mip_level = 0;
         u32 src_array_layer = 0;
         u32 dst_array_layer = 0;
+
+        // 0 = entire mip of src
+        u32 width  = 0;
+        u32 height = 0;
     };
 
     struct ImageRegion final {

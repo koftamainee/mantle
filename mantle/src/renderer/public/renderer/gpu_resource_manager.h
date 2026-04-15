@@ -20,25 +20,25 @@ namespace mantle {
         operator=(GPUResourceManager &&other) noexcept = delete;
 
         ShaderHandle create_shader(std::span<const u32> spir_v);
-        void destroy_shader(ShaderHandle handle);
+        void destroy_shader(ShaderHandle handle, bool immediate = false);
 
         GraphicsPipelineHandle
         create_graphics_pipeline(const GraphicsPipelineDesc &desc);
         ComputePipelineHandle
         create_compute_pipeline(const ComputePipelineDesc &desc);
-        void destroy_graphics_pipeline(GraphicsPipelineHandle handle);
-        void destroy_compute_pipeline(ComputePipelineHandle handle);
+        void destroy_graphics_pipeline(GraphicsPipelineHandle handle, bool immediate = false);
+        void destroy_compute_pipeline(ComputePipelineHandle handle, bool immediate = false);
 
         BufferHandle create_buffer(const BufferDesc &desc, bool map = false);
         void update_buffer(BufferHandle handle, const void *data, usize size,
                            usize offset = 0);
-        void destroy_buffer(BufferHandle handle);
+        void destroy_buffer(BufferHandle handle, bool immediate = false);
 
         ImageHandle create_image(const ImageDesc &desc);
-        void destroy_image(ImageHandle handle);
+        void destroy_image(ImageHandle handle, bool immediate = false);
 
         SamplerHandle create_sampler(const SamplerDesc &desc);
-        void destroy_sampler(SamplerHandle sampler);
+        void destroy_sampler(SamplerHandle sampler, bool immediate = false);
 
         u32 get_bindless_index(ImageHandle image);
         u32 get_bindless_index(BufferHandle buffer);

@@ -21,7 +21,10 @@ namespace mantle {
         void set_resource_manager(GPUResourceManager *resources);
 
         void image_barrier(const ImageBarrier &barrier) const;
-        void pipeline_barriers(std::span<const ImageBarrier> barriers) const;
+        void image_barriers(std::span<const ImageBarrier> barriers) const;
+
+        void buffer_barrier(const BufferBarrier &barrier) const;
+        void buffer_barriers(std::span<const BufferBarrier> barriers) const;
 
         void begin_rendering(const RenderingInfo &info) const;
         void end_rendering() const;
@@ -48,7 +51,7 @@ namespace mantle {
         void bind_vertex_buffer(BufferHandle buffer, u32 binding, usize offset = 0) const;
         void bind_index_buffer(BufferHandle buffer, usize offset = 0) const;
 
-        void push_constants(const void *data, u32 size, u32 offset = 0) const;
+        void push_constants(const void *data, ShaderStage stage) const;
         void bind_descriptor_set() const;
 
       private:
@@ -56,8 +59,6 @@ namespace mantle {
         GPUResourceManager *m_resources = nullptr;
 
         VkPipelineLayout m_current_layout = VK_NULL_HANDLE;
-
-        //TODO: use custom allocator
-        std::pmr::vector<PushConstantsRange> m_current_push_ranges;
+        std::span<const PushConstantsRange> m_push_constants;
     };
 } // namespace mantle

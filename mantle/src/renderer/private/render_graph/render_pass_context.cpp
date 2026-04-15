@@ -36,7 +36,7 @@ namespace mantle {
     void RenderPassContext::clear_depth_image(RGImageHandle image, f32 depth) {}
 
     void RenderPassContext::push_constants(const void *data,
-                                           const PushConstantsRange &range) {}
+                                           ShaderStage stage) {}
 
     void RenderPassContext::draw(const RGDrawInfo &info) {}
 

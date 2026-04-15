@@ -101,9 +101,9 @@ namespace mantle {
         constexpr VkApplicationInfo app_info = {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pNext = nullptr,
-            .pApplicationName = "mantle",
+            .pApplicationName = "Mantle",
             .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-            .pEngineName = "mantle engine",
+            .pEngineName = "No engine",
             .engineVersion = VK_MAKE_VERSION(1, 0, 0),
             .apiVersion = VK_API_VERSION_1_3, // no 1.4 :(
         };

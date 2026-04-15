@@ -33,6 +33,7 @@ namespace mantle {
 
     VkImageLayout to_vk(ImageLayout layout);
     VkPipelineStageFlags2 to_vk(PipelineStage stage);
-    VkAccessFlags2 infer_access(ImageLayout layout, bool is_src);
+    VkAccessFlags2 infer_image_access(ImageLayout layout, AccessType access);
+    VkAccessFlags2 infer_buffer_access(PipelineStage stage, AccessType access);
     VkSampleCountFlagBits to_vk(SampleCount count);
 } // namespace mantle

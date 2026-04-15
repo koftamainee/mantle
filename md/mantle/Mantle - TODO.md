@@ -3,10 +3,10 @@
 - [x] Split up renderer into frame scheduler and render pass, also Renderer::Impl should not have any methods
 - [ ] Design and implement bindless descriptor system: single global set, partially bound arrays, resource handles via push constants (`VK_EXT_descriptor_indexing`)
 - [ ] Initialize ImGui in vulkan backend, carry out into separate class with its own descriptor pool and set (separate from global bindless set)
-- [ ] Remove MVP from push constants, pass camera matrices via descriptor sets using bindless system
-- [x] Add explicit compute-to-graphics pipeline barrier infrastructure (storage image write -> read synchronization, separate from frame-in-flight sync)
+- [/] Remove MVP from push constants, pass camera matrices via descriptor sets using bindless system
+- [x] Add explicit compute-to-graphics pipeline barrier infrastructure (storage image write -> read synchronization, separate from frame-in-flight sync) done by frame graph
 - [ ] Implement pool/slab allocator and its pmr version
-- [ ] Replace all STL containers with pmr versions using custom allocators, or avoid STL in hot paths
+- [/] Replace all STL containers with pmr versions using custom allocators, or avoid STL in hot paths
 - [ ] Add memory profiling stats to existing allocators
 - [ ] Remove mangohud fps overlay, add new debug overlay in ImGui (F3, F3 + 1, 2, 3, 4)
 
@@ -18,10 +18,10 @@ The basic idea: cpu meshing is too expensive for processing huge amount of small
 
 Instead of rasterizing voxels we will raytrace them using 3D DDA algorithm, all of it in a compute shader.
 
-- [ ] Create compute pipeline class in vulkan abstractions
+- [x] Create compute pipeline in vulkan abstractions
 - [ ] Create a DOD style Chunk struct, voxels should be array of u32/u16/u8, bit packed with material palettes, some flags, params like temperature, pressure, etc. -- for later, dont mind them yet
-- [ ] Decide on G-buffer layout: what data DDA writes per pixel (to be finalized before M3 lighting pass)
-- [ ] Add API to renderer that allows to put chunk data into pipeline to render it
+- [ ] DEPRECATED: use clustered forward (like DOOM Eternal). Decide on G-buffer layout: what data DDA writes per pixel (to be finalized before M3 lighting pass)
+- [x] Add API to renderer that allows to put chunk data into pipeline to render it (already solved with frame graph)
 - [ ] Implement slang compute shader to 3D DDA raycast voxels on screen
 - [ ] Render single chunk on screen
 
@@ -47,7 +47,7 @@ This milestone focuses on enhancing visual quality and renderer architecture. Di
 3. Basic render graph
     - [/] Define resource lifetime tracking per pass (read/write access per resource) -- required for automatic barrier insertion
     - [/] Create render graph class: accepts passes, computes dependencies, inserts `vkCmdPipelineBarrier`s
-    - [/] Using render graph, build the following pass sequence:
+    - [] DEPRECATED: use clustered forward (like DOOM Eternal). Using render graph, build the following pass sequence:
         - Geometry pass -- compute, DDA raycasting, writes G-buffer
         - Lighting pass -- compute, shadow ray raycasting, reads G-buffer, writes lit image
         - Debug UI pass -- graphics, draws ImGui overlay on lit image if enabled

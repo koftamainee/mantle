@@ -45,7 +45,8 @@ namespace mantle {
         };
     }
 
-    void GPUResourceManager::destroy_shader(ShaderHandle handle) {
+    void GPUResourceManager::destroy_shader(ShaderHandle handle,
+                                            bool immediate) {
         check(m_is_initialized);
         check(handle.index < m_impl->shaders.size());
 
@@ -64,7 +65,11 @@ namespace mantle {
         };
         shader.resource.shader = VK_NULL_HANDLE;
 
-        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        if (immediate) {
+            del();
+        } else {
+            m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        }
     }
 
     GraphicsPipelineHandle GPUResourceManager::create_graphics_pipeline(
@@ -255,6 +260,8 @@ namespace mantle {
         };
 
         std::array<VkPushConstantRange, 8> vk_push_constants{};
+        checkf(desc.push_constants.size() <= 8,
+               "Invalid push constants ranges");
         for (u32 i = 0; i < desc.push_constants.size(); i++) {
             vk_push_constants[i] = {
                 .stageFlags = to_vk(desc.push_constants[i].stage),
@@ -342,17 +349,20 @@ namespace mantle {
         const ComputePipelineDesc &desc) {
         check(m_is_initialized);
 
+        check(desc.push_constants.stage == ShaderStage::Compute);
+        check(desc.push_constants.offset == 0);
+
         VkPushConstantRange push_constant_range = {
             .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
             .offset = 0,
-            .size = desc.push_constant_size,
+            .size = desc.push_constants.size,
         };
 
         VkPipelineLayoutCreateInfo layout_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            .pushConstantRangeCount = desc.push_constant_size > 0 ? 1u : 0u,
+            .pushConstantRangeCount = desc.push_constants.size > 0 ? 1u : 0u,
             .pPushConstantRanges =
-                desc.push_constant_size > 0 ? &push_constant_range : nullptr,
+                desc.push_constants.size > 0 ? &push_constant_range : nullptr,
         };
 
         VkPipelineLayout layout = VK_NULL_HANDLE;
@@ -408,8 +418,9 @@ namespace mantle {
         };
     }
 
-    void GPUResourceManager::destroy_graphics_pipeline(
-        GraphicsPipelineHandle handle) {
+    void
+    GPUResourceManager::destroy_graphics_pipeline(GraphicsPipelineHandle handle,
+                                                  bool immediate) {
         check(m_is_initialized);
         check(handle.index < m_impl->graphics_pipelines.size());
 
@@ -436,12 +447,17 @@ namespace mantle {
         pipeline.resource.pipeline = VK_NULL_HANDLE;
         pipeline.resource.layout = VK_NULL_HANDLE;
 
-        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        if (immediate) {
+            del();
+        } else {
+            m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        }
     }
 
 
     void
-    GPUResourceManager::destroy_compute_pipeline(ComputePipelineHandle handle) {
+    GPUResourceManager::destroy_compute_pipeline(ComputePipelineHandle handle,
+                                                 bool immediate) {
         check(m_is_initialized);
         check(handle.index < m_impl->compute_pipelines.size());
 
@@ -468,7 +484,11 @@ namespace mantle {
         pipeline.resource.pipeline = VK_NULL_HANDLE;
         pipeline.resource.layout = VK_NULL_HANDLE;
 
-        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        if (immediate) {
+            del();
+        } else {
+            m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        }
     }
 
     BufferHandle GPUResourceManager::create_buffer(const BufferDesc &desc,
@@ -533,7 +553,8 @@ namespace mantle {
         memcpy(static_cast<u8 *>(buffer.resource.mapped) + offset, data, size);
     }
 
-    void GPUResourceManager::destroy_buffer(BufferHandle handle) {
+    void GPUResourceManager::destroy_buffer(BufferHandle handle,
+                                            bool immediate) {
         check(m_is_initialized);
         check(handle.index < m_impl->buffers.size());
 
@@ -552,7 +573,11 @@ namespace mantle {
         buffer.resource.buffer = VK_NULL_HANDLE;
         buffer.resource.allocation = VK_NULL_HANDLE;
 
-        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        if (immediate) {
+            del();
+        } else {
+            m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        }
     }
 
     ImageHandle GPUResourceManager::create_image(const ImageDesc &desc) {
@@ -651,7 +676,7 @@ namespace mantle {
         };
     }
 
-    void GPUResourceManager::destroy_image(ImageHandle handle) {
+    void GPUResourceManager::destroy_image(ImageHandle handle, bool immediate) {
         check(m_is_initialized);
         check(handle.index < m_impl->images.size());
 
@@ -675,7 +700,11 @@ namespace mantle {
         image.resource.view = VK_NULL_HANDLE;
         image.resource.allocation = VK_NULL_HANDLE;
 
-        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        if (immediate) {
+            del();
+        } else {
+            m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        }
     }
 
     SamplerHandle GPUResourceManager::create_sampler(const SamplerDesc &desc) {
@@ -728,7 +757,8 @@ namespace mantle {
         };
     }
 
-    void GPUResourceManager::destroy_sampler(SamplerHandle handle) {
+    void GPUResourceManager::destroy_sampler(SamplerHandle handle,
+                                             bool immediate) {
         check(m_is_initialized);
         check(handle.index < m_impl->samplers.size());
 
@@ -748,7 +778,11 @@ namespace mantle {
         };
         sampler.resource.sampler = VK_NULL_HANDLE;
 
-        m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        if (immediate) {
+            del();
+        } else {
+            m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
+        }
     }
 
     u32 GPUResourceManager::get_bindless_index(SamplerHandle sampler) {} // TODO
@@ -870,49 +904,48 @@ namespace mantle {
         if (m_is_initialized) {
             m_impl->backend->wait_idle();
 
+            for (auto &queue : m_impl->deletion_queues) {
+                queue.flush();
+            }
+
             for (u32 i = 0; i < m_impl->compute_pipelines.size(); ++i) {
                 if (m_impl->compute_pipelines[i].resource.pipeline !=
                     VK_NULL_HANDLE) {
                     destroy_compute_pipeline(
-                        {i, m_impl->compute_pipelines[i].generation});
-                    }
+                        {i, m_impl->compute_pipelines[i].generation}, true);
+                }
             }
 
             for (u32 i = 0; i < m_impl->graphics_pipelines.size(); ++i) {
                 if (m_impl->graphics_pipelines[i].resource.pipeline !=
                     VK_NULL_HANDLE) {
                     destroy_graphics_pipeline(
-                        {i, m_impl->graphics_pipelines[i].generation});
-                    }
+                        {i, m_impl->graphics_pipelines[i].generation}, true);
+                }
             }
 
             for (u32 i = 0; i < m_impl->shaders.size(); i++) {
                 if (m_impl->shaders[i].resource.shader != VK_NULL_HANDLE) {
-                    destroy_shader({i, m_impl->shaders[i].generation});
+                    destroy_shader({i, m_impl->shaders[i].generation}, true);
                 }
             }
 
             for (u32 i = 0; i < m_impl->samplers.size(); ++i) {
                 if (m_impl->samplers[i].resource.sampler != VK_NULL_HANDLE) {
-                    destroy_sampler({i, m_impl->samplers[i].generation});
+                    destroy_sampler({i, m_impl->samplers[i].generation}, true);
                 }
             }
 
             for (u32 i = 0; i < m_impl->buffers.size(); i++) {
                 if (m_impl->buffers[i].resource.buffer != VK_NULL_HANDLE) {
-                    destroy_buffer({i, m_impl->buffers[i].generation});
+                    destroy_buffer({i, m_impl->buffers[i].generation}, true);
                 }
             }
 
             for (u32 i = 0; i < m_impl->images.size(); ++i) {
                 if (m_impl->images[i].resource.allocation != VK_NULL_HANDLE) {
-                    destroy_image({i, m_impl->images[i].generation});
+                    destroy_image({i, m_impl->images[i].generation}, true);
                 }
-            }
-
-
-            for (auto &queue : m_impl->deletion_queues) {
-                queue.flush();
             }
 
             m_impl->gpu_allocator.destroy();
