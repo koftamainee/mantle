@@ -117,21 +117,6 @@ namespace mantle {
             .create_view = true,
         };
 
-        auto &resources = m_renderer.resource_manager();
-
-        BufferHandle buf = resources.create_buffer(buf_desc, true);
-        u32 buf_idx = resources.get_bindless_index(buf);
-
-        ImageHandle image = resources.create_image(image_desc);
-        u32 image_idx =
-            resources.get_bindless_index(image, BindlessImageType::Sampled);
-
-
-        std::array<MVP, 1024> MVPs{};
-
-        // EVERY FRAME
-        resources.update_buffer(buf, MVPs.data(), MVPs.size() * sizeof(MVP), 0);
-
         spdlog::info("Engine is initialized. Starting the game");
     }
 
