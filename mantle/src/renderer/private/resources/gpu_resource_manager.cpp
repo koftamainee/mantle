@@ -922,7 +922,7 @@ namespace mantle {
         VkDescriptorSetLayoutBinding bindings[] = {
             {sampled_image_binding, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
              max_sampled_images, VK_SHADER_STAGE_ALL, nullptr},
-            {storage_buffer_binding, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            {storage_image_binding, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
              max_storage_images, VK_SHADER_STAGE_ALL, nullptr},
             {storage_buffer_binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
              max_storage_buffers, VK_SHADER_STAGE_ALL, nullptr},
@@ -1191,7 +1191,7 @@ namespace mantle {
         return pipeline.resource;
     }
 
-    VkDescriptorSet GPUResourceManager::Impl::get_bindless_set() {
+    VkDescriptorSet GPUResourceManager::Impl::get_bindless_set() const {
         return m_bindless;
     }
 

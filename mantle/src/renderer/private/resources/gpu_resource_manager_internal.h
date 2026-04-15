@@ -61,7 +61,7 @@ namespace mantle {
         GraphicsPipelineResource &get_graphics_pipeline(GraphicsPipelineHandle handle);
         ComputePipelineResource &get_compute_pipeline(ComputePipelineHandle handle);
 
-        VkDescriptorSet get_bindless_set();
+        VkDescriptorSet get_bindless_set() const;
 
         u32 allocate_storage_image_index(ImageResource &image);
         u32 allocate_sampled_image_index(ImageResource &image);
