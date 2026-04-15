@@ -44,6 +44,10 @@ namespace mantle {
         u32 get_bindless_index(BufferHandle handle);
         u32 get_bindless_index(SamplerHandle handle);
 
+        void free_image_index(ImageHandle handle, BindlessImageType type);
+        void free_buffer_index(BufferHandle handle);
+        void free_sampler_index(SamplerHandle handle);
+
       private:
         friend class Renderer;
         friend class CommandRecorder;

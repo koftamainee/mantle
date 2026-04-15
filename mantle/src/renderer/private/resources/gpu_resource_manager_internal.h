@@ -6,6 +6,7 @@
 #include "deletion_queue.h"
 #include "renderer/gpu_resource_manager.h"
 #include "vulkan_gpu_allocator.h"
+#include "types.h"
 
 namespace mantle {
     template <typename T>
@@ -27,6 +28,8 @@ namespace mantle {
         VmaAllocation allocation = VK_NULL_HANDLE;
         VkImageView view = VK_NULL_HANDLE;
         ImageDesc desc = {};
+
+        ImageLayout layout = ImageLayout::Undefined;
 
         u32 bindless_sample_index = UINT32_MAX;
         u32 bindless_storage_index = UINT32_MAX;
@@ -58,8 +61,10 @@ namespace mantle {
         BufferResource &get_buffer(BufferHandle handle);
         SamplerResource &get_sampler(SamplerHandle handle);
         ShaderResource &get_shader(ShaderHandle handle);
-        GraphicsPipelineResource &get_graphics_pipeline(GraphicsPipelineHandle handle);
-        ComputePipelineResource &get_compute_pipeline(ComputePipelineHandle handle);
+        GraphicsPipelineResource &
+        get_graphics_pipeline(GraphicsPipelineHandle handle);
+        ComputePipelineResource &
+        get_compute_pipeline(ComputePipelineHandle handle);
 
         VkDescriptorSet get_bindless_set() const;
 

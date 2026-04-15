@@ -677,9 +677,11 @@ namespace mantle {
         } else {
             index = m_impl->images.size();
             generation = 0;
-            m_impl->images.push_back(
-                {{.image = image, .allocation = allocation, .view = view, .desc = desc},
-                 generation});
+            m_impl->images.push_back({{.image = image,
+                                       .allocation = allocation,
+                                       .view = view,
+                                       .desc = desc},
+                                      generation});
         }
 
         return {
@@ -769,7 +771,8 @@ namespace mantle {
         } else {
             index = m_impl->samplers.size();
             generation = 0;
-            m_impl->samplers.push_back({{.sampler = sampler, .desc = desc}, generation});
+            m_impl->samplers.push_back(
+                {{.sampler = sampler, .desc = desc}, generation});
         }
 
         return {
@@ -1132,6 +1135,37 @@ namespace mantle {
 
         sampler.bindless_index = m_impl->allocate_sampler_index(sampler);
         return sampler.bindless_index;
+    }
+
+    void GPUResourceManager::free_image_index(ImageHandle handle,
+                                              BindlessImageType type) {
+        check(m_is_initialized);
+        auto &image = m_impl->get_image(handle);
+        if (type == BindlessImageType::Sampled) {
+            if (image.bindless_sample_index != UINT32_MAX) {
+                m_impl->free_sampled_image_index(image.bindless_sample_index);
+            }
+        } else if (type == BindlessImageType::Storage) {
+            if (image.bindless_storage_index != UINT32_MAX) {
+                m_impl->free_storage_image_index(image.bindless_storage_index);
+            }
+        }
+    }
+
+    void GPUResourceManager::free_buffer_index(BufferHandle handle) {
+        check(m_is_initialized);
+        auto &buffer = m_impl->get_buffer(handle);
+        if (buffer.bindless_index != UINT32_MAX) {
+            m_impl->free_buffer_index(buffer.bindless_index);
+        }
+    }
+
+    void GPUResourceManager::free_sampler_index(SamplerHandle handle) {
+        check(m_is_initialized);
+        auto &sampler = m_impl->get_sampler(handle);
+        if (sampler.bindless_index != UINT32_MAX) {
+            m_impl->free_sampler_index(sampler.bindless_index);
+        }
     }
 
     ImageResource &GPUResourceManager::Impl::get_image(ImageHandle handle) {
