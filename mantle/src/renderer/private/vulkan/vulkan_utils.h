@@ -30,13 +30,19 @@ namespace mantle {
     VkBlendOp to_vk(BlendOp op);
     VkLogicOp to_vk(LogicOp op);
     VkColorComponentFlags to_vk_color_write_mask(u8 mask);
-
     VkImageLayout to_vk(ImageLayout layout);
     VkPipelineStageFlags2 to_vk(PipelineStage stage);
-    VkAccessFlags2 infer_image_access(ImageLayout layout, AccessType access);
-    VkAccessFlags2 infer_buffer_access(PipelineStage stage, AccessType access);
     VkSampleCountFlagBits to_vk(SampleCount count);
 
+    // NOTE: this infers is safe, mapping from (layout, access) <=>
+    // VkAccessFlags2 is bijective
+    VkAccessFlags2 infer_image_access(ImageLayout layout, AccessType access);
+    VkAccessFlags2 infer_buffer_access(PipelineStage stage, AccessType access);
+
+
+    // NOTE: this infers are NOT safe in general case, should use it only for
+    // swapchain images to transfer them from something to PRESENT_KHR. DO NOT
+    // USE FOR ANYTHING ELSE
     PipelineStage infer_swapchain_present_stage(ImageLayout layout);
     AccessType infer_swapchain_present_access(ImageLayout layout);
 } // namespace mantle
