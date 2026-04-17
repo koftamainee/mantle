@@ -360,7 +360,7 @@ namespace mantle {
 
     struct RGRenderingInfo final {
         std::span<RGColorAttachment> colors = {};
-        RGDepthAttachment depth = {};
+        RGDepthAttachment *depth = nullptr;
         u32 width = 0;
         u32 height = 0;
     };

@@ -7,6 +7,7 @@
 #include "renderer/gpu_resource_manager.h"
 #include "renderer/types.h"
 #include "types.h"
+#include "resources/resources.h"
 
 namespace mantle {
     class CommandRecorder final {
@@ -32,8 +33,8 @@ namespace mantle {
         void begin_rendering(const RenderingInfo &info) const;
         void end_rendering() const;
 
-        void bind_graphics_pipeline(GraphicsPipelineHandle pipeline);
-        void bind_compute_pipeline(ComputePipelineHandle pipeline);
+        void bind_graphics_pipeline(const GraphicsPipelineResource &pipeline);
+        void bind_compute_pipeline(ComputePipelineResource &pipeline);
 
         void set_viewport(f32 x, f32 y, f32 width, f32 height) const;
         void set_scissor(i32 x, i32 y, u32 width, u32 height) const;
@@ -48,11 +49,11 @@ namespace mantle {
         void blit_image(const ImageBlitInfo &info) const;
         void copy_image_to_buffer(const ImageBufferCopyInfo &info) const;
 
-        void clear_color_image(ImageHandle image, f32 r, f32 g, f32 b, f32 a) const;
-        void clear_depth_image(ImageHandle image, f32 depth) const;
+        void clear_color_image(const ImageResource &image, f32 r, f32 g, f32 b, f32 a) const;
+        void clear_depth_image(const ImageResource &image, f32 depth) const;
 
-        void bind_vertex_buffer(BufferHandle buffer, u32 binding, usize offset = 0) const;
-        void bind_index_buffer(BufferHandle buffer, usize offset = 0) const;
+        void bind_vertex_buffer(const BufferResource &buffer, u32 binding, usize offset = 0) const;
+        void bind_index_buffer(const BufferResource &buffer, usize offset = 0) const;
 
         void push_constants(const void *data, ShaderStage stage) const;
 

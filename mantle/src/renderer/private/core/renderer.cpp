@@ -93,7 +93,7 @@ namespace mantle {
             m_impl->resource_manager.m_impl->get_image(m_impl->backbuffer);
 
         ImageBarrier barrier = {
-            .image = m_impl->backbuffer,
+            .image = &backbuffer_ref,
             .from = backbuffer_ref.layout,
             .to = ImageLayout::Present,
             .src_stage = infer_swapchain_present_stage(backbuffer_ref.layout),

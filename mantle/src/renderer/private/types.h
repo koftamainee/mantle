@@ -5,6 +5,9 @@
 #include "renderer/types.h"
 
 namespace mantle {
+    struct ImageResource;
+    struct BufferResource;
+
     enum class ImageLayout {
         Undefined,
         General,
@@ -37,7 +40,7 @@ namespace mantle {
     enum class AccessType { None, Read, Write, ReadWrite };
 
     struct ImageBarrier final {
-        ImageHandle image = {};
+        ImageResource *image = nullptr;
         ImageLayout from = ImageLayout::Undefined;
         ImageLayout to = ImageLayout::Undefined;
         PipelineStage src_stage = PipelineStage::None;
@@ -47,7 +50,7 @@ namespace mantle {
     };
 
     struct BufferBarrier final {
-        BufferHandle buffer = {};
+        BufferResource *buffer = nullptr;
         PipelineStage src_stage = PipelineStage::None;
         PipelineStage dst_stage = PipelineStage::None;
         AccessType src_access = AccessType::None;
@@ -55,7 +58,7 @@ namespace mantle {
     };
 
     struct ColorAttachment final {
-        ImageHandle image = {};
+        ImageResource *image = nullptr;
         AttachmentLoad load = AttachmentLoad::Clear;
         AttachmentStore store = AttachmentStore::Store;
         f32 clear_r = 0.0f;
@@ -65,7 +68,7 @@ namespace mantle {
     };
 
     struct DepthAttachment final {
-        ImageHandle image = {};
+        ImageResource *image = nullptr;
         AttachmentLoad load = AttachmentLoad::Clear;
         AttachmentStore store = AttachmentStore::DontCare;
         f32 clear_value = 1.0f;
@@ -73,22 +76,22 @@ namespace mantle {
 
     struct RenderingInfo final {
         std::span<ColorAttachment> colors = {};
-        DepthAttachment depth = {};
+        DepthAttachment *depth = nullptr;
         u32 width = 0;
         u32 height = 0;
     };
 
     struct BufferCopyInfo final {
-        BufferHandle src = {};
-        BufferHandle dst = {};
+        BufferResource *src = nullptr;
+        BufferResource *dst = nullptr;
         usize src_offset = 0;
         usize dst_offset = 0;
         usize size = 0;
     };
 
     struct BufferImageCopyInfo final {
-        BufferHandle src = {};
-        ImageHandle dst = {};
+        BufferResource *src = nullptr;
+        ImageResource *dst = nullptr;
         usize buffer_offset = 0;
         u32 mip_level = 0;
     };
@@ -99,22 +102,22 @@ namespace mantle {
 
 
     struct ImageBufferCopyInfo final {
-        ImageHandle src = {};
-        BufferHandle dst = {};
+        ImageResource *src = nullptr;
+        BufferResource *dst = nullptr;
         usize buffer_offset = 0;
         u32 mip_level = 0;
     };
 
     struct ImageCopyInfo final {
-        ImageHandle src = {};
-        ImageHandle dst = {};
+        ImageResource *src = nullptr;
+        ImageResource *dst = nullptr;
         u32 src_mip_level = 0;
         u32 dst_mip_level = 0;
         u32 src_array_layer = 0;
         u32 dst_array_layer = 0;
 
         // 0 = entire mip of src
-        u32 width  = 0;
+        u32 width = 0;
         u32 height = 0;
     };
 
@@ -128,8 +131,8 @@ namespace mantle {
     };
 
     struct ImageBlitInfo final {
-        ImageHandle src = {};
-        ImageHandle dst = {};
+        ImageResource *src = nullptr;
+        ImageResource *dst = nullptr;
         ImageRegion src_region = {};
         ImageRegion dst_region = {};
         Filter filter = Filter::Linear;

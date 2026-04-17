@@ -7,51 +7,13 @@
 #include "renderer/gpu_resource_manager.h"
 #include "vulkan_gpu_allocator.h"
 #include "types.h"
+#include "resources.h"
 
 namespace mantle {
     template <typename T>
     struct Slot final {
         T resource;
         u32 generation = 0;
-    };
-
-    struct BufferResource final {
-        VkBuffer buffer = VK_NULL_HANDLE;
-        VmaAllocation allocation = VK_NULL_HANDLE;
-        void *mapped = nullptr;
-        BufferDesc desc = {};
-
-        u32 bindless_index = UINT32_MAX;
-    };
-    struct ImageResource final {
-        VkImage image = VK_NULL_HANDLE;
-        VmaAllocation allocation = VK_NULL_HANDLE;
-        VkImageView view = VK_NULL_HANDLE;
-        ImageDesc desc = {};
-
-        ImageLayout layout = ImageLayout::Undefined;
-
-        u32 bindless_sample_index = UINT32_MAX;
-        u32 bindless_storage_index = UINT32_MAX;
-    };
-    struct SamplerResource final {
-        VkSampler sampler = VK_NULL_HANDLE;
-        SamplerDesc desc = {};
-
-        u32 bindless_index = UINT32_MAX;
-    };
-    struct ShaderResource final {
-        VkShaderModule shader = VK_NULL_HANDLE;
-    };
-    struct GraphicsPipelineResource final {
-        VkPipeline pipeline = VK_NULL_HANDLE;
-        VkPipelineLayout layout = VK_NULL_HANDLE;
-        GraphicsPipelineDesc desc = {};
-    };
-    struct ComputePipelineResource final {
-        VkPipeline pipeline = VK_NULL_HANDLE;
-        VkPipelineLayout layout = VK_NULL_HANDLE;
-        ComputePipelineDesc desc = {};
     };
 
     struct GPUResourceManager::Impl final {

@@ -9,6 +9,8 @@
 #include "gpu_resource_manager.h"
 
 namespace mantle {
+    class RenderGraph;
+
     class RenderGraphBuilder final {
       public:
         RenderGraphBuilder() = delete;
@@ -72,8 +74,15 @@ namespace mantle {
         void push_constants(const void *data, ShaderStage stage);
 
       private:
-        // TODO
+        struct Impl;
+
+        friend class RenderGraph;
+        void init();
+        void destroy();
+
+        Impl *m_impl;
     };
+
     class CompiledRenderGraph final {}; // TODO
 
     template <typename TData>
@@ -101,7 +110,6 @@ namespace mantle {
             CRenderPassExecuteLambda<TData, TExecute>
         const TData &add_pass(std::string_view name, TSetup &&setup,
                               TExecute &&execute) {
-            // TODO
             return {};
         }
 
