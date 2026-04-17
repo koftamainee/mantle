@@ -81,7 +81,7 @@ namespace mantle {
         return Result::Ok;
     }
 
-    void Renderer::execute(const CompiledRenderGraph &graph) {
+    void Renderer::execute(RenderGraph &graph) {
         check(m_is_initialized);
         // TODO
     }

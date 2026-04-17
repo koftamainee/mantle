@@ -35,7 +35,7 @@ namespace mantle {
         GPUResourceManager &resource_manager();
         ImageHandle backbuffer() const;
 
-        void execute(const CompiledRenderGraph &render_graph);
+        void execute(RenderGraph &render_graph);
 
         void resize_swapchain(u32 width, u32 height);
         SwapchainInfo get_swapchain_info();

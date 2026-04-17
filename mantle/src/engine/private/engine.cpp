@@ -202,9 +202,7 @@ namespace mantle {
                 ctx.end_rendering();
             });
 
-        CompiledRenderGraph compiled =
-            graph.compile(m_renderer.resource_manager());
-        m_renderer.execute(compiled);
+        m_renderer.execute(graph);
 
 
         result = m_renderer.end_frame();

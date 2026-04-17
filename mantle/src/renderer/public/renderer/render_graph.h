@@ -11,6 +11,49 @@
 namespace mantle {
     class RenderGraph;
 
+    // TODO: Setup phase
+
+    // TODO: TransientResources system:
+    // TODO: It will do heavy-lifting of allocating resources and aliasing it
+    // TODO: for render graph
+
+    // TODO: Deferred created resources:
+    // TODO: Create new resource in render graph only when it used
+    // TODO: for the first time, not when it was declared.
+
+    // TODO: Derived resource parameters:
+    // TODO: Create render pass output based on input size / format
+    // TODO: Derive bind flags from a usage
+    // TODO: Example: Downsampling render pass which would produce
+    // TODO: half-resolution version of input resource
+
+    // TODO: MoveSubresource:
+    // TODO: Reuse already existing resource for future render passes instead of
+    // TODO: allocating new one
+
+    // TODO: Compilation phase
+    // TODO: Hidden from used, auto runs when graph is passed for execution
+
+    // TODO: 1. Cull resources and passes that are declared, but now used
+    // TODO: 2. Calculate resources lifetime
+    // TODO: 3. Greedy allocate resources needed for current frame
+
+    // TODO: Execution phase:
+    // TODO: Renderer::execute(RenderGraph &render_graph);
+
+    // TODO: 1. Execute callback functions for each pass
+    // TODO: 2. Use immediate rendering code style using RenderPassContext
+    // TODO: 3. Get real GPU resources from handles, generated in setup phase
+
+    // TODO: Async compute:
+    // TODO: check more on it, probably introduce opt-in render passes that can
+    // TODO: be executed async from main queue
+
+    // TODO: Blackboard:
+    // TODO: Blackboard::add<T>();
+    // TODO: Blackboard::get<T>()
+    // TODO: Allow communication between modules via hash table of components
+
     class RenderGraphBuilder final {
       public:
         RenderGraphBuilder() = delete;
@@ -22,12 +65,21 @@ namespace mantle {
         RenderGraphBuilder &
         operator=(RenderGraphBuilder &&other) noexcept = delete;
 
+        // TODO: add async_compute_enable(true);
+        //TODO: add use_render_target(<something>);
+
+        // TODO: add initial state for images (clear / undefined) and probably
+        // TODO: something for buffers too
         RGImageHandle create_image(const ImageDesc &desc);
         RGBufferHandle create_buffer(const BufferDesc &desc);
 
+        // TODO: add read_flags and write_flags
         RGImageHandle read(RGImageHandle image);
-        RGImageHandle write(RGImageHandle image);
         RGBufferHandle read(RGBufferHandle buffer);
+
+        // TODO: writes should invalidate old handle and create new ones
+        // TODO: referencing invalidated resources will produce runtime error
+        RGImageHandle write(RGImageHandle image);
         RGBufferHandle write(RGBufferHandle buffer);
 
       private:
@@ -83,8 +135,6 @@ namespace mantle {
         Impl *m_impl;
     };
 
-    class CompiledRenderGraph final {}; // TODO
-
     template <typename TData>
     concept CRenderPassData = std::is_default_constructible_v<TData>;
 
@@ -116,8 +166,6 @@ namespace mantle {
         RGImageHandle import_image(ImageHandle image);
         RGBufferHandle import_buffer(BufferHandle buffer);
 
-
-        CompiledRenderGraph compile(GPUResourceManager &resources);
 
       private:
         struct RenderPassNode {
