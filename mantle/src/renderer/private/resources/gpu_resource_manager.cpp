@@ -229,7 +229,7 @@ namespace mantle {
                 .srcAlphaBlendFactor = to_vk(a.src_alpha_blend_factor),
                 .dstAlphaBlendFactor = to_vk(a.dst_alpha_blend_factor),
                 .alphaBlendOp = to_vk(a.alpha_blend_op),
-                .colorWriteMask = to_vk_color_write_mask(a.color_write_mask),
+                .colorWriteMask = to_vk(a.color_write_mask),
             };
         }
 

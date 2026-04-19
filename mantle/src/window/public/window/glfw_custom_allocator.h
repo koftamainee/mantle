@@ -6,26 +6,23 @@
 
 namespace mantle {
 
-    class GlfwAllocator final {
-    public:
-        GlfwAllocator() = default;
-        ~GlfwAllocator() = default;
+    class GLFWCustomAllocator final {
+      public:
+        GLFWCustomAllocator() = default;
+        ~GLFWCustomAllocator() = default;
 
-        GlfwAllocator(const GlfwAllocator &) = delete;
-        GlfwAllocator &operator=(const GlfwAllocator &) = delete;
-        GlfwAllocator(GlfwAllocator &&) = delete;
-        GlfwAllocator &operator=(GlfwAllocator &&) = delete;
+        MANTLE_NO_COPY(GLFWCustomAllocator);
 
         void init(TlsfAllocator *tlsf);
 
         const GLFWallocator *glfw_alloc() const;
 
-    private:
+      private:
         static void *glfw_alloc(usize size, void *user);
         static void *glfw_realloc(void *block, usize size, void *user);
         static void glfw_free(void *block, void *user);
 
-    private:
+      private:
         TlsfAllocator *m_tlsf = nullptr;
         GLFWallocator m_allocator = {};
     };

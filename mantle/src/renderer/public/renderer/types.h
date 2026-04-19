@@ -202,8 +202,8 @@ namespace mantle {
         u32 reference = 0;
     };
     struct DepthStencilState final {
-        bool depth_test_enable = true;
-        bool depth_write_enable = true;
+        bool depth_test_enable = false;
+        bool depth_write_enable = false;
         CompareOp depth_compare_op = CompareOp::Less;
         bool depth_bounds_test_enable = false;
         f32 min_depth_bounds = 0.0f;
@@ -259,6 +259,17 @@ namespace mantle {
         Nand,
         Set,
     };
+    enum class ColorWriteMask {
+        None = 0,
+        R = 1 << 0,
+        G = 1 << 1,
+        B = 1 << 2,
+        A = 1 << 3,
+        MaxEnum = (1 << 4) - 1,
+
+        RGB = R | G | B,
+        RGBA = R | G | B | A
+    };
     struct ColorBlendAttachment final {
         bool blend_enable = false;
         BlendFactor src_color_blend_factor = BlendFactor::One;
@@ -267,7 +278,7 @@ namespace mantle {
         BlendFactor src_alpha_blend_factor = BlendFactor::One;
         BlendFactor dst_alpha_blend_factor = BlendFactor::Zero;
         BlendOp alpha_blend_op = BlendOp::Add;
-        u8 color_write_mask = 0xF;
+        ColorWriteMask color_write_mask = ColorWriteMask::RGBA;
     };
     struct ColorBlendState final {
         bool logic_op_enable = false;

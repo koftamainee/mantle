@@ -29,10 +29,10 @@ namespace mantle {
     VkBlendFactor to_vk(BlendFactor factor);
     VkBlendOp to_vk(BlendOp op);
     VkLogicOp to_vk(LogicOp op);
-    VkColorComponentFlags to_vk_color_write_mask(u8 mask);
     VkImageLayout to_vk(ImageLayout layout);
     VkPipelineStageFlags2 to_vk(PipelineStage stage);
     VkSampleCountFlagBits to_vk(SampleCount count);
+    VkColorComponentFlags to_vk(ColorWriteMask mask);
 
     // NOTE: this infers is safe, mapping from (layout, access) <=>
     // VkAccessFlags2 is bijective

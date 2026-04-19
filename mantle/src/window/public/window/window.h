@@ -7,7 +7,7 @@
 #include "core/memory/tlsf_allocator.h"
 #include "core/memory/virtual_heap.h"
 #include "core/types.h"
-#include "glfw_allocator.h"
+#include "glfw_custom_allocator.h"
 
 namespace mantle {
     class Window final {
@@ -18,7 +18,7 @@ namespace mantle {
                 u32 height;
             };
 
-            std::string title;
+            std::string_view title;
             Size size;
         };
         struct MousePosition final {
@@ -88,7 +88,7 @@ namespace mantle {
         GLFWwindow *m_native_window = nullptr;
 
         TlsfAllocator m_tlsf_alloc;
-        GlfwAllocator m_glfw_alloc;
+        GLFWCustomAllocator m_glfw_alloc;
 
         std::array<bool, glfw_keys.size()> m_pressed_keys{};
         std::array<bool, glfw_keys.size()> m_pressed_keys_prev{};

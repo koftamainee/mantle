@@ -5,7 +5,7 @@
 
 #include <core/assert.h>
 
-#include "../public/window/glfw_allocator.h"
+#include "../public/window/glfw_custom_allocator.h"
 #include "core/memory/memory_units.h"
 #include "core/memory/tlsf_allocator.h"
 
@@ -33,24 +33,23 @@ namespace mantle {
         m_native_window =
             glfwCreateWindow(static_cast<int>(properties.size.width),
                              static_cast<int>(properties.size.height),
-                             properties.title.c_str(), nullptr, nullptr);
+                             properties.title.data(), nullptr, nullptr);
 
         fatal(!m_native_window, "Failed to create GLFW window");
         glfwSetInputMode(m_native_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         glfwSetWindowUserPointer(m_native_window, this);
 
-        spdlog::info("Window created: {} ({}x{})", properties.title.c_str(),
+        spdlog::info("Window created: {} ({}x{})", properties.title.data(),
                      properties.size.width, properties.size.height);
         m_is_initialized = true;
     }
 
     void Window::destroy() {
         if (m_is_initialized) {
-            std::string title = glfwGetWindowTitle(m_native_window);
             glfwDestroyWindow(m_native_window);
             m_native_window = nullptr;
-            spdlog::info("{} window destroyed", title.c_str());
+            spdlog::info("GLFW window destroyed");
             glfwTerminate();
             spdlog::info("GLFW terminated");
 

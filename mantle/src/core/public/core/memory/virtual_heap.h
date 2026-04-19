@@ -12,7 +12,7 @@ namespace mantle {
         VirtualHeap() = default;
         ~VirtualHeap();
 
-        MANTLE_NO_COPY_NO_MOVE(VirtualHeap);
+        MANTLE_NO_COPY(VirtualHeap);
 
         void init(OSMemory &os, usize reserve_size);
         void destroy();

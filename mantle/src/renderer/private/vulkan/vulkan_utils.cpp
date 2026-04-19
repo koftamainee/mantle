@@ -574,19 +574,6 @@ namespace mantle {
         }
     }
 
-    VkColorComponentFlags to_vk_color_write_mask(u8 mask) {
-        VkColorComponentFlags flags = 0;
-        if (mask & 0x1)
-            flags |= VK_COLOR_COMPONENT_R_BIT;
-        if (mask & 0x2)
-            flags |= VK_COLOR_COMPONENT_G_BIT;
-        if (mask & 0x4)
-            flags |= VK_COLOR_COMPONENT_B_BIT;
-        if (mask & 0x8)
-            flags |= VK_COLOR_COMPONENT_A_BIT;
-        return flags;
-    }
-
     VkAccessFlags2 infer_buffer_access(PipelineStage stage, AccessType access) {
         VkAccessFlags2 read_flags = VK_ACCESS_2_NONE;
         VkAccessFlags2 write_flags = VK_ACCESS_2_NONE;
@@ -672,5 +659,34 @@ namespace mantle {
         default:
             fatal(true, "Unexpected swapchain layout before present");
         }
+    }
+
+    VkColorComponentFlags to_vk(ColorWriteMask mask) {
+        using U = std::underlying_type_t<ColorWriteMask>;
+        U u = static_cast<U>(mask);
+
+        if (mask == ColorWriteMask::None)
+            return 0;
+
+        if (mask == ColorWriteMask::RGBA)
+            return VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+        VkColorComponentFlags flags = 0;
+
+        auto has = [&](ColorWriteMask bit) {
+            return (u & static_cast<U>(bit)) != 0;
+        };
+
+        if (has(ColorWriteMask::R))
+            flags |= VK_COLOR_COMPONENT_R_BIT;
+        if (has(ColorWriteMask::G))
+            flags |= VK_COLOR_COMPONENT_G_BIT;
+        if (has(ColorWriteMask::B))
+            flags |= VK_COLOR_COMPONENT_B_BIT;
+        if (has(ColorWriteMask::A))
+            flags |= VK_COLOR_COMPONENT_A_BIT;
+
+        return flags;
     }
 } // namespace mantle

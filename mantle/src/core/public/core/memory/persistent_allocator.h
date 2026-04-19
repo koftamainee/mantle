@@ -14,7 +14,7 @@ namespace mantle {
         PersistentAllocator() = default;
         ~PersistentAllocator() = default;
 
-        MANTLE_NO_COPY_NO_MOVE(PersistentAllocator);
+        MANTLE_NO_COPY(PersistentAllocator);
 
         void init(VirtualHeap *heap);
 

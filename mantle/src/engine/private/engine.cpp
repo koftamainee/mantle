@@ -3,6 +3,7 @@
 #include "camera/camera.h"
 #include "core/assert.h"
 #include "core/memory/memory_units.h"
+#include "helpers.h"
 #include "renderer/renderer.h"
 #include "renderer/utils.h"
 #include "spdlog/spdlog.h"
@@ -42,7 +43,6 @@ namespace mantle {
 
         m_camera.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-
         ScopeArena arena(&m_scratch_arena);
         ArenaResource pmr(&m_scratch_arena);
 
@@ -58,37 +58,15 @@ namespace mantle {
         ImageFormat color_format =
             m_renderer.get_swapchain_info().surface_format;
 
+        ColorBlendState blend_state = {};
+        ColorBlendAttachment attachment = {};
+        blend_state.attachments = span(attachment);
+
         GraphicsPipelineDesc desc = {
             .shaders = shader_modules,
-            .vertex_input = {},
-            .input_assembly =
-                {
-                    .topology = PrimitiveTopology::TriangleList,
-                },
-            .rasterization =
-                {
-                    .polygon_mode = PolygonMode::Fill,
-                    .cull_mode = CullMode::None,
-                    .front_face = FrontFace::Clockwise,
-                },
-            .multisample =
-                {
-                    .rasterization_samples = SampleCount::x8,
-                },
-            .depth_stencil =
-                {
-                    .depth_test_enable = false,
-                    .depth_write_enable = false,
-                },
-            .color_formats = std::span<const ImageFormat>{&color_format, 1},
+            .color_blend = blend_state,
+            .color_formats = span(color_format),
         };
-
-        ColorBlendAttachment blend_attachment = {
-            .blend_enable = false,
-            .color_write_mask = 0xF,
-        };
-        desc.color_blend.attachments =
-            std::span<const ColorBlendAttachment>{&blend_attachment, 1};
 
         m_triangle_pipeline =
             m_renderer.resource_manager().create_graphics_pipeline(desc);
@@ -98,7 +76,7 @@ namespace mantle {
         m_rendering_arena.init(m_heap.take(megabytes(100)));
 
         spdlog::info("Engine is initialized. Starting the game");
-    }
+    } // namespace mantle
 
     void Engine::run() {
         while (!m_window.should_close()) {

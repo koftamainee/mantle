@@ -10,7 +10,7 @@ namespace mantle {
         OSMemory() = default;
         ~OSMemory();
 
-        MANTLE_NO_COPY_NO_MOVE(OSMemory);
+        MANTLE_NO_COPY(OSMemory);
 
         void init();
         void destroy();

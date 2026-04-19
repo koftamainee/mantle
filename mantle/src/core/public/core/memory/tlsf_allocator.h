@@ -12,7 +12,7 @@ namespace mantle {
         TlsfAllocator() = default;
         ~TlsfAllocator();
 
-        MANTLE_NO_COPY_NO_MOVE(TlsfAllocator);
+        MANTLE_NO_COPY(TlsfAllocator);
 
         void init(MemoryBlock block);
         void destroy();
