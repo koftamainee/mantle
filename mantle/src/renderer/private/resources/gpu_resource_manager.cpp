@@ -1172,9 +1172,10 @@ namespace mantle {
     ImageResource &GPUResourceManager::Impl::get_image(ImageHandle handle) {
         check(handle.index < images.size());
         auto &image = images[handle.index];
-        if (image.generation != handle.generation) {
-            fatal(true, "Attempting to get invalid buffer");
-        }
+
+        fatal(image.generation != handle.generation,
+              "Attempting to get invalid buffer");
+
 
         return image.resource;
     }
@@ -1182,9 +1183,10 @@ namespace mantle {
     BufferResource &GPUResourceManager::Impl::get_buffer(BufferHandle handle) {
         check(handle.index < buffers.size());
         auto &buffer = buffers[handle.index];
-        if (buffer.generation != handle.generation) {
-            fatal(true, "Attempting to get invalid buffer");
-        }
+
+        fatal(buffer.generation != handle.generation,
+              "Attempting to get invalid buffer");
+
 
         return buffer.resource;
     }
@@ -1192,9 +1194,10 @@ namespace mantle {
     GPUResourceManager::Impl::get_sampler(SamplerHandle handle) {
         check(handle.index < samplers.size());
         auto &sampler = samplers[handle.index];
-        if (sampler.generation != handle.generation) {
-            fatal(true, "Attempting to get invalid sampler");
-        }
+
+        fatal(sampler.generation != handle.generation,
+              "Attempting to get invalid sampler");
+
 
         return sampler.resource;
     }
@@ -1224,9 +1227,9 @@ namespace mantle {
         ComputePipelineHandle handle) {
         check(handle.index < compute_pipelines.size());
         auto &pipeline = compute_pipelines[handle.index];
-        if (pipeline.generation != handle.generation) {
-            fatal(true, "Attempting to get invalid compute pipeline");
-        }
+
+        fatal(pipeline.generation != handle.generation,
+              "Attempting to get invalid compute pipeline");
 
         return pipeline.resource;
     }
