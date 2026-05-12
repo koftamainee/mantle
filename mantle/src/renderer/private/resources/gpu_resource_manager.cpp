@@ -839,6 +839,8 @@ namespace mantle {
                 m_impl->allocate_storage_image_index(image);
             return image.bindless_storage_index;
         }
+
+        std::unreachable();
     }
 
 

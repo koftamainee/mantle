@@ -135,14 +135,16 @@ namespace mantle {
         u32 height = 0;
     };
 
-    struct ImageRegion final {
-        u32 mip_level = 0;
-        u32 array_layer = 0;
-        i32 offset_x = 0;
-        i32 offset_y = 0;
-        u32 width = 0;
-        u32 height = 0;
-    };
+    // struct ImageRegion final {
+    //     u32 mip_level = 0;
+    //     u32 array_layer = 0;
+    //     i32 offset_x = 0;
+    //     i32 offset_y = 0;
+    //     u32 width = 0;
+    //     u32 height = 0;
+    // };
+
+    using ImageRegion = RGImageRegion;
 
     struct ImageBlitInfo final {
         ImageResource *src = nullptr;

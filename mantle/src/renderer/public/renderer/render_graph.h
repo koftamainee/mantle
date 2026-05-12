@@ -3,7 +3,6 @@
 #include <vector>
 
 #include <renderer/types.h>
-#include <sys/stat.h>
 
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"

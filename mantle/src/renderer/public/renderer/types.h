@@ -413,6 +413,10 @@ namespace mantle {
         u32 dst_mip_level = 0;
         u32 src_array_layer = 0;
         u32 dst_array_layer = 0;
+
+        // 0 = entire mip of src
+        u32 width = 0;
+        u32 height = 0;
     };
 
     struct RGImageRegion final {
