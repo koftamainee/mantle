@@ -45,9 +45,13 @@ This milestone focuses on enhancing visual quality and renderer architecture. Di
     - [ ] Ambient -- constant factor
     - [ ] Point light -- position and radius. Examples: torch, lamp
 3. Basic render graph
-    - [/] Define resource lifetime tracking per pass (read/write access per resource) -- required for automatic barrier insertion
-    - [/] Create render graph class: accepts passes, computes dependencies, inserts `vkCmdPipelineBarrier`s
-    - [] DEPRECATED: use clustered forward (like DOOM Eternal). Using render graph, build the following pass sequence:
+    - [x] Define resource lifetime tracking per pass (read/write access per resource) -- automatic barrier insertion
+    - [x] Create render graph class: accepts passes, computes dependencies, inserts `vkCmdPipelineBarrier`s
+    - [x] Image + buffer read/write barriers via usage flags
+    - [x] Compute pipeline support through render graph (bind + dispatch)
+    - [x] Write-invalidation: write() returns new handle, version tracking
+    - [x] TransientResources: lazy alloc, persistent cache, desc-change detect, deferred destroy
+    - [] Pass sequence (blocked until DDA compute shader is ready):
         - Geometry pass -- compute, DDA raycasting, writes G-buffer
         - Lighting pass -- compute, shadow ray raycasting, reads G-buffer, writes lit image
         - Debug UI pass -- graphics, draws ImGui overlay on lit image if enabled
