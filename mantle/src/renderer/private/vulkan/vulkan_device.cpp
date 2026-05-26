@@ -468,15 +468,14 @@ namespace mantle {
             .shaderDrawParameters = VK_TRUE,
         };
 
-        VkPhysicalDeviceDescriptorIndexingFeatures indexing = {
-            .sType =
-                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
-            .runtimeDescriptorArray = VK_TRUE,
-            .descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
-            .descriptorBindingStorageImageUpdateAfterBind = VK_TRUE,
-            .descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE,
-            .descriptorBindingPartiallyBound = VK_TRUE,
-        };
+        VkPhysicalDeviceDescriptorIndexingFeatures indexing = {};
+        indexing.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+        indexing.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+        indexing.descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
+        indexing.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
+        indexing.descriptorBindingPartiallyBound = VK_TRUE;
+        indexing.runtimeDescriptorArray = VK_TRUE;
 
         VkPhysicalDeviceVulkan13Features vulkan13_features = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
