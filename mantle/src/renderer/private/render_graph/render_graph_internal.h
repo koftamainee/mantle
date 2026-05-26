@@ -113,4 +113,63 @@ inline AccessType read_usage_to_access(ReadUsage usage) {
     }
 }
 
+inline PipelineStage buffer_read_usage_to_stage(BufferReadUsage usage) {
+    switch (usage) {
+    case BufferReadUsage::Vertex:
+    case BufferReadUsage::Index:
+        return PipelineStage::VertexInput;
+    case BufferReadUsage::Uniform:
+        return PipelineStage::FragmentShader;
+    case BufferReadUsage::Storage:
+        return PipelineStage::ComputeShader;
+    case BufferReadUsage::TransferSrc:
+        return PipelineStage::Transfer;
+    case BufferReadUsage::IndirectArg:
+        return PipelineStage::DrawIndirect;
+    default:
+        fatal(true, "unknown BufferReadUsage");
+    }
+}
+
+inline AccessType buffer_read_usage_to_access(BufferReadUsage usage) {
+    switch (usage) {
+    case BufferReadUsage::Vertex:
+        return AccessType::VertexAttributeRead;
+    case BufferReadUsage::Index:
+        return AccessType::IndexRead;
+    case BufferReadUsage::Uniform:
+        return AccessType::UniformRead;
+    case BufferReadUsage::Storage:
+        return AccessType::ShaderRead;
+    case BufferReadUsage::TransferSrc:
+        return AccessType::TransferRead;
+    case BufferReadUsage::IndirectArg:
+        return AccessType::IndirectCommandRead;
+    default:
+        fatal(true, "unknown BufferReadUsage");
+    }
+}
+
+inline PipelineStage buffer_write_usage_to_stage(BufferWriteUsage usage) {
+    switch (usage) {
+    case BufferWriteUsage::Storage:
+        return PipelineStage::ComputeShader;
+    case BufferWriteUsage::TransferDst:
+        return PipelineStage::Transfer;
+    default:
+        fatal(true, "unknown BufferWriteUsage");
+    }
+}
+
+inline AccessType buffer_write_usage_to_access(BufferWriteUsage usage) {
+    switch (usage) {
+    case BufferWriteUsage::Storage:
+        return AccessType::ShaderWrite;
+    case BufferWriteUsage::TransferDst:
+        return AccessType::TransferWrite;
+    default:
+        fatal(true, "unknown BufferWriteUsage");
+    }
+}
+
 } // namespace mantle

@@ -260,6 +260,12 @@ namespace mantle {
             flags |= VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT;
         if (has(PipelineStage::Transfer))
             flags |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
+        if (has(PipelineStage::VertexInput))
+            flags |= VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT;
+        if (has(PipelineStage::DrawIndirect))
+            flags |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
+        if (has(PipelineStage::Host))
+            flags |= VK_PIPELINE_STAGE_2_HOST_BIT;
 
         return flags;
     }
@@ -568,6 +574,14 @@ namespace mantle {
             return VK_ACCESS_2_TRANSFER_READ_BIT;
         case AccessType::TransferWrite:
             return VK_ACCESS_2_TRANSFER_WRITE_BIT;
+        case AccessType::VertexAttributeRead:
+            return VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT;
+        case AccessType::IndexRead:
+            return VK_ACCESS_2_INDEX_READ_BIT;
+        case AccessType::UniformRead:
+            return VK_ACCESS_2_UNIFORM_READ_BIT;
+        case AccessType::IndirectCommandRead:
+            return VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
         default:
             fatal(true, "unsupported AccessType");
         }

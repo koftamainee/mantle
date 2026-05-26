@@ -172,6 +172,7 @@ namespace mantle {
 
     void
     CommandRecorder::bind_compute_pipeline(ComputePipelineResource &pipeline) {
+        m_current_layout = pipeline.layout;
         m_push_constants =
             std::span<PushConstantsRange>(&pipeline.desc.push_constants, 1);
         vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_COMPUTE,

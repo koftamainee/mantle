@@ -74,6 +74,30 @@ namespace mantle {
 
         m_renderer.resource_manager().destroy_shader(shader, true);
 
+        {
+            ScopeArena arena(&m_scratch_arena);
+            ArenaResource pmr(&m_scratch_arena);
+
+            std::pmr::vector<u32> compute_spv(&pmr);
+            load_spv("assets/shaders/test_compute.spv", compute_spv);
+            ShaderHandle compute_shader =
+                m_renderer.resource_manager().create_shader(compute_spv);
+
+            ShaderModule compute_module = {
+                "compute_main", ShaderStage::Compute, compute_shader,
+            };
+
+            ComputePipelineDesc compute_desc = {
+                .shader = compute_module,
+                .push_constants = {ShaderStage::Compute, 0, 0},
+            };
+
+            m_test_compute_pipeline =
+                m_renderer.resource_manager().create_compute_pipeline(compute_desc);
+
+            m_renderer.resource_manager().destroy_shader(compute_shader, true);
+        }
+
         m_rendering_arena.init(m_heap.take(megabytes(100)));
 
         spdlog::info("Engine is initialized. Starting the game");
@@ -148,21 +172,42 @@ namespace mantle {
 
         RenderGraph graph(&m_rendering_arena);
 
+        struct ComputePass final {
+            RGBufferHandle out_storage;
+        };
+
         struct TrianglePass final {
             RGImageHandle out_backbuffer;
         };
 
         RGImageHandle backbuffer =
-        graph.import_image(m_renderer.backbuffer());
+            graph.import_image(m_renderer.backbuffer());
         auto [width, height] = m_window.get_framebuffer_size();
+
+        graph.add_pass<ComputePass>(
+            "Compute Test",
+            [&](RenderGraphBuilder &builder, ComputePass &pass) {
+                pass.out_storage =
+                    builder.create_buffer({
+                        .size = 64,
+                        .usage = BufferUsage::Storage,
+                        .memory = MemoryType::Gpu,
+                    });
+                builder.write(pass.out_storage, BufferWriteUsage::Storage);
+            },
+            [this](RenderPassContext &ctx, const ComputePass &) {
+                ctx.bind_pipeline(m_test_compute_pipeline);
+                ctx.dispatch({1, 1, 1});
+            });
 
         graph.add_pass<TrianglePass>(
             "Triangle Pass",
             [&](RenderGraphBuilder &builder, TrianglePass &pass) {
-                pass.out_backbuffer = builder.write(backbuffer, WriteUsage::ColorAttachment);
+                pass.out_backbuffer =
+                    builder.write(backbuffer, WriteUsage::ColorAttachment);
             },
             [width, height, this](RenderPassContext &ctx,
-                                              const TrianglePass &pass) {
+                                  const TrianglePass &pass) {
                 std::array<RGColorAttachment, 1> color_attachments = {{{
                     .image = pass.out_backbuffer,
                     .load = AttachmentLoad::Clear,
@@ -188,7 +233,6 @@ namespace mantle {
             });
 
         m_renderer.execute(graph);
-
 
         result = m_renderer.end_frame();
         if (result == Renderer::Result::FrameNeedsResize) {

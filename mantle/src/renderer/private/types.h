@@ -51,6 +51,11 @@ namespace mantle {
 
         TransferRead,
         TransferWrite,
+
+        VertexAttributeRead,
+        IndexRead,
+        UniformRead,
+        IndirectCommandRead,
     };
 
     struct ImageBarrier final {

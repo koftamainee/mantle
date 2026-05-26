@@ -13,3 +13,9 @@ mantle_shader(mantle
         NAME flat
         SOURCES "${SHADERS_DIR}/flat.slang"
 )
+
+mantle_shader(mantle
+        NAME test_compute
+        ENTRIES compute_main
+        SOURCES "${SHADERS_DIR}/test_compute.slang"
+)

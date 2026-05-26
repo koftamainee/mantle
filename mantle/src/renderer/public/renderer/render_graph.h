@@ -54,14 +54,25 @@ namespace mantle {
 
         MANTLE_NO_COPY_NO_MOVE(RenderGraphBuilder);
 
+        RGImageHandle create_image(const ImageDesc &desc);
         RGImageHandle read(RGImageHandle image, ReadUsage usage = ReadUsage::Sampled);
         RGImageHandle write(RGImageHandle image, WriteUsage usage = WriteUsage::ColorAttachment);
+
+        RGBufferHandle create_buffer(const BufferDesc &desc);
+        RGBufferHandle read(RGBufferHandle buffer, BufferReadUsage usage = BufferReadUsage::Vertex);
+        RGBufferHandle write(RGBufferHandle buffer, BufferWriteUsage usage = BufferWriteUsage::Storage);
 
         friend class RenderGraph;
 
         u32 m_pass_index = UINT32_MAX;
         std::pmr::vector<RGImageReadAccess> *m_image_reads = nullptr;
         std::pmr::vector<RGImageWriteAccess> *m_image_writes = nullptr;
+        std::pmr::vector<RGImageEntry> *m_images = nullptr;
+        u32 *m_next_image_index = nullptr;
+        std::pmr::vector<RGBufferEntry> *m_buffers = nullptr;
+        u32 *m_next_buffer_index = nullptr;
+        std::pmr::vector<RGBufferReadAccess> *m_buffer_reads = nullptr;
+        std::pmr::vector<RGBufferWriteAccess> *m_buffer_writes = nullptr;
     };
 
     class RenderPassContext final {
@@ -151,6 +162,12 @@ namespace mantle {
             builder.m_pass_index = static_cast<u32>(m_passes.size());
             builder.m_image_reads = &m_image_reads;
             builder.m_image_writes = &m_image_writes;
+            builder.m_images = &m_images;
+            builder.m_next_image_index = &m_next_image_index;
+            builder.m_buffers = &m_buffers;
+            builder.m_next_buffer_index = &m_next_buffer_index;
+            builder.m_buffer_reads = &m_buffer_reads;
+            builder.m_buffer_writes = &m_buffer_writes;
             setup(builder, combined->data);
 
             m_passes.push_back({
@@ -165,7 +182,9 @@ namespace mantle {
             return combined->data;
         }
 
+        RGImageHandle create_image(const ImageDesc &desc);
         RGImageHandle import_image(ImageHandle image);
+        RGBufferHandle create_buffer(const BufferDesc &desc);
         RGBufferHandle import_buffer(BufferHandle buffer);
 
 
@@ -182,12 +201,15 @@ namespace mantle {
         ArenaResource m_resource{};
         std::pmr::vector<RenderPassNode> m_passes;
 
-        std::pmr::vector<ImageHandle> m_imported_images;
-        std::pmr::vector<BufferHandle> m_imported_buffers;
+        std::pmr::vector<RGImageEntry> m_images;
+        std::pmr::vector<RGBufferEntry> m_buffers;
         u32 m_next_image_index = 0;
         u32 m_next_buffer_index = 0;
 
         std::pmr::vector<RGImageReadAccess> m_image_reads;
         std::pmr::vector<RGImageWriteAccess> m_image_writes;
+
+        std::pmr::vector<RGBufferReadAccess> m_buffer_reads;
+        std::pmr::vector<RGBufferWriteAccess> m_buffer_writes;
     };
 } // namespace mantle

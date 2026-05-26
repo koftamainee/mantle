@@ -58,13 +58,16 @@ function(mantle_module)
 endfunction()
 
 function(mantle_shader TARGET)
-    cmake_parse_arguments(SHD "" "NAME" "SOURCES" ${ARGN})
+    cmake_parse_arguments(SHD "" "NAME;ENTRIES" "SOURCES" ${ARGN})
 
     if(NOT SHD_NAME)
         message(FATAL_ERROR "mantle_shader: NAME is required")
     endif()
     if(NOT SHD_SOURCES)
         message(FATAL_ERROR "mantle_shader: SOURCES is required")
+    endif()
+    if(NOT SHD_ENTRIES)
+        set(SHD_ENTRIES "vert_main;frag_main")
     endif()
 
     if(NOT DEFINED SLANGC_EXECUTABLE)
@@ -91,6 +94,11 @@ function(mantle_shader TARGET)
 
     set(OUTPUT_SPV "${CMAKE_BINARY_DIR}/target/assets/shaders/${SHD_NAME}.spv")
 
+    set(SHD_ENTRY_FLAGS)
+    foreach(entry IN LISTS SHD_ENTRIES)
+        list(APPEND SHD_ENTRY_FLAGS "-entry" "${entry}")
+    endforeach()
+
     add_custom_command(
             OUTPUT ${OUTPUT_SPV}
             COMMAND ${CMAKE_COMMAND} -E make_directory
@@ -100,7 +108,7 @@ function(mantle_shader TARGET)
             -profile spirv_1_4
             -emit-spirv-directly
             -fvk-use-entrypoint-name
-            -entry vert_main -entry frag_main
+            ${SHD_ENTRY_FLAGS}
             -o ${OUTPUT_SPV}
             DEPENDS ${SHD_SOURCES_ABS}
             COMMENT "Compiling shader ${SHD_NAME}"

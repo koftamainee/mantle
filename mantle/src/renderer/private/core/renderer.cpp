@@ -94,6 +94,9 @@ namespace mantle {
         m_impl->resource_manager.import_swapchain_images(
             m_impl->swapchain_images);
 
+        m_impl->transient_resources.init(&m_impl->persistent_resource,
+                                         &m_impl->resource_manager);
+
         m_is_initialized = true;
         spdlog::info("Renderer is initialized");
     }
@@ -144,8 +147,8 @@ namespace mantle {
         auto &transient_resources = m_impl->transient_resources;
         auto &frame_scheduler = m_impl->frame_scheduler;
 
-        transient_resources.set_imported_images(&graph.m_imported_images);
-        transient_resources.set_imported_buffers(&graph.m_imported_buffers);
+        transient_resources.set_images(&graph.m_images);
+        transient_resources.set_buffers(&graph.m_buffers);
 
         for (u32 pass_idx = 0; pass_idx < graph.m_passes.size(); pass_idx++) {
             auto &pass = graph.m_passes[pass_idx];
@@ -177,6 +180,7 @@ namespace mantle {
                         .src_access = src_access,
                         .dst_access = dst_access,
                     });
+                    img.current_layout = required_layout;
                 }
             };
 
@@ -198,6 +202,53 @@ namespace mantle {
 
             if (!barriers.empty()) {
                 cmd->image_barriers(barriers);
+            }
+
+            std::pmr::vector<BufferBarrier> buffer_barriers(
+                &frame_scheduler.frame_arena_resource());
+
+            auto resolve_buffer = [&](RGBufferHandle rg_handle,
+                                      PipelineStage dst_stage,
+                                      AccessType dst_access) {
+                BufferHandle buf_handle =
+                    transient_resources.get_buffer(rg_handle);
+                BufferResource &buf =
+                    resource_manager.m_impl->get_buffer(buf_handle);
+
+                if (buf.current_stage != dst_stage ||
+                    buf.current_access != dst_access) {
+                    buffer_barriers.push_back({
+                        .buffer = &buf,
+                        .src_stage = buf.current_stage,
+                        .dst_stage = dst_stage,
+                        .src_access = buf.current_access,
+                        .dst_access = dst_access,
+                    });
+                    buf.current_stage = dst_stage;
+                    buf.current_access = dst_access;
+                }
+            };
+
+            for (auto &read : graph.m_buffer_reads) {
+                if (read.pass_index != pass_idx) continue;
+                PipelineStage stage =
+                    buffer_read_usage_to_stage(read.usage);
+                AccessType access =
+                    buffer_read_usage_to_access(read.usage);
+                resolve_buffer(read.handle, stage, access);
+            }
+
+            for (auto &write : graph.m_buffer_writes) {
+                if (write.pass_index != pass_idx) continue;
+                PipelineStage stage =
+                    buffer_write_usage_to_stage(write.usage);
+                AccessType access =
+                    buffer_write_usage_to_access(write.usage);
+                resolve_buffer(write.handle, stage, access);
+            }
+
+            if (!buffer_barriers.empty()) {
+                cmd->buffer_barriers(buffer_barriers);
             }
 
             RenderPassContext::Impl ctx_impl = {

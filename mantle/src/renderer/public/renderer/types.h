@@ -9,7 +9,7 @@
     struct type {                                                              \
         u32 index = UINT32_MAX;                                                \
         u32 generation = UINT32_MAX;                                           \
-        bool is_valid() {                                                      \
+        bool is_valid() const {                                                \
             return this->index != UINT32_MAX &&                                \
                 this->generation != UINT32_MAX;                                \
         }                                                                      \
@@ -370,6 +370,50 @@ namespace mantle {
         u32 pass_index = UINT32_MAX;
         RGImageHandle handle;
         WriteUsage usage = WriteUsage::None;
+    };
+
+    struct RGImageEntry {
+        ImageHandle imported_handle = {};
+        ImageDesc desc = {};
+        u32 version = 0;
+        bool is_imported() const { return imported_handle.is_valid(); }
+    };
+
+    struct RGBufferEntry {
+        BufferHandle imported_handle = {};
+        BufferDesc desc = {};
+        u32 version = 0;
+        bool is_imported() const { return imported_handle.is_valid(); }
+    };
+
+    enum class BufferReadUsage {
+        None = 0,
+        Vertex = 1 << 0,
+        Index = 1 << 1,
+        Uniform = 1 << 2,
+        Storage = 1 << 3,
+        TransferSrc = 1 << 4,
+        IndirectArg = 1 << 5,
+        MaxEnum = (1 << 6) - 1,
+    };
+
+    enum class BufferWriteUsage {
+        None = 0,
+        Storage = 1 << 0,
+        TransferDst = 1 << 1,
+        MaxEnum = (1 << 2) - 1,
+    };
+
+    struct RGBufferReadAccess {
+        u32 pass_index = UINT32_MAX;
+        RGBufferHandle handle;
+        BufferReadUsage usage = BufferReadUsage::None;
+    };
+
+    struct RGBufferWriteAccess {
+        u32 pass_index = UINT32_MAX;
+        RGBufferHandle handle;
+        BufferWriteUsage usage = BufferWriteUsage::None;
     };
 
     struct RGColorAttachment final {
