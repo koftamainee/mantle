@@ -133,8 +133,15 @@ jobs:
           if (Test-Path "$sdkPath\Include\vulkan\vulkan.h") {
             Write-Host "Vulkan SDK already installed at $sdkPath"
           } else {
-            Write-Host "Installing Vulkan SDK (this may take 2-3 min)..."
-            $p = Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow -PassThru
+            Write-Host "Installing Vulkan SDK (this may take 3-5 min)..."
+            # Qt Installer Framework flags (required for SDK >= 1.2.189.1)
+            $args = @(
+              "--accept-licenses",
+              "--default-answer",
+              "--confirm-command",
+              "install"
+            )
+            $p = Start-Process -FilePath $installer -ArgumentList $args -Wait -NoNewWindow -PassThru
             if ($p.ExitCode -ne 0) {
               throw "Installer failed with exit code $($p.ExitCode)"
             }
