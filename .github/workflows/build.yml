@@ -65,8 +65,10 @@ jobs:
       - name: Set Vulkan env (Linux)
         if: runner.os == 'Linux'
         run: |
-          echo "VULKAN_SDK=${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64" >> "${GITHUB_ENV}"
-          echo "${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64/bin" >> "${GITHUB_PATH}"
+          SDK="${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64"
+          echo "VULKAN_SDK=${SDK}" >> "${GITHUB_ENV}"
+          echo "${SDK}/bin" >> "${GITHUB_PATH}"
+          echo "LD_LIBRARY_PATH=${SDK}/lib:${LD_LIBRARY_PATH}" >> "${GITHUB_ENV}"
 
       - name: Cache Vulkan SDK installer (Windows)
         if: runner.os == 'Windows'
