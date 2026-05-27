@@ -11,6 +11,15 @@ function(mantle_test)
             ${TST_DEPS}
     )
 
+    # Put test binaries in tests/ instead of target/
+    set_target_properties(${TST_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
+    foreach(cfg IN ITEMS Debug Release RelWithDebInfo MinSizeRel)
+        string(TOUPPER ${cfg} CFG_UPPER)
+        set_target_properties(${TST_NAME} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_${CFG_UPPER} "${CMAKE_BINARY_DIR}/tests")
+    endforeach()
+
     gtest_discover_tests(${TST_NAME})
 endfunction()
 

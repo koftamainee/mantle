@@ -1,0 +1,62 @@
+{
+  "tests": 10,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "aabb_tests",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "intersects_overlapping_boxes",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 6
+        },
+        {
+          "name": "intersects_non_overlapping_boxes",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 14
+        },
+        {
+          "name": "intersects_touching_edges",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 22
+        },
+        {
+          "name": "contains_point_inside",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 29
+        },
+        {
+          "name": "contains_point_on_boundary",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 36
+        },
+        {
+          "name": "contains_point_outside",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 43
+        },
+        {
+          "name": "size_computation",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 50
+        },
+        {
+          "name": "center_computation",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 57
+        },
+        {
+          "name": "expand_with_point_inside",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 64
+        },
+        {
+          "name": "expand_with_point_outside",
+          "file": "\/home\/kofta\/dev\/mantle\/mantle\/tests\/aabb.cpp",
+          "line": 74
+        }
+      ]
+    }
+  ]
+}

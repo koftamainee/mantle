@@ -165,21 +165,19 @@ jobs:
       - name: Build
         run: ${{ matrix.build }}
 
-      # ── Package game (binary + assets, no tests) ──
+      # ── Package game (all of target/) ──
       - name: Stage game package (Linux)
         if: runner.os == 'Linux'
         run: |
-          mkdir -p "${{ matrix.artifact }}/assets"
-          cp build/target/mantle "${{ matrix.artifact }}/"
-          cp -r build/target/assets/* "${{ matrix.artifact }}/assets/"
+          mkdir -p "${{ matrix.artifact }}"
+          cp -r build/target/* "${{ matrix.artifact }}/"
 
       - name: Stage game package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path "${{ matrix.artifact }}/assets"
-          Copy-Item build/target/mantle.exe -Destination "${{ matrix.artifact }}/"
-          Copy-Item build/target/assets/* -Destination "${{ matrix.artifact }}/assets/" -Recurse
+          New-Item -ItemType Directory -Force -Path "${{ matrix.artifact }}"
+          Copy-Item -Path build\target\* -Destination "${{ matrix.artifact }}\" -Recurse
 
       - name: Upload game package
         uses: actions/upload-artifact@v4
