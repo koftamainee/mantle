@@ -105,7 +105,10 @@ jobs:
               "--accept-licenses",
               "--default-answer",
               "--confirm-command",
-              "install"
+              "install",
+              "com.lunarg.vulkan.vma",
+              "com.lunarg.vulkan.volk",
+              "com.lunarg.vulkan.debug"
             )
             $p = Start-Process -FilePath $installer -ArgumentList $args -Wait -NoNewWindow -PassThru
             if ($p.ExitCode -ne 0) {
