@@ -1,5 +1,0 @@
-if(EXISTS "/home/kofta/dev/mantle/test-buildbuild/mantle/tests/aabb[1]_tests.cmake")
-  include("/home/kofta/dev/mantle/test-buildbuild/mantle/tests/aabb[1]_tests.cmake")
-else()
-  add_test(aabb_NOT_BUILT aabb_NOT_BUILT)
-endif()

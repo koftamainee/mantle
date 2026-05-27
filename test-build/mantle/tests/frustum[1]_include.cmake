@@ -1,5 +1,0 @@
-if(EXISTS "/home/kofta/dev/mantle/test-buildbuild/mantle/tests/frustum[1]_tests.cmake")
-  include("/home/kofta/dev/mantle/test-buildbuild/mantle/tests/frustum[1]_tests.cmake")
-else()
-  add_test(frustum_NOT_BUILT frustum_NOT_BUILT)
-endif()
