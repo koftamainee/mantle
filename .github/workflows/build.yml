@@ -1,0 +1,95 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [master]
+
+env:
+  VULKAN_VER: 1.4.350.0
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            configure: >
+              cmake -B build -G Ninja
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo
+              -DCMAKE_C_COMPILER=clang
+              -DCMAKE_CXX_COMPILER=clang++
+            build: cmake --build build
+            ctest: ctest --test-dir build --output-on-failure
+
+          - os: windows-latest
+            configure: cmake -B build -G "Visual Studio 17 2022" -A x64
+            build: cmake --build build --config RelWithDebInfo
+            ctest: ctest --test-dir build --output-on-failure -C RelWithDebInfo
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang ninja-build
+
+      - name: Cache Vulkan SDK
+        id: cache-vulkan
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.os == 'Linux' && '.vulkansdk' || 'C:\VulkanSDK\1.4.350.0' }}
+          key: vulkan-sdk-${{ env.VULKAN_VER }}-${{ runner.os }}
+
+      - name: Install Vulkan SDK (Linux)
+        if: runner.os == 'Linux' && steps.cache-vulkan.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .vulkansdk
+          wget -qO- https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VER }}/linux/vulkansdk-linux-x86_64-${{ env.VULKAN_VER }}.tar.xz \
+            | tar -xJ -C .vulkansdk
+
+      - name: Set Vulkan env (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          echo "VULKAN_SDK=${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64" >> "${GITHUB_ENV}"
+          echo "${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64/bin" >> "${GITHUB_PATH}"
+
+      - name: Install Vulkan SDK (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $url = "https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VER }}/windows/VulkanSDK-${{ env.VULKAN_VER }}-Installer.exe"
+          $out = "$env:TEMP\VulkanSDK-${{ env.VULKAN_VER }}-Installer.exe"
+          if (-not (Test-Path $out)) {
+            Write-Host "Downloading Vulkan SDK..."
+            Invoke-WebRequest -Uri $url -OutFile $out
+          }
+          Write-Host "Installing Vulkan SDK..."
+          Start-Process $out -ArgumentList "/S" -Wait -NoNewWindow
+          Write-Host "Vulkan SDK installed"
+
+      - name: Set Vulkan env (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          echo "VULKAN_SDK=C:\VulkanSDK\${{ env.VULKAN_VER }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "C:\VulkanSDK\${{ env.VULKAN_VER }}\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Configure
+        run: ${{ matrix.configure }}
+
+      - name: Build
+        run: ${{ matrix.build }}
+
+      - name: Test
+        run: ${{ matrix.ctest }}

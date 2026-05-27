@@ -1,0 +1,307 @@
+name: Daily Release
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # 6:00 MSK = 3:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  VULKAN_VER: 1.4.350.0
+
+jobs:
+  # ────────────────── INFO ──────────────────
+  info:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.calc.outputs.tag }}
+      previous_tag: ${{ steps.calc.outputs.previous_tag }}
+      has_changes: ${{ steps.calc.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate release info
+        id: calc
+        run: |
+          TAG="daily-$(TZ='Europe/Moscow' date '+%Y-%m-%d')"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          PREV=$(git tag --list 'daily-*' --sort=-version:refname | head -1 || echo "")
+          echo "previous_tag=$PREV" >> "$GITHUB_OUTPUT"
+
+          if [ -n "$PREV" ]; then
+            COUNT=$(git rev-list "$PREV"..HEAD --count 2>/dev/null || echo 0)
+          else
+            COUNT=$(git rev-list HEAD --count 2>/dev/null || echo 0)
+          fi
+          echo "has_changes=$([ "$COUNT" -gt 0 ] && echo 'true' || echo 'false')" >> "$GITHUB_OUTPUT"
+
+  # ────────────────── BUILD ──────────────────
+  build:
+    needs: info
+    if: needs.info.outputs.has_changes == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            configure: >
+              cmake -B build -G Ninja
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_C_COMPILER=clang
+              -DCMAKE_CXX_COMPILER=clang++
+            build: cmake --build build
+            binary: mantle
+            artifact: mantle-linux
+
+          - os: windows-latest
+            configure: cmake -B build -G "Visual Studio 17 2022" -A x64
+            build: cmake --build build --config Release
+            binary: mantle.exe
+            artifact: mantle-windows
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ── Linux deps ──
+      - name: Install system deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang ninja-build
+
+      # ── Vulkan SDK (cached) ──
+      - name: Cache Vulkan SDK
+        id: cache-vulkan
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.os == 'Linux' && '.vulkansdk' || 'C:\VulkanSDK\1.4.350.0' }}
+          key: vulkan-sdk-${{ env.VULKAN_VER }}-${{ runner.os }}
+
+      - name: Install Vulkan SDK (Linux)
+        if: runner.os == 'Linux' && steps.cache-vulkan.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .vulkansdk
+          wget -qO- https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VER }}/linux/vulkansdk-linux-x86_64-${{ env.VULKAN_VER }}.tar.xz \
+            | tar -xJ -C .vulkansdk
+
+      - name: Set Vulkan env (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          echo "VULKAN_SDK=${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64" >> "${GITHUB_ENV}"
+          echo "${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64/bin" >> "${GITHUB_PATH}"
+
+      - name: Install Vulkan SDK (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $url = "https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VER }}/windows/VulkanSDK-${{ env.VULKAN_VER }}-Installer.exe"
+          $out = "$env:TEMP\VulkanSDK-${{ env.VULKAN_VER }}-Installer.exe"
+          if (-not (Test-Path $out)) {
+            Write-Host "Downloading Vulkan SDK..."
+            Invoke-WebRequest -Uri $url -OutFile $out
+          }
+          Write-Host "Installing Vulkan SDK..."
+          Start-Process $out -ArgumentList "/S" -Wait -NoNewWindow
+
+      - name: Set Vulkan env (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          echo "VULKAN_SDK=C:\VulkanSDK\${{ env.VULKAN_VER }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "C:\VulkanSDK\${{ env.VULKAN_VER }}\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      # ── Build ──
+      - name: Configure
+        run: ${{ matrix.configure }}
+
+      - name: Build
+        run: ${{ matrix.build }}
+
+      # ── Stage & upload binary ──
+      - name: Stage binary (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          find build/target -type f -name '${{ matrix.binary }}' -exec cp {} ./${{ matrix.binary }} \; -quit
+
+      - name: Stage binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $file = Get-ChildItem -Path build\target -Recurse -File -Filter "${{ matrix.binary }}" | Select-Object -First 1
+          if ($file) { Copy-Item -Path $file.FullName -Destination ".\${{ matrix.binary }}" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.binary }}
+          if-no-files-found: error
+
+  # ────────────────── PATCH NOTES ──────────────────
+  notes:
+    needs: info
+    if: needs.info.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate patch notes
+        id: gen
+        env:
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+        run: |
+          PREV="${{ needs.info.outputs.previous_tag }}"
+
+          # ── collect commit data ──
+          if [ -n "$PREV" ]; then
+            LOG=$(git log "$PREV"..HEAD --oneline --no-decorate 2>/dev/null || echo "")
+            DIFF_STAT=$(git diff "$PREV"..HEAD --stat 2>/dev/null || echo "")
+            DIFF=$(git diff "$PREV"..HEAD -- . 2>/dev/null | head -c 12000 || echo "")
+          else
+            LOG=$(git log --oneline --no-decorate -30 2>/dev/null || echo "")
+            DIFF_STAT=$(git diff --stat "$(git rev-list --max-parents=0 HEAD)" HEAD 2>/dev/null || echo "")
+            DIFF=""
+          fi
+
+          # ── build prompt file (no heredocs — YAML indent) ──
+          {
+            printf '%s\n' "You are a release notes writer for the Mantle game engine project (C++23, Vulkan)."
+            printf '%s\n' ""
+            printf '%s\n' "Analyze the changes below (commit messages + code diffs) and write engaging,"
+            printf '%s\n' "informative patch notes in English. Group changes using these Markdown headings:"
+            printf '%s\n' ""
+            printf '%s\n' "  - ✨ New Features"
+            printf '%s\n' "  - 🛠 Improvements"
+            printf '%s\n' "  - 🐛 Bug Fixes"
+            printf '%s\n' "  - 🔧 Refactoring & Maintenance"
+            printf '%s\n' ""
+            printf '%s\n' "Write 2-4 sentences per item. Be specific about what files changed and why"
+            printf '%s\n' "it matters for a game engine. Use active voice; avoid commit/PR phrasing."
+            printf '%s\n' ""
+            printf '%s\n' "────────────────────────────────────────────"
+            printf '%s\n' "Commit messages:"
+            printf '%s\n' ""
+          } > /tmp/prompt.txt
+
+          printf '%s\n' "$LOG" >> /tmp/prompt.txt
+
+          {
+            printf '%s\n' ""
+            printf '%s\n' "File changes summary:"
+            printf '%s\n' ""
+          } >> /tmp/prompt.txt
+
+          printf '%s\n' "$DIFF_STAT" >> /tmp/prompt.txt
+
+          if [ -n "$DIFF" ]; then
+            {
+              printf '%s\n' ""
+              printf '%s\n' "Code diff (truncated):"
+              printf '%s\n' ""
+            } >> /tmp/prompt.txt
+            printf '%s\n' "$DIFF" >> /tmp/prompt.txt
+          fi
+
+          # ── try AI via GitHub Models ──
+          AI_NOTES=""
+          if [ -n "$GH_MODELS_TOKEN" ]; then
+            jq -n --rawfile prompt /tmp/prompt.txt '{
+              model: "gpt-4o-mini",
+              messages: [{role: "user", content: $prompt}],
+              max_tokens: 2000
+            }' > /tmp/payload.json
+
+            RESP=$(curl -s -w '\n%{http_code}' -X POST \
+              "https://models.inference.ai.azure.com/chat/completions" \
+              -H "Authorization: Bearer $GH_MODELS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d @/tmp/payload.json)
+
+            HTTP_CODE=$(echo "$RESP" | tail -1)
+            BODY=$(echo "$RESP" | head -n -1)
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              AI_NOTES=$(echo "$BODY" | jq -r '.choices[0].message.content // empty')
+            else
+              echo "AI API returned HTTP $HTTP_CODE" >&2
+            fi
+          fi
+
+          # ── fallback via GitHub release-notes API ──
+          if [ -z "$AI_NOTES" ]; then
+            if [ -n "$PREV" ]; then
+              JSON=$(jq -n --arg tag "${{ needs.info.outputs.tag }}" --arg previous "$PREV" \
+                '{tag_name: $tag, previous_tag_name: $previous}')
+            else
+              JSON=$(jq -n --arg tag "${{ needs.info.outputs.tag }}" \
+                '{tag_name: $tag}')
+            fi
+
+            RESP=$(curl -s -w '\n%{http_code}' -X POST \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/generate-notes" \
+              -d "$JSON")
+
+            HTTP_CODE=$(echo "$RESP" | tail -1)
+            BODY=$(echo "$RESP" | head -n -1)
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              AI_NOTES=$(echo "$BODY" | jq -r '.body // empty')
+            fi
+          fi
+
+          # ── final release body ──
+          if [ -z "$AI_NOTES" ]; then
+            printf '# Mantle Daily Build — %s\n\n%s\n' \
+              "${{ needs.info.outputs.tag }}" \
+              "$LOG" > /tmp/release_body.md
+          else
+            printf '%s' "$AI_NOTES" > /tmp/release_body.md
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-body
+          path: /tmp/release_body.md
+
+  # ────────────────── CREATE RELEASE ──────────────────
+  release:
+    needs: [info, build, notes]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-body
+          path: .
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mantle-linux
+          path: binaries
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mantle-windows
+          path: binaries
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.info.outputs.tag }}
+          name: Mantle Daily Build — ${{ needs.info.outputs.tag }}
+          body_path: release_body.md
+          files: |
+            binaries/mantle
+            binaries/mantle.exe
+          fail_on_unmatched_files: false
+          draft: false
+          prerelease: false

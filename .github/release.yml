@@ -1,0 +1,17 @@
+changelog:
+  categories:
+    - title: ✨ New Features
+      labels:
+        - enhancement
+        - feature
+    - title: 🛠 Improvements
+      labels:
+        - improvement
+        - perf
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+        - fix
+    - title: 🔧 Refactoring & Maintenance
+      labels:
+        - "*"
