@@ -56,13 +56,13 @@ jobs:
               -DCMAKE_CXX_COMPILER=clang++
             build: cmake --build build
             binary: mantle
-            artifact: mantle-linux
+            artifact: mantle-linux-x64
 
           - os: windows-latest
             configure: cmake -B build -G "Visual Studio 17 2022" -A x64
             build: cmake --build build --config Release
             binary: mantle.exe
-            artifact: mantle-windows
+            artifact: mantle-windows-x64
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -165,21 +165,23 @@ jobs:
       - name: Build
         run: ${{ matrix.build }}
 
-      # ── Package full target dir (binary + assets) ──
-      - name: Stage target (Linux)
+      # ── Package game (binary + assets, no tests) ──
+      - name: Stage game package (Linux)
         if: runner.os == 'Linux'
         run: |
-          mkdir -p "${{ matrix.artifact }}"
-          cp -r build/target/* "${{ matrix.artifact }}/"
+          mkdir -p "${{ matrix.artifact }}/assets"
+          cp build/target/mantle "${{ matrix.artifact }}/"
+          cp -r build/target/assets/* "${{ matrix.artifact }}/assets/"
 
-      - name: Stage target (Windows)
+      - name: Stage game package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path "${{ matrix.artifact }}"
-          Copy-Item -Path build\target\* -Destination "${{ matrix.artifact }}\" -Recurse
+          New-Item -ItemType Directory -Force -Path "${{ matrix.artifact }}/assets"
+          Copy-Item build/target/mantle.exe -Destination "${{ matrix.artifact }}/"
+          Copy-Item build/target/assets/* -Destination "${{ matrix.artifact }}/assets/" -Recurse
 
-      - name: Upload target
+      - name: Upload game package
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
@@ -249,20 +251,20 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: mantle-linux
-          path: mantle-linux
+          name: mantle-linux-x64
+          path: mantle-linux-x64
 
       - uses: actions/download-artifact@v4
         with:
-          name: mantle-windows
-          path: mantle-windows
+          name: mantle-windows-x64
+          path: mantle-windows-x64
 
       - name: Bundle Linux
-        run: tar -czf mantle-linux.tar.gz -C mantle-linux .
+        run: (cd mantle-linux-x64 && zip -r ../mantle-linux-x64.zip .)
 
       - name: Bundle Windows
         shell: pwsh
-        run: Compress-Archive -Path mantle-windows\* -DestinationPath mantle-windows.zip
+        run: Compress-Archive -Path mantle-windows-x64\* -DestinationPath mantle-windows-x64.zip
 
       - uses: softprops/action-gh-release@v2
         with:
@@ -270,8 +272,8 @@ jobs:
           name: Mantle Daily Build — ${{ needs.info.outputs.tag }}
           body_path: release_body.md
           files: |
-            mantle-linux.tar.gz
-            mantle-windows.zip
+            mantle-linux-x64.zip
+            mantle-windows-x64.zip
           fail_on_unmatched_files: false
           draft: false
           prerelease: false

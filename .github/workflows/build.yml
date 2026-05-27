@@ -131,3 +131,25 @@ jobs:
 
       - name: Test
         run: ${{ matrix.ctest }}
+
+      - name: Stage game package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p mantle-linux-x64/assets
+          cp build/target/mantle mantle-linux-x64/
+          cp -r build/target/assets/* mantle-linux-x64/assets/
+
+      - name: Stage game package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path mantle-windows-x64/assets
+          Copy-Item build/target/mantle.exe -Destination mantle-windows-x64/
+          Copy-Item build/target/assets/* -Destination mantle-windows-x64/assets/ -Recurse
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os == 'Linux' && 'mantle-linux-x64' || 'mantle-windows-x64' }}
+          path: ${{ runner.os == 'Linux' && 'mantle-linux-x64' || 'mantle-windows-x64' }}
+          if-no-files-found: error
