@@ -410,13 +410,13 @@ namespace mantle {
         BufferReadUsage usage = BufferReadUsage::None;
     };
 
-    struct RGBufferWriteAccess {
+    struct FGBufferWriteAccess {
         u32 pass_index = UINT32_MAX;
         FGBufferHandle handle;
         BufferWriteUsage usage = BufferWriteUsage::None;
     };
 
-    struct RGColorAttachment final {
+    struct FGColorAttachment final {
         FGImageHandle image = {};
         AttachmentLoad load = AttachmentLoad::Clear;
         AttachmentStore store = AttachmentStore::Store;
@@ -426,16 +426,16 @@ namespace mantle {
         f32 clear_a = 1.0f;
     };
 
-    struct RGDepthAttachment final {
+    struct FGDepthAttachment final {
         FGImageHandle image = {};
         AttachmentLoad load = AttachmentLoad::Clear;
         AttachmentStore store = AttachmentStore::DontCare;
         f32 clear_value = 1.0f;
     };
 
-    struct RGRenderingInfo final {
-        std::span<RGColorAttachment> colors = {};
-        RGDepthAttachment *depth = nullptr;
+    struct FGRenderingInfo final {
+        std::span<FGColorAttachment> colors = {};
+        FGDepthAttachment *depth = nullptr;
         u32 width = 0;
         u32 height = 0;
     };
@@ -496,7 +496,7 @@ namespace mantle {
         u32 height = 0;
     };
 
-    struct RGImageRegion final {
+    struct FGImageRegion final {
         u32 mip_level = 0;
         u32 array_layer = 0;
         i32 offset_x = 0;
@@ -508,8 +508,9 @@ namespace mantle {
     struct FGImageBlitInfo final {
         FGImageHandle src = {};
         FGImageHandle dst = {};
-        RGImageRegion src_region = {};
-        RGImageRegion dst_region = {};
+        FGImageRegion src_region = {};
+        FGImageRegion dst_region = {};
+
         Filter filter = Filter::Linear;
     };
 

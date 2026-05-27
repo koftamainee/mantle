@@ -149,7 +149,7 @@ namespace mantle {
     //     u32 height = 0;
     // };
 
-    using ImageRegion = RGImageRegion;
+    using ImageRegion = FGImageRegion;
 
     struct ImageBlitInfo final {
         ImageResource *src = nullptr;

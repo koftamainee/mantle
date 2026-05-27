@@ -27,7 +27,7 @@ namespace mantle {
         static constexpr glm::vec3 world_up = {0.0f, 1.0f, 0.0f};
 
       public:
-        struct GPUData final {
+        struct alignas(16) GPUData final {
             alignas(16) glm::vec3 position;
             alignas(16) glm::vec3 forward;
             alignas(16) glm::vec3 right;

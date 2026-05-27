@@ -72,7 +72,7 @@ namespace mantle {
         std::pmr::vector<FGBufferEntry> *m_buffers = nullptr;
         u32 *m_next_buffer_index = nullptr;
         std::pmr::vector<FGBufferReadAccess> *m_buffer_reads = nullptr;
-        std::pmr::vector<RGBufferWriteAccess> *m_buffer_writes = nullptr;
+        std::pmr::vector<FGBufferWriteAccess> *m_buffer_writes = nullptr;
     };
 
     class FGPassContext final {
@@ -85,7 +85,7 @@ namespace mantle {
         void bind_pipeline(GraphicsPipelineHandle pipeline);
         void bind_pipeline(ComputePipelineHandle pipeline);
 
-        void begin_rendering(const RGRenderingInfo &info);
+        void begin_rendering(const FGRenderingInfo &info);
         void end_rendering();
 
         void set_viewport(f32 x, f32 y, f32 width, f32 height);
@@ -156,7 +156,7 @@ namespace mantle {
             };
 
             auto *combined = static_cast<Combined *>(
-                m_arena->push(sizeof(Combined), alignof(Combined)));
+                m_arena->push(sizeof(Combined), 16));
             new (&combined->data) TData{};
             new (&combined->exec) std::decay_t<TExecute>(
                 std::forward<TExecute>(execute));
@@ -213,6 +213,6 @@ namespace mantle {
         std::pmr::vector<FGImageWriteAccess> m_image_writes;
 
         std::pmr::vector<FGBufferReadAccess> m_buffer_reads;
-        std::pmr::vector<RGBufferWriteAccess> m_buffer_writes;
+        std::pmr::vector<FGBufferWriteAccess> m_buffer_writes;
     };
 } // namespace mantle

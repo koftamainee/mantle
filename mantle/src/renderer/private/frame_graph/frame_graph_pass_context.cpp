@@ -11,7 +11,7 @@ namespace mantle {
             m_impl->resource_manager->m_impl->get_compute_pipeline(pipeline));
     }
 
-    void FGPassContext::begin_rendering(const RGRenderingInfo &info) {
+    void FGPassContext::begin_rendering(const FGRenderingInfo &info) {
         ScopeArena scope(m_impl->scratch_arena);
         std::pmr::vector<ColorAttachment> color_attachments(
             m_impl->scratch_resource);

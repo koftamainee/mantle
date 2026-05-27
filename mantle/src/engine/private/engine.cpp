@@ -262,7 +262,7 @@ namespace mantle {
             },
             [width, height, this](FGPassContext &ctx,
                                   const BlitPass &pass) {
-                std::array<RGColorAttachment, 1> colors = {{{
+                std::array<FGColorAttachment, 1> colors = {{{
                     .image = pass.out_backbuffer,
                     .load = AttachmentLoad::Clear,
                     .store = AttachmentStore::Store,

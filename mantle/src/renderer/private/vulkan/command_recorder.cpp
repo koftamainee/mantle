@@ -450,7 +450,7 @@ namespace mantle {
                                    pc.offset, pc.size, data);
                 return;
             }
-            fatal(true, "Invalid stage for push constant");
         }
+        fatal(true, "Invalid stage for push constant");
     }
 } // namespace mantle
