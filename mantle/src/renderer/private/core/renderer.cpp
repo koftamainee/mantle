@@ -2,9 +2,9 @@
 #include <spdlog/spdlog.h>
 #include "core/memory/persistent_allocator.h"
 #include "core/memory/pmr/persistent_resource.h"
-#include "render_graph/render_graph_internal.h"
-#include "render_graph/render_pass_context_internal.h"
-#include "renderer/render_graph.h"
+#include "frame_graph/frame_graph_pass_context_internal.h"
+#include "frame_graph/render_graph_internal.h"
+#include "renderer/frame_graph.h"
 #include "resources/gpu_resource_manager_internal.h"
 #include "resources/transient_resources.h"
 #include "types.h"
@@ -139,7 +139,7 @@ namespace mantle {
         return Result::Ok;
     }
 
-    void Renderer::execute(RenderGraph &graph) {
+    void Renderer::execute(FrameGraph &graph) {
         check(m_is_initialized);
 
         auto *cmd = m_impl->current_frame.cmd;
@@ -156,7 +156,7 @@ namespace mantle {
             std::pmr::vector<ImageBarrier> barriers(
                 &frame_scheduler.frame_arena_resource());
 
-            auto resolve_layout = [&](RGImageHandle rg_handle,
+            auto resolve_layout = [&](FGImageHandle rg_handle,
                                       ImageLayout required_layout,
                                       PipelineStage dst_stage,
                                       AccessType dst_access) {
@@ -207,7 +207,7 @@ namespace mantle {
             std::pmr::vector<BufferBarrier> buffer_barriers(
                 &frame_scheduler.frame_arena_resource());
 
-            auto resolve_buffer = [&](RGBufferHandle rg_handle,
+            auto resolve_buffer = [&](FGBufferHandle rg_handle,
                                       PipelineStage dst_stage,
                                       AccessType dst_access) {
                 BufferHandle buf_handle =
@@ -251,7 +251,7 @@ namespace mantle {
                 cmd->buffer_barriers(buffer_barriers);
             }
 
-            RenderPassContext::Impl ctx_impl = {
+            FGPassContext::Impl ctx_impl = {
                 .cmd = cmd,
                 .resource_manager = &resource_manager,
                 .transient_resources = &transient_resources,
@@ -259,7 +259,7 @@ namespace mantle {
                 .scratch_resource = &frame_scheduler.frame_arena_resource(),
             };
 
-            RenderPassContext ctx;
+            FGPassContext ctx;
             ctx.init(&ctx_impl);
             pass.execute_fn(pass.execute_data, ctx);
         }

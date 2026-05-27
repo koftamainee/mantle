@@ -15,7 +15,7 @@ namespace mantle {
 }
 
 namespace mantle {
-    class RenderGraph;
+    class FrameGraph;
 
     // TODO: Deferred created resources:
     // TODO: Create new resource in render graph only when it used
@@ -47,40 +47,40 @@ namespace mantle {
     // TODO: Blackboard::get<T>()
     // TODO: Allow communication between modules via hash table of components
 
-    class RenderGraphBuilder final {
+    class FrameGraphBuilder final {
       public:
-        RenderGraphBuilder() = default;
-        ~RenderGraphBuilder() = default;
+        FrameGraphBuilder() = default;
+        ~FrameGraphBuilder() = default;
 
-        MANTLE_NO_COPY_NO_MOVE(RenderGraphBuilder);
+        MANTLE_NO_COPY_NO_MOVE(FrameGraphBuilder);
 
-        RGImageHandle create_image(const ImageDesc &desc);
-        RGImageHandle read(RGImageHandle image, ReadUsage usage = ReadUsage::Sampled);
-        RGImageHandle write(RGImageHandle image, WriteUsage usage = WriteUsage::ColorAttachment);
+        FGImageHandle create_image(const ImageDesc &desc);
+        FGImageHandle read(FGImageHandle image, ReadUsage usage = ReadUsage::Sampled);
+        FGImageHandle write(FGImageHandle image, WriteUsage usage = WriteUsage::ColorAttachment);
 
-        RGBufferHandle create_buffer(const BufferDesc &desc);
-        RGBufferHandle read(RGBufferHandle buffer, BufferReadUsage usage = BufferReadUsage::Vertex);
-        RGBufferHandle write(RGBufferHandle buffer, BufferWriteUsage usage = BufferWriteUsage::Storage);
+        FGBufferHandle create_buffer(const BufferDesc &desc);
+        FGBufferHandle read(FGBufferHandle buffer, BufferReadUsage usage = BufferReadUsage::Vertex);
+        FGBufferHandle write(FGBufferHandle buffer, BufferWriteUsage usage = BufferWriteUsage::Storage);
 
-        friend class RenderGraph;
+        friend class FrameGraph;
 
         u32 m_pass_index = UINT32_MAX;
-        std::pmr::vector<RGImageReadAccess> *m_image_reads = nullptr;
-        std::pmr::vector<RGImageWriteAccess> *m_image_writes = nullptr;
-        std::pmr::vector<RGImageEntry> *m_images = nullptr;
+        std::pmr::vector<FGImageReadAccess> *m_image_reads = nullptr;
+        std::pmr::vector<FGImageWriteAccess> *m_image_writes = nullptr;
+        std::pmr::vector<FGImageEntry> *m_images = nullptr;
         u32 *m_next_image_index = nullptr;
-        std::pmr::vector<RGBufferEntry> *m_buffers = nullptr;
+        std::pmr::vector<FGBufferEntry> *m_buffers = nullptr;
         u32 *m_next_buffer_index = nullptr;
-        std::pmr::vector<RGBufferReadAccess> *m_buffer_reads = nullptr;
+        std::pmr::vector<FGBufferReadAccess> *m_buffer_reads = nullptr;
         std::pmr::vector<RGBufferWriteAccess> *m_buffer_writes = nullptr;
     };
 
-    class RenderPassContext final {
+    class FGPassContext final {
       public:
-        RenderPassContext() = default;
-        ~RenderPassContext() = default;
+        FGPassContext() = default;
+        ~FGPassContext() = default;
 
-        MANTLE_NO_COPY_NO_MOVE(RenderPassContext);
+        MANTLE_NO_COPY_NO_MOVE(FGPassContext);
 
         void bind_pipeline(GraphicsPipelineHandle pipeline);
         void bind_pipeline(ComputePipelineHandle pipeline);
@@ -91,32 +91,32 @@ namespace mantle {
         void set_viewport(f32 x, f32 y, f32 width, f32 height);
         void set_scissor(i32 x, i32 y, u32 width, u32 height);
 
-        void bind_vertex_buffer(RGBufferHandle buffer, u32 binding,
+        void bind_vertex_buffer(FGBufferHandle buffer, u32 binding,
                                 usize offset = 0);
-        void bind_index_buffer(RGBufferHandle buffer, usize offset = 0);
+        void bind_index_buffer(FGBufferHandle buffer, usize offset = 0);
 
-        void draw(const RGDrawInfo &info);
-        void draw_indexed(const RGDrawIndexedInfo &info);
-        void dispatch(const RGDispatchInfo &info);
+        void draw(const FGDrawInfo &info);
+        void draw_indexed(const FGDrawIndexedInfo &info);
+        void dispatch(const FGDispatchInfo &info);
 
-        void copy_buffer(const RGBufferCopyInfo &info);
-        void copy_buffer_to_image(const RGBufferImageCopyInfo &info);
-        void copy_image_to_buffer(const RGImageBufferCopyInfo &info);
-        void copy_image(const RGImageCopyInfo &info);
-        void blit_image(const RGImageBlitInfo &info);
+        void copy_buffer(const FGBufferCopyInfo &info);
+        void copy_buffer_to_image(const FGBufferImageCopyInfo &info);
+        void copy_image_to_buffer(const FGImageBufferCopyInfo &info);
+        void copy_image(const FGImageCopyInfo &info);
+        void blit_image(const FGImageBlitInfo &info);
 
-        void clear_color_image(RGImageHandle image, f32 r, f32 g, f32 b, f32 a);
-        void clear_depth_image(RGImageHandle image, f32 depth);
+        void clear_color_image(FGImageHandle image, f32 r, f32 g, f32 b, f32 a);
+        void clear_depth_image(FGImageHandle image, f32 depth);
 
-        u32 get_bindless_index(RGImageHandle handle, BindlessImageType type);
-        u32 get_bindless_index(RGBufferHandle handle);
+        u32 get_bindless_index(FGImageHandle handle, BindlessImageType type);
+        u32 get_bindless_index(FGBufferHandle handle);
 
         void push_constants(const void *data, ShaderStage stage);
 
       private:
         struct Impl;
 
-        friend class RenderGraph;
+        friend class FrameGraph;
         friend class Renderer;
         void init(Impl *impl);
 
@@ -128,21 +128,21 @@ namespace mantle {
 
     template <typename TData, typename TSetup>
     concept CRenderPassSetupLambda =
-        requires(TSetup fn, RenderGraphBuilder &builder, TData &data) {
+        requires(TSetup fn, FrameGraphBuilder &builder, TData &data) {
             { fn(builder, data) } -> std::same_as<void>;
         };
 
     template <typename TData, typename TExecute>
     concept CRenderPassExecuteLambda =
-        requires(TExecute fn, const TData &data, RenderPassContext &ctx) {
+        requires(TExecute fn, const TData &data, FGPassContext &ctx) {
             { fn(ctx, data) } -> std::same_as<void>;
         };
 
-    class RenderGraph final {
+    class FrameGraph final {
         friend class Renderer;
 
       public:
-        explicit RenderGraph(ArenaAllocator *arena);
+        explicit FrameGraph(ArenaAllocator *arena);
 
         template <typename TData, typename TSetup, typename TExecute>
             requires CRenderPassData<TData> &&
@@ -161,7 +161,7 @@ namespace mantle {
             new (&combined->exec) std::decay_t<TExecute>(
                 std::forward<TExecute>(execute));
 
-            RenderGraphBuilder builder;
+            FrameGraphBuilder builder;
             builder.m_pass_index = static_cast<u32>(m_passes.size());
             builder.m_image_reads = &m_image_reads;
             builder.m_image_writes = &m_image_writes;
@@ -176,7 +176,7 @@ namespace mantle {
             m_passes.push_back({
                 .name = name,
                 .execute_data = combined,
-                .execute_fn = [](void *d, RenderPassContext &ctx) {
+                .execute_fn = [](void *d, FGPassContext &ctx) {
                     auto *c = static_cast<Combined *>(d);
                     c->exec(ctx, c->data);
                 },
@@ -185,17 +185,17 @@ namespace mantle {
             return combined->data;
         }
 
-        RGImageHandle create_image(const ImageDesc &desc);
-        RGImageHandle import_image(ImageHandle image);
-        RGBufferHandle create_buffer(const BufferDesc &desc);
-        RGBufferHandle import_buffer(BufferHandle buffer);
+        FGImageHandle create_image(const ImageDesc &desc);
+        FGImageHandle import_image(ImageHandle image);
+        FGBufferHandle create_buffer(const BufferDesc &desc);
+        FGBufferHandle import_buffer(BufferHandle buffer);
 
 
       private:
         struct RenderPassNode {
             std::string_view name;
             void *execute_data = nullptr;
-            void (*execute_fn)(void *data, RenderPassContext &ctx) = nullptr;
+            void (*execute_fn)(void *data, FGPassContext &ctx) = nullptr;
         };
 
 
@@ -204,15 +204,15 @@ namespace mantle {
         ArenaResource m_resource{};
         std::pmr::vector<RenderPassNode> m_passes;
 
-        std::pmr::vector<RGImageEntry> m_images;
-        std::pmr::vector<RGBufferEntry> m_buffers;
+        std::pmr::vector<FGImageEntry> m_images;
+        std::pmr::vector<FGBufferEntry> m_buffers;
         u32 m_next_image_index = 0;
         u32 m_next_buffer_index = 0;
 
-        std::pmr::vector<RGImageReadAccess> m_image_reads;
-        std::pmr::vector<RGImageWriteAccess> m_image_writes;
+        std::pmr::vector<FGImageReadAccess> m_image_reads;
+        std::pmr::vector<FGImageWriteAccess> m_image_writes;
 
-        std::pmr::vector<RGBufferReadAccess> m_buffer_reads;
+        std::pmr::vector<FGBufferReadAccess> m_buffer_reads;
         std::pmr::vector<RGBufferWriteAccess> m_buffer_writes;
     };
 } // namespace mantle

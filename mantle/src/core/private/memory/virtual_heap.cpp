@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include "core/memory/virtual_heap.h"
 #include "core/assert.h"
 
@@ -35,12 +37,16 @@ namespace mantle {
     MemoryBlock VirtualHeap::take(usize size) {
         check(m_is_initialized);
         check(size > 0);
-        fatal(m_used + size > m_reserved, "Out of memory");
 
-        void *ptr = static_cast<u8 *>(m_base) + m_used;
+        constexpr usize alignment = alignof(std::max_align_t);
+        usize aligned_used = (m_used + alignment - 1) & ~(alignment - 1);
+
+        fatal(aligned_used + size > m_reserved, "Out of memory");
+
+        void *ptr = static_cast<u8 *>(m_base) + aligned_used;
 
         const usize page = m_os->page_size();
-        usize commit_end = (m_used + size + page - 1) & ~(page - 1);
+        usize commit_end = (aligned_used + size + page - 1) & ~(page - 1);
 
         if (commit_end > m_committed) {
             void *commit_ptr = static_cast<u8 *>(m_base) + m_committed;
@@ -48,7 +54,7 @@ namespace mantle {
             m_committed = commit_end;
         }
 
-        m_used += size;
+        m_used = aligned_used + size;
         return {ptr, size};
     }
 

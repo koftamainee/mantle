@@ -1,8 +1,8 @@
 #include "transient_resources.h"
 
 #include "core/assert.h"
+#include "renderer/frame_graph.h"
 #include "renderer/gpu_resource_manager.h"
-#include "renderer/render_graph.h"
 
 namespace mantle {
     void TransientResources::init(PersistentResource *persistent_resource,
@@ -13,16 +13,16 @@ namespace mantle {
     }
 
     void TransientResources::set_images(
-        std::pmr::vector<RGImageEntry> *images) {
+        std::pmr::vector<FGImageEntry> *images) {
         m_images = images;
     }
 
     void TransientResources::set_buffers(
-        std::pmr::vector<RGBufferEntry> *buffers) {
+        std::pmr::vector<FGBufferEntry> *buffers) {
         m_buffers = buffers;
     }
 
-    ImageHandle TransientResources::get_image(RGImageHandle handle) {
+    ImageHandle TransientResources::get_image(FGImageHandle handle) {
         check(m_images != nullptr);
         check(handle.is_valid());
         check(handle.index < m_images->size());
@@ -53,7 +53,7 @@ namespace mantle {
         return cached.handle;
     }
 
-    BufferHandle TransientResources::get_buffer(RGBufferHandle handle) {
+    BufferHandle TransientResources::get_buffer(FGBufferHandle handle) {
         check(m_buffers != nullptr);
         check(handle.is_valid());
         check(handle.index < m_buffers->size());

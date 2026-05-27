@@ -115,9 +115,9 @@ namespace mantle {
         u32 mip_level = 0;
     };
 
-    using DrawInfo = RGDrawInfo;
-    using DrawIndexedInfo = RGDrawIndexedInfo;
-    using DispatchInfo = RGDispatchInfo;
+    using DrawInfo = FGDrawInfo;
+    using DrawIndexedInfo = FGDrawIndexedInfo;
+    using DispatchInfo = FGDispatchInfo;
 
 
     struct ImageBufferCopyInfo final {

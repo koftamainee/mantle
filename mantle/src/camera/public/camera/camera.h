@@ -26,7 +26,28 @@ namespace mantle {
 
         static constexpr glm::vec3 world_up = {0.0f, 1.0f, 0.0f};
 
-    public:
+      public:
+        struct GPUData final {
+            alignas(16) glm::vec3 position;
+            alignas(16) glm::vec3 forward;
+            alignas(16) glm::vec3 right;
+            alignas(16) glm::vec3 up;
+            f32 fov;
+            f32 aspect;
+        };
+
+        GPUData gpu_data() const {
+            return {
+                .position = position,
+                .forward = front,
+                .right = right,
+                .up = glm::cross(right, front),
+                .fov = glm::radians(fov),
+                .aspect = aspect,
+            };
+        }
+
+      public:
         glm::mat4 view() const;
         glm::mat4 projection() const;
 

@@ -51,7 +51,7 @@ namespace mantle {
       private:
         friend class Renderer;
         friend class CommandRecorder;
-        friend class RenderPassContext;
+        friend class FGPassContext;
 
         void import_swapchain_images(std::pmr::vector<ImageHandle> &out_images);
         void release_swapchain_images(std::pmr::vector<ImageHandle> &images);

@@ -8,9 +8,21 @@
 #include "renderer/utils.h"
 #include "spdlog/spdlog.h"
 #include "window/window.h"
+#include "world/chunk.h"
 
 namespace mantle {
     Engine::~Engine() { destroy(); }
+
+    struct BlitPC {
+        u32 sampled_index;
+        u32 sampler_index;
+    };
+
+    struct DDAPC final {
+        u32 storage_index;
+        u32 chunk_buffer_index;
+        Camera::GPUData camera;
+    };
 
     void Engine::init() {
         check(!m_is_initialized);
@@ -55,7 +67,7 @@ namespace mantle {
             m_dda_pipeline =
                 m_renderer.resource_manager().create_compute_pipeline({
                     .shader = {"main", ShaderStage::Compute, shader},
-                    .push_constants = {ShaderStage::Compute, sizeof(u32), 0},
+                    .push_constants = {ShaderStage::Compute, sizeof(DDAPC), 0},
                 });
             m_renderer.resource_manager().destroy_shader(shader, true);
         }
@@ -79,7 +91,7 @@ namespace mantle {
             ColorBlendState blend = {};
             blend.attachments = span(attachment);
             PushConstantsRange blit_pc[] = {
-                {ShaderStage::Fragment, sizeof(u32) * 2, 0},
+                {ShaderStage::Fragment, sizeof(BlitPC), 0},
             };
 
             m_blit_pipeline =
@@ -100,6 +112,30 @@ namespace mantle {
         m_blit_sampler_index =
             m_renderer.resource_manager().get_bindless_index(m_blit_sampler);
 
+        {
+            BufferDesc desc = {
+                .size = sizeof(Chunk),
+                .usage = BufferUsage::Storage,
+                .memory = MemoryType::CpuToGpu,
+            };
+            m_chunk_buffer =
+                m_renderer.resource_manager().create_buffer(desc, true);
+
+            Chunk chunk = {};
+            for (u32 z = 0; z < Chunk::size; z++) {
+                for (u32 y = 0; y < Chunk::size; y++) {
+                    for (u32 x = 0; x < Chunk::size; x++) {
+                        u32 idx = z * Chunk::size * Chunk::size + y * Chunk::size + x;
+                        u32 h = Chunk::size / 2;
+                        if (y < h && x < h && z < h) chunk.voxels[idx] = 1;
+                        if (y >= h && x >= h && z >= h) chunk.voxels[idx] = 2;
+                    }
+                }
+            }
+            m_renderer.resource_manager().update_buffer(
+                m_chunk_buffer, &chunk, sizeof(Chunk));
+        }
+
         m_rendering_arena.init(m_heap.take(megabytes(100)));
 
         spdlog::info("Engine is initialized. Starting the game");
@@ -117,6 +153,7 @@ namespace mantle {
     }
     void Engine::destroy() {
         if (m_is_initialized) {
+            m_renderer.resource_manager().destroy_buffer(m_chunk_buffer);
             m_renderer.destroy();
             m_window.destroy();
             m_is_initialized = false;
@@ -172,24 +209,27 @@ namespace mantle {
             return;
         }
 
-        RenderGraph graph(&m_rendering_arena);
+        FrameGraph graph(&m_rendering_arena);
 
 
-        RGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
+        FGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
         auto [width, height] = m_window.get_framebuffer_size();
 
         struct DDAPass final {
-            RGImageHandle out_image;
+            FGImageHandle out_image;
         };
 
         struct BlitPass final {
-            RGImageHandle in_image;
-            RGImageHandle out_backbuffer;
+            FGImageHandle in_image;
+            FGImageHandle out_backbuffer;
         };
+
+        Camera::GPUData camera = m_camera.gpu_data();
+
 
         const auto &dda = graph.add_pass<DDAPass>(
             "DDA Raycast",
-            [&](RenderGraphBuilder &builder, DDAPass &pass) {
+            [&](FrameGraphBuilder &builder, DDAPass &pass) {
                 pass.out_image = builder.create_image({
                     .width = width,
                     .height = height,
@@ -198,22 +238,29 @@ namespace mantle {
                 });
                 builder.write(pass.out_image, WriteUsage::StorageWrite);
             },
-            [width, height, this](RenderPassContext &ctx, const DDAPass &pass) {
+            [width, height, camera, this](FGPassContext &ctx, const DDAPass &pass) {
                 ctx.bind_pipeline(m_dda_pipeline);
                 u32 storage_index = ctx.get_bindless_index(
                     pass.out_image, BindlessImageType::Storage);
-                ctx.push_constants(&storage_index, ShaderStage::Compute);
+                u32 chunk_buffer_index =
+                    m_renderer.resource_manager().get_bindless_index(m_chunk_buffer);
+                DDAPC pc = {
+                    .storage_index = storage_index,
+                    .chunk_buffer_index = chunk_buffer_index,
+                    .camera = camera,
+                };
+                ctx.push_constants(&pc, ShaderStage::Compute);
                 ctx.dispatch({(width + 7) / 8, (height + 7) / 8, 1});
             });
 
         graph.add_pass<BlitPass>(
             "Blit",
-            [&](RenderGraphBuilder &builder, BlitPass &pass) {
+            [&](FrameGraphBuilder &builder, BlitPass &pass) {
                 pass.in_image = builder.read(dda.out_image, ReadUsage::Sampled);
                 pass.out_backbuffer =
                     builder.write(backbuffer, WriteUsage::ColorAttachment);
             },
-            [width, height, this](RenderPassContext &ctx,
+            [width, height, this](FGPassContext &ctx,
                                   const BlitPass &pass) {
                 std::array<RGColorAttachment, 1> colors = {{{
                     .image = pass.out_backbuffer,
@@ -226,10 +273,6 @@ namespace mantle {
                 ctx.set_scissor(0, 0, width, height);
                 ctx.bind_pipeline(m_blit_pipeline);
 
-                struct BlitPC {
-                    u32 sampled_index;
-                    u32 sampler_index;
-                };
                 BlitPC pc = {
                     ctx.get_bindless_index(pass.in_image,
                                            BindlessImageType::Sampled),

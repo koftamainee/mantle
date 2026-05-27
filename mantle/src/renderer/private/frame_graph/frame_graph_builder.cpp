@@ -1,34 +1,34 @@
-#include "renderer/render_graph.h"
+#include "renderer/frame_graph.h"
 
 namespace mantle {
 
-    RGImageHandle RenderGraphBuilder::create_image(const ImageDesc &desc) {
+    FGImageHandle FrameGraphBuilder::create_image(const ImageDesc &desc) {
         u32 index = (*m_next_image_index)++;
         if (index >= m_images->size()) {
             m_images->resize(index + 1);
         }
-        (*m_images)[index] = RGImageEntry{.desc = desc};
+        (*m_images)[index] = FGImageEntry{.desc = desc};
 
-        RGImageHandle handle;
+        FGImageHandle handle;
         handle.index = index;
         handle.generation = 1;
         return handle;
     }
 
-    RGBufferHandle RenderGraphBuilder::create_buffer(const BufferDesc &desc) {
+    FGBufferHandle FrameGraphBuilder::create_buffer(const BufferDesc &desc) {
         u32 index = (*m_next_buffer_index)++;
         if (index >= m_buffers->size()) {
             m_buffers->resize(index + 1);
         }
-        (*m_buffers)[index] = RGBufferEntry{.desc = desc};
+        (*m_buffers)[index] = FGBufferEntry{.desc = desc};
 
-        RGBufferHandle handle;
+        FGBufferHandle handle;
         handle.index = index;
         handle.generation = 1;
         return handle;
     }
 
-    RGImageHandle RenderGraphBuilder::read(RGImageHandle image,
+    FGImageHandle FrameGraphBuilder::read(FGImageHandle image,
                                            ReadUsage usage) {
         m_image_reads->push_back({
             .pass_index = m_pass_index,
@@ -38,7 +38,7 @@ namespace mantle {
         return image;
     }
 
-    RGImageHandle RenderGraphBuilder::write(RGImageHandle image,
+    FGImageHandle FrameGraphBuilder::write(FGImageHandle image,
                                             WriteUsage usage) {
         m_image_writes->push_back({
             .pass_index = m_pass_index,
@@ -49,13 +49,13 @@ namespace mantle {
         auto &entry = (*m_images)[image.index];
         entry.version++;
 
-        RGImageHandle new_handle;
+        FGImageHandle new_handle;
         new_handle.index = image.index;
         new_handle.generation = entry.version;
         return new_handle;
     }
 
-    RGBufferHandle RenderGraphBuilder::read(RGBufferHandle buffer,
+    FGBufferHandle FrameGraphBuilder::read(FGBufferHandle buffer,
                                             BufferReadUsage usage) {
         m_buffer_reads->push_back({
             .pass_index = m_pass_index,
@@ -65,7 +65,7 @@ namespace mantle {
         return buffer;
     }
 
-    RGBufferHandle RenderGraphBuilder::write(RGBufferHandle buffer,
+    FGBufferHandle FrameGraphBuilder::write(FGBufferHandle buffer,
                                              BufferWriteUsage usage) {
         m_buffer_writes->push_back({
             .pass_index = m_pass_index,
@@ -76,7 +76,7 @@ namespace mantle {
         auto &entry = (*m_buffers)[buffer.index];
         entry.version++;
 
-        RGBufferHandle new_handle;
+        FGBufferHandle new_handle;
         new_handle.index = buffer.index;
         new_handle.generation = entry.version;
         return new_handle;

@@ -36,6 +36,7 @@ namespace mantle {
 
         GraphicsPipelineHandle m_blit_pipeline{};
         ComputePipelineHandle m_dda_pipeline{};
+        BufferHandle m_chunk_buffer{};
 
         SamplerHandle m_blit_sampler{};
         u32 m_blit_sampler_index{};

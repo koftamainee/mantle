@@ -1,17 +1,17 @@
-#include "render_graph/render_pass_context_internal.h"
+#include "frame_graph/frame_graph_pass_context_internal.h"
 
 namespace mantle {
-    void RenderPassContext::bind_pipeline(GraphicsPipelineHandle pipeline) {
+    void FGPassContext::bind_pipeline(GraphicsPipelineHandle pipeline) {
         m_impl->cmd->bind_graphics_pipeline(
             m_impl->resource_manager->m_impl->get_graphics_pipeline(pipeline));
     }
 
-    void RenderPassContext::bind_pipeline(ComputePipelineHandle pipeline) {
+    void FGPassContext::bind_pipeline(ComputePipelineHandle pipeline) {
         m_impl->cmd->bind_compute_pipeline(
             m_impl->resource_manager->m_impl->get_compute_pipeline(pipeline));
     }
 
-    void RenderPassContext::begin_rendering(const RGRenderingInfo &info) {
+    void FGPassContext::begin_rendering(const RGRenderingInfo &info) {
         ScopeArena scope(m_impl->scratch_arena);
         std::pmr::vector<ColorAttachment> color_attachments(
             m_impl->scratch_resource);
@@ -62,17 +62,17 @@ namespace mantle {
         m_impl->cmd->begin_rendering(internal_info);
     }
 
-    void RenderPassContext::end_rendering() { m_impl->cmd->end_rendering(); }
+    void FGPassContext::end_rendering() { m_impl->cmd->end_rendering(); }
 
-    void RenderPassContext::set_viewport(f32 x, f32 y, f32 width, f32 height) {
+    void FGPassContext::set_viewport(f32 x, f32 y, f32 width, f32 height) {
         m_impl->cmd->set_viewport(x, y, width, height);
     }
 
-    void RenderPassContext::set_scissor(i32 x, i32 y, u32 width, u32 height) {
+    void FGPassContext::set_scissor(i32 x, i32 y, u32 width, u32 height) {
         m_impl->cmd->set_scissor(x, y, width, height);
     }
 
-    void RenderPassContext::bind_vertex_buffer(RGBufferHandle buffer,
+    void FGPassContext::bind_vertex_buffer(FGBufferHandle buffer,
                                                u32 binding, usize offset) {
         BufferHandle buffer_handle =
             m_impl->transient_resources->get_buffer(buffer);
@@ -82,7 +82,7 @@ namespace mantle {
         m_impl->cmd->bind_vertex_buffer(buffer_resource, binding, offset);
     }
 
-    void RenderPassContext::bind_index_buffer(RGBufferHandle buffer,
+    void FGPassContext::bind_index_buffer(FGBufferHandle buffer,
                                               usize offset) {
         BufferHandle buffer_handle =
     m_impl->transient_resources->get_buffer(buffer);
@@ -93,7 +93,7 @@ namespace mantle {
     }
 
     void
-    RenderPassContext::copy_image_to_buffer(const RGImageBufferCopyInfo &info) {
+    FGPassContext::copy_image_to_buffer(const FGImageBufferCopyInfo &info) {
         BufferHandle buf = m_impl->transient_resources->get_buffer(info.dst);
         BufferResource &dst = m_impl->resource_manager->m_impl->get_buffer(buf);
 
@@ -110,7 +110,7 @@ namespace mantle {
         m_impl->cmd->copy_image_to_buffer(info_internal);
     }
 
-    void RenderPassContext::copy_image(const RGImageCopyInfo &info) {
+    void FGPassContext::copy_image(const FGImageCopyInfo &info) {
         ImageHandle dst_handle = m_impl->transient_resources->get_image(info.dst);
         ImageResource &dst = m_impl->resource_manager->m_impl->get_image(dst_handle);
 
@@ -131,7 +131,7 @@ namespace mantle {
         m_impl->cmd->copy_image(info_internal);
     }
 
-    void RenderPassContext::blit_image(const RGImageBlitInfo &info) {
+    void FGPassContext::blit_image(const FGImageBlitInfo &info) {
         ImageHandle dst_handle = m_impl->transient_resources->get_image(info.dst);
         ImageResource &dst = m_impl->resource_manager->m_impl->get_image(dst_handle);
 
@@ -149,25 +149,25 @@ namespace mantle {
         m_impl->cmd->blit_image(info_internal);
     }
 
-    void RenderPassContext::clear_color_image(RGImageHandle image, f32 r, f32 g,
+    void FGPassContext::clear_color_image(FGImageHandle image, f32 r, f32 g,
                                               f32 b, f32 a) {
         ImageHandle handle = m_impl->transient_resources->get_image(image);
         ImageResource &resource = m_impl->resource_manager->m_impl->get_image(handle);
         m_impl->cmd->clear_color_image(resource, r, g, b, a);
     }
 
-    void RenderPassContext::clear_depth_image(RGImageHandle image, f32 depth) {
+    void FGPassContext::clear_depth_image(FGImageHandle image, f32 depth) {
         ImageHandle handle = m_impl->transient_resources->get_image(image);
         ImageResource &resource = m_impl->resource_manager->m_impl->get_image(handle);
         m_impl->cmd->clear_depth_image(resource, depth);
     }
 
-    void RenderPassContext::push_constants(const void *data,
+    void FGPassContext::push_constants(const void *data,
                                            ShaderStage stage) {
         m_impl->cmd->push_constants(data, stage);
     }
 
-    u32 RenderPassContext::get_bindless_index(RGImageHandle handle,
+    u32 FGPassContext::get_bindless_index(FGImageHandle handle,
                                                BindlessImageType type) {
         ImageHandle image_handle =
             m_impl->transient_resources->get_image(handle);
@@ -175,27 +175,27 @@ namespace mantle {
                                                              type);
     }
 
-    u32 RenderPassContext::get_bindless_index(RGBufferHandle handle) {
+    u32 FGPassContext::get_bindless_index(FGBufferHandle handle) {
         BufferHandle buffer_handle =
             m_impl->transient_resources->get_buffer(handle);
         return m_impl->resource_manager->get_bindless_index(buffer_handle);
     }
 
-    void RenderPassContext::init(Impl *impl) { m_impl = impl; }
+    void FGPassContext::init(Impl *impl) { m_impl = impl; }
 
-    void RenderPassContext::draw(const RGDrawInfo &info) {
+    void FGPassContext::draw(const FGDrawInfo &info) {
         m_impl->cmd->draw(info);
     }
 
-    void RenderPassContext::draw_indexed(const RGDrawIndexedInfo &info) {
+    void FGPassContext::draw_indexed(const FGDrawIndexedInfo &info) {
         m_impl->cmd->draw_indexed(info);
     }
 
-    void RenderPassContext::dispatch(const RGDispatchInfo &info) {
+    void FGPassContext::dispatch(const FGDispatchInfo &info) {
         m_impl->cmd->dispatch(info);
     }
 
-    void RenderPassContext::copy_buffer(const RGBufferCopyInfo &info) {
+    void FGPassContext::copy_buffer(const FGBufferCopyInfo &info) {
         BufferHandle dst_handle = m_impl->transient_resources->get_buffer(info.dst);
         BufferResource &dst = m_impl->resource_manager->m_impl->get_buffer(dst_handle);
 
@@ -214,7 +214,7 @@ namespace mantle {
     }
 
     void
-    RenderPassContext::copy_buffer_to_image(const RGBufferImageCopyInfo &info) {
+    FGPassContext::copy_buffer_to_image(const FGBufferImageCopyInfo &info) {
         ImageHandle dst_handle = m_impl->transient_resources->get_image(info.dst);
         ImageResource &dst = m_impl->resource_manager->m_impl->get_image(dst_handle);
 

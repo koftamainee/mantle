@@ -22,8 +22,8 @@ namespace mantle {
     MANTLE_HANDLE(SamplerHandle);
     MANTLE_HANDLE(GraphicsPipelineHandle);
     MANTLE_HANDLE(ComputePipelineHandle);
-    MANTLE_HANDLE(RGBufferHandle);
-    MANTLE_HANDLE(RGImageHandle);
+    MANTLE_HANDLE(FGBufferHandle);
+    MANTLE_HANDLE(FGImageHandle);
 
     enum class ReadUsage {
         None = 0,
@@ -360,26 +360,26 @@ namespace mantle {
     enum class AttachmentLoad { Clear, Load, DontCare };
     enum class AttachmentStore { Store, DontCare };
 
-    struct RGImageReadAccess {
+    struct FGImageReadAccess {
         u32 pass_index = UINT32_MAX;
-        RGImageHandle handle;
+        FGImageHandle handle;
         ReadUsage usage = ReadUsage::None;
     };
 
-    struct RGImageWriteAccess {
+    struct FGImageWriteAccess {
         u32 pass_index = UINT32_MAX;
-        RGImageHandle handle;
+        FGImageHandle handle;
         WriteUsage usage = WriteUsage::None;
     };
 
-    struct RGImageEntry {
+    struct FGImageEntry {
         ImageHandle imported_handle = {};
         ImageDesc desc = {};
         u32 version = 0;
         bool is_imported() const { return imported_handle.is_valid(); }
     };
 
-    struct RGBufferEntry {
+    struct FGBufferEntry {
         BufferHandle imported_handle = {};
         BufferDesc desc = {};
         u32 version = 0;
@@ -404,20 +404,20 @@ namespace mantle {
         MaxEnum = (1 << 2) - 1,
     };
 
-    struct RGBufferReadAccess {
+    struct FGBufferReadAccess {
         u32 pass_index = UINT32_MAX;
-        RGBufferHandle handle;
+        FGBufferHandle handle;
         BufferReadUsage usage = BufferReadUsage::None;
     };
 
     struct RGBufferWriteAccess {
         u32 pass_index = UINT32_MAX;
-        RGBufferHandle handle;
+        FGBufferHandle handle;
         BufferWriteUsage usage = BufferWriteUsage::None;
     };
 
     struct RGColorAttachment final {
-        RGImageHandle image = {};
+        FGImageHandle image = {};
         AttachmentLoad load = AttachmentLoad::Clear;
         AttachmentStore store = AttachmentStore::Store;
         f32 clear_r = 0.0f;
@@ -427,7 +427,7 @@ namespace mantle {
     };
 
     struct RGDepthAttachment final {
-        RGImageHandle image = {};
+        FGImageHandle image = {};
         AttachmentLoad load = AttachmentLoad::Clear;
         AttachmentStore store = AttachmentStore::DontCare;
         f32 clear_value = 1.0f;
@@ -440,14 +440,14 @@ namespace mantle {
         u32 height = 0;
     };
 
-    struct RGDrawInfo final {
+    struct FGDrawInfo final {
         u32 vertex_count = 0;
         u32 instance_count = 1;
         u32 first_vertex = 0;
         u32 first_instance = 0;
     };
 
-    struct RGDrawIndexedInfo final {
+    struct FGDrawIndexedInfo final {
         u32 index_count = 0;
         u32 instance_count = 1;
         u32 first_index = 0;
@@ -455,37 +455,37 @@ namespace mantle {
         u32 first_instance = 0;
     };
 
-    struct RGDispatchInfo final {
+    struct FGDispatchInfo final {
         u32 x = 1;
         u32 y = 1;
         u32 z = 1;
     };
 
-    struct RGBufferCopyInfo final {
-        RGBufferHandle src = {};
-        RGBufferHandle dst = {};
+    struct FGBufferCopyInfo final {
+        FGBufferHandle src = {};
+        FGBufferHandle dst = {};
         usize src_offset = 0;
         usize dst_offset = 0;
         usize size = 0;
     };
 
-    struct RGBufferImageCopyInfo final {
-        RGBufferHandle src = {};
-        RGImageHandle dst = {};
+    struct FGBufferImageCopyInfo final {
+        FGBufferHandle src = {};
+        FGImageHandle dst = {};
         usize buffer_offset = 0;
         u32 mip_level = 0;
     };
 
-    struct RGImageBufferCopyInfo final {
-        RGImageHandle src = {};
-        RGBufferHandle dst = {};
+    struct FGImageBufferCopyInfo final {
+        FGImageHandle src = {};
+        FGBufferHandle dst = {};
         usize buffer_offset = 0;
         u32 mip_level = 0;
     };
 
-    struct RGImageCopyInfo final {
-        RGImageHandle src = {};
-        RGImageHandle dst = {};
+    struct FGImageCopyInfo final {
+        FGImageHandle src = {};
+        FGImageHandle dst = {};
         u32 src_mip_level = 0;
         u32 dst_mip_level = 0;
         u32 src_array_layer = 0;
@@ -505,9 +505,9 @@ namespace mantle {
         u32 height = 0;
     };
 
-    struct RGImageBlitInfo final {
-        RGImageHandle src = {};
-        RGImageHandle dst = {};
+    struct FGImageBlitInfo final {
+        FGImageHandle src = {};
+        FGImageHandle dst = {};
         RGImageRegion src_region = {};
         RGImageRegion dst_region = {};
         Filter filter = Filter::Linear;

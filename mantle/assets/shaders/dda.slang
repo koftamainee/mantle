@@ -6,6 +6,13 @@ RWTexture2D<float4> g_storage_images[];
 [[vk::push_constant]]
 cbuffer PushConstants {
     uint storage_index;
+    uint chunk_buffer_index;
+    float4 camera_position;
+    float4 camera_forward;
+    float4 camera_right;
+    float4 camera_up;
+    float  camera_fov;
+    float  camera_aspect;
 };
 
 [shader("compute")]

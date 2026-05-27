@@ -2,8 +2,8 @@
 #include "core/memory/arena_allocator.h"
 #include "core/memory/virtual_heap.h"
 #include "core/types.h"
+#include "frame_graph.h"
 #include "gpu_resource_manager.h"
-#include "render_graph.h"
 #include "renderer/types.h"
 
 namespace mantle {
@@ -32,7 +32,7 @@ namespace mantle {
         GPUResourceManager &resource_manager();
         ImageHandle backbuffer() const;
 
-        void execute(RenderGraph &render_graph);
+        void execute(FrameGraph &render_graph);
 
         void resize_swapchain(u32 width, u32 height);
         SwapchainInfo get_swapchain_info();

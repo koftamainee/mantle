@@ -4,6 +4,7 @@ add_subdirectory(renderer)
 add_subdirectory(camera)
 add_subdirectory(engine)
 add_subdirectory(math)
+add_subdirectory(world)
 
 mantle_executable(NAME mantle MAIN main.cpp DEPS engine)
 
