@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 env:
-  VULKAN_VER: 1.4.350.0
+  VULKAN_VER: 1.4.304.0
 
 concurrency:
   group: build-${{ github.ref }}
@@ -48,7 +48,7 @@ jobs:
         id: cache-vulkan
         uses: actions/cache@v4
         with:
-          path: ${{ runner.os == 'Linux' && '.vulkansdk' || 'C:\VulkanSDK\1.4.350.0' }}
+          path: ${{ runner.os == 'Linux' && '.vulkansdk' || format('C:\VulkanSDK\{0}', env.VULKAN_VER) }}
           key: vulkan-sdk-${{ env.VULKAN_VER }}-${{ runner.os }}
 
       - name: Install Vulkan SDK (Linux)
