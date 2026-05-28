@@ -11,9 +11,9 @@ struct RayAABBResult {
     float t_exit;
 };
 
-RayAABBResult ray_aabb(Ray ray, AABB aabb) {
-    float3 t_min = (aabb.min - ray.origin) / ray.direction;
-    float3 t_max = (aabb.max - ray.origin) / ray.direction;
+RayAABBResult ray_aabb(Ray ray, AABB aabb, float3 inv_dir) {
+    float3 t_min = (aabb.min - ray.origin) * inv_dir;
+    float3 t_max = (aabb.max - ray.origin) * inv_dir;
 
     float3 t1 = min(t_min, t_max);
     float3 t2 = max(t_min, t_max);

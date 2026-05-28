@@ -48,7 +48,7 @@ struct DDAState {
 };
 
 Ray ray(float2 ndc);
-DDAState dda_init(Ray ray);
+DDAState dda_init(Ray ray, float3 inv_dir);
 StepResult dda_step(inout DDAState state);
 uint voxel_index(int3 voxel);
 int voxel_type(int3 voxel);
@@ -104,26 +104,25 @@ Ray ray(float2 ndc) {
     return ray;
 }
 
-DDAState dda_init(Ray ray) {
+DDAState dda_init(Ray ray, float3 inv_dir) {
     DDAState state;
 
     state.voxel = int3(floor(ray.origin));
     state.step = int3(sign(ray.direction));
-    state.t_delta = abs(1.0 / ray.direction);
+    state.t_delta = abs(inv_dir);
     state.t_max = (float3(state.voxel + max(state.step, 0)) - ray.origin)
-        / ray.direction;
+        * inv_dir;
 
     return state;
 }
 
 StepResult dda_step(inout DDAState state) {
-    int axis;
-    if (state.t_max.x < state.t_max.y && state.t_max.x < state.t_max.z) {
-        axis = 0; // x
-    } else if (state.t_max.y < state.t_max.z) {
-        axis = 1; // y
-    } else {
-        axis = 2; // z
+    int axis = 0;
+    if (state.t_max.y < state.t_max.x) {
+        axis = 1;
+    }
+    if (state.t_max.z < state.t_max[axis]) {
+        axis = 2;
     }
 
     state.voxel[axis] += state.step[axis];
@@ -139,13 +138,12 @@ uint voxel_index(int3 voxel) {
 }
 
 int voxel_type(int3 voxel) {
-    if (any(voxel < 0) || any(voxel >= int(CHUNK_SIZE)))
-        return 0;
     return int(g_storage_buffers[chunk_buffer_index][voxel_index(voxel)]);
 }
 
 HitResult dda_traverse(Ray ray, AABB bounds, int max_steps) {
-    RayAABBResult aabb = ray_aabb(ray, bounds);
+    float3 inv_dir = 1.0 / ray.direction;
+    RayAABBResult aabb = ray_aabb(ray, bounds, inv_dir);
     if (!aabb.hit) {
         return { false, int3(0), int3(0), 0.0, 0 };
     }
@@ -153,13 +151,16 @@ HitResult dda_traverse(Ray ray, AABB bounds, int max_steps) {
     float3 entry = ray.origin + ray.direction * max(aabb.t_enter - 0.001, 0.0);
     Ray clipped = { entry, ray.direction };
 
-    DDAState state = dda_init(clipped);
+    DDAState state = dda_init(clipped, inv_dir);
     for (int i = 0; i < max_steps; i++) {
         StepResult step = dda_step(state);
+        float entry_t = state.t_max[step.axis] - state.t_delta[step.axis];
+        if (entry_t >= aabb.t_exit) {
+            break;
+        }
         int type = voxel_type(state.voxel);
         if (type != 0) {
-            float t = state.t_max[step.axis] - state.t_delta[step.axis];
-            return { true, state.voxel, step.normal, t, type };
+            return { true, state.voxel, step.normal, entry_t, type };
         }
     }
     return { false, int3(0), int3(0), 0.0, 0 };
