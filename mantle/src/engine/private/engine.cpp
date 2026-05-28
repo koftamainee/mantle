@@ -1,5 +1,6 @@
 #include "engine/engine.h"
 
+#include <algorithm>
 #include "camera/camera.h"
 #include "core/assert.h"
 #include "core/memory/memory_units.h"
@@ -55,7 +56,7 @@ namespace mantle {
 
         m_is_initialized = true;
 
-        m_camera.position = glm::vec3(0.0f, 5.0f, 0.0f);
+        m_camera.position = glm::vec3(1.6f, 3.0f, 1.6f);
 
         {
             ScopeArena scope(&m_scratch_arena);
@@ -123,14 +124,25 @@ namespace mantle {
             m_chunk_buffer =
                 m_renderer.resource_manager().create_buffer(desc, true);
 
+            Sampler noise_sampler = {
+                .noise_fn = perlin2,
+                .seed = 42,
+                .scale = 0.08f,
+                .octaves = 4,
+                .lacunarity = 2.0f,
+                .gain = 0.5f,
+            };
+
             Chunk chunk = {};
             for (u32 z = 0; z < Chunk::size; z++) {
-                for (u32 y = 0; y < Chunk::size; y++) {
-                    for (u32 x = 0; x < Chunk::size; x++) {
+                for (u32 x = 0; x < Chunk::size; x++) {
+                    f32 h = noise_sampler.sample_range(
+                        glm::vec2(static_cast<f32>(x), static_cast<f32>(z)),
+                        8.0f, 18.0f);
+                    u32 height = std::min(static_cast<u32>(h), Chunk::size);
+                    for (u32 y = 0; y < height; y++) {
                         u32 idx = z * Chunk::size * Chunk::size + y * Chunk::size + x;
-                        u32 h = Chunk::size / 2;
-                        if (y < h && x < h && z < h) chunk.voxels[idx] = 1;
-                        if (y >= h && x >= h && z >= h) chunk.voxels[idx] = 2;
+                        chunk.voxels[idx] = 1;
                     }
                 }
             }

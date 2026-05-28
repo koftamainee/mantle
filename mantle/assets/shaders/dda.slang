@@ -22,6 +22,7 @@ cbuffer PushConstants {
 
 static const uint MAX_DDA_STEPS = 256;
 static const uint CHUNK_SIZE = 32;
+static const float VOXEL_SIZE = 0.1;
 
 static const float3 SUN_DIR = normalize(float3(1.0, 2.0, 1.0));
 static const float3 AMBIENT = float3(0.15, 0.15, 0.15);
@@ -55,7 +56,7 @@ float3 voxel_color(int type);
 HitResult dda_traverse(Ray ray, AABB bounds, int max_steps);
 
 [shader("compute")]
-[numthreads(16, 16, 1)]
+[numthreads(8, 8, 1)]
 void main(uint3 dispatch_id : SV_DispatchThreadID) {
     uint width, height;
     g_storage_images[storage_image_index].GetDimensions(width, height);
@@ -98,7 +99,7 @@ Ray ray(float2 ndc) {
         ndc.x * camera_right +
         ndc.y * camera_up);
 
-    ray.origin = camera_position;
+    ray.origin = camera_position / VOXEL_SIZE;
 
     return ray;
 }
