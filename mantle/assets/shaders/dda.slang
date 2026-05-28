@@ -1,4 +1,6 @@
 import bindings;
+import ray;
+import aabb;
 
 [[vk::binding(STORAGE_IMAGE_BINDING, 0)]]
 RWTexture2D<float4> g_storage_images[];
@@ -21,10 +23,8 @@ cbuffer PushConstants {
 static const uint MAX_DDA_STEPS = 256;
 static const uint CHUNK_SIZE = 32;
 
-struct Ray {
-    float3 origin;
-    float3 direction;
-};
+static const float3 SUN_DIR = normalize(float3(1.0, 2.0, 1.0));
+static const float3 AMBIENT = float3(0.15, 0.15, 0.15);
 
 struct StepResult {
     int3 normal;
@@ -51,7 +51,8 @@ DDAState dda_init(Ray ray);
 StepResult dda_step(inout DDAState state);
 uint voxel_index(int3 voxel);
 int voxel_type(int3 voxel);
-HitResult dda_traverse(Ray ray, int max_steps);
+float3 voxel_color(int type);
+HitResult dda_traverse(Ray ray, AABB bounds, int max_steps);
 
 [shader("compute")]
 [numthreads(16, 16, 1)]
@@ -73,11 +74,16 @@ void main(uint3 dispatch_id : SV_DispatchThreadID) {
     ndc.y *= -1;
 
     Ray r = ray(ndc);
-    HitResult hit = dda_traverse(r, MAX_DDA_STEPS);
+    AABB chunk_bound = { float3(0.0), float3(CHUNK_SIZE) };
+    HitResult hit = dda_traverse(r, chunk_bound, MAX_DDA_STEPS);
 
     float4 color;
     if (hit.hit) {
-        color = float4(float3(hit.normal) * 0.5 + 0.5, 1.0);
+        float3 base_color = voxel_color(hit.voxel_type);
+        float diffuse = max(dot(float3(hit.normal), SUN_DIR), 0.0);
+        float3 lit = base_color * (AMBIENT + diffuse);
+        color = float4(lit, 1.0);
+
     } else {
         color = float4(0.0, 0.0, 0.0, 0.0);
     }
@@ -137,8 +143,16 @@ int voxel_type(int3 voxel) {
     return int(g_storage_buffers[chunk_buffer_index][voxel_index(voxel)]);
 }
 
-HitResult dda_traverse(Ray ray, int max_steps) {
-    DDAState state = dda_init(ray);
+HitResult dda_traverse(Ray ray, AABB bounds, int max_steps) {
+    RayAABBResult aabb = ray_aabb(ray, bounds);
+    if (!aabb.hit) {
+        return { false, int3(0), int3(0), 0.0, 0 };
+    }
+
+    float3 entry = ray.origin + ray.direction * max(aabb.t_enter - 0.001, 0.0);
+    Ray clipped = { entry, ray.direction };
+
+    DDAState state = dda_init(clipped);
     for (int i = 0; i < max_steps; i++) {
         StepResult step = dda_step(state);
         int type = voxel_type(state.voxel);
@@ -148,4 +162,12 @@ HitResult dda_traverse(Ray ray, int max_steps) {
         }
     }
     return { false, int3(0), int3(0), 0.0, 0 };
+}
+
+float3 voxel_color(int type) {
+    switch (type) {
+        case 1: return float3(0.5, 0.3, 0.1);
+        case 2: return float3(0.4, 0.4, 0.4);
+        default: return float3(1.0, 0.0, 1.0);
+    }
 }
