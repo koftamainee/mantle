@@ -261,7 +261,7 @@ namespace mantle {
         if (has(PipelineStage::Transfer))
             flags |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
         if (has(PipelineStage::VertexInput))
-            flags |= VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT;
+            flags |= VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;
         if (has(PipelineStage::DrawIndirect))
             flags |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
         if (has(PipelineStage::Host))
