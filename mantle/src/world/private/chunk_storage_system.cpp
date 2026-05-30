@@ -22,14 +22,17 @@ namespace mantle {
         m_slots = std::pmr::vector<Slot>(&m_resource);
         m_slots.resize(capacity);
 
-        m_map = std::pmr::unordered_map<glm::ivec3, u32>(&m_resource);
+        m_map = std::pmr::unordered_map<glm::ivec3, u32, Vec3Hash>(&m_resource);
         m_dirty_queue = std::pmr::vector<u32>(&m_resource);
+        m_free_list = std::pmr::vector<u32>(&m_resource);
+        m_next_free = 0;
 
         m_is_initialized = true;
     }
 
     void ChunkStorageSystem::destroy() {
         if (m_is_initialized) {
+            m_free_list.clear();
             m_dirty_queue.clear();
             m_map.clear();
             m_slots.clear();
@@ -48,20 +51,22 @@ namespace mantle {
             return it->second;
         }
 
-        for (u32 i = 0; i < m_capacity; i++) {
-            if (!m_slots[i].active) {
-                m_slots[i].chunk = {};
-                m_slots[i].position = position;
-                m_slots[i].dirty = true;
-                m_slots[i].active = true;
-                m_map[position] = i;
-                m_dirty_queue.push_back(i);
-                m_count++;
-                return i;
-            }
+        u32 index;
+        if (!m_free_list.empty()) {
+            index = m_free_list.back();
+            m_free_list.pop_back();
+        } else {
+            index = m_next_free++;
         }
 
-        fatal(true, "No free slot");
+        m_slots[index].chunk = {};
+        m_slots[index].position = position;
+        m_slots[index].dirty = true;
+        m_slots[index].active = true;
+        m_map[position] = index;
+        m_dirty_queue.push_back(index);
+        m_count++;
+        return index;
     }
 
     void ChunkStorageSystem::remove_chunk(glm::ivec3 position) {
@@ -74,6 +79,7 @@ namespace mantle {
         m_slots[index].active = false;
         m_slots[index].dirty = false;
         m_map.erase(it);
+        m_free_list.push_back(index);
         m_count--;
     }
 

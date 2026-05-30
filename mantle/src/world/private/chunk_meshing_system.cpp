@@ -1,6 +1,8 @@
 #include "world/chunk_meshing_system.h"
 #include "world/chunk_storage_system.h"
 
+#include <glm/vec4.hpp>
+
 #include "core/memory/pmr/arena_resource.h"
 #include "core/memory/scope_arena.h"
 #include "spdlog/spdlog.h"

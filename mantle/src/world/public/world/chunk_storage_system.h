@@ -1,5 +1,4 @@
 #pragma once
-#define GLM_ENABLE_EXPERIMENTAL
 
 #include <unordered_map>
 #include <vector>
@@ -8,11 +7,19 @@
 #include "core/macros.h"
 #include "core/memory/pmr/arena_resource.h"
 #include "core/types.h"
-#include "glm/gtx/hash.hpp"
 #include "glm/vec3.hpp"
 
 namespace mantle {
     class VirtualHeap;
+
+    struct Vec3Hash {
+        usize operator()(glm::ivec3 const& v) const noexcept {
+            auto h = static_cast<usize>(v.x);
+            h = h * 0x9e3779b9 + static_cast<usize>(v.y) + (h << 6) + (h >> 2);
+            h = h * 0x9e3779b9 + static_cast<usize>(v.z) + (h << 6) + (h >> 2);
+            return h;
+        }
+    };
 
     class ChunkStorageSystem final {
       public:
@@ -63,8 +70,10 @@ namespace mantle {
         ArenaAllocator m_arena;
         ArenaResource m_resource{};
         std::pmr::vector<Slot> m_slots;
-        std::pmr::unordered_map<glm::ivec3, u32> m_map;
+        std::pmr::unordered_map<glm::ivec3, u32, Vec3Hash> m_map;
         std::pmr::vector<u32> m_dirty_queue;
+        std::pmr::vector<u32> m_free_list;
+        u32 m_next_free = 0;
 
         bool m_is_initialized = false;
     };
