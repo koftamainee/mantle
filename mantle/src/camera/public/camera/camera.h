@@ -34,6 +34,7 @@ namespace mantle {
             alignas(16) glm::vec3 up;
             f32 fov;
             f32 aspect;
+            alignas(16) glm::mat4 view_proj;
         };
 
         GPUData gpu_data() const {
@@ -44,6 +45,7 @@ namespace mantle {
                 .up = glm::cross(right, front),
                 .fov = glm::radians(fov),
                 .aspect = aspect,
+                .view_proj = projection() * view(),
             };
         }
 

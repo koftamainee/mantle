@@ -1,31 +1,17 @@
 #include "engine/engine.h"
 
 #include <algorithm>
-#include "camera/camera.h"
+#include <cfloat>
+#include <random>
+
 #include "core/assert.h"
 #include "core/memory/memory_units.h"
-#include "glm/gtc/noise.hpp"
-#include "helpers.h"
-#include "noise/sampler.h"
-#include "renderer/renderer.h"
-#include "renderer/utils.h"
+#include "renderer/blackboard_types.h"
 #include "spdlog/spdlog.h"
 #include "window/window.h"
-#include "world/chunk.h"
 
 namespace mantle {
     Engine::~Engine() { destroy(); }
-
-    struct BlitPC {
-        u32 sampled_index;
-        u32 sampler_index;
-    };
-
-    struct DDAPC final {
-        u32 storage_index;
-        u32 chunk_buffer_index;
-        Camera::GPUData camera;
-    };
 
     void Engine::init() {
         check(!m_is_initialized);
@@ -52,85 +38,32 @@ namespace mantle {
             m_camera.aspect = static_cast<f32>(w) / static_cast<f32>(h);
         });
 
-        m_last_time = 0;
-
-        m_chunk_generation_system.init(42);
-
         m_camera.position = glm::vec3(1.6f, 3.0f, 1.6f);
 
+        m_last_time = 0;
+
+        constexpr u32 max_chunks = 100;
+        m_chunk_generation_system.init(std::random_device{}() % 1000);
+        m_chunk_meshing_system.init(m_renderer, m_scratch_arena, max_chunks);
+        m_chunk_storage_system.init(max_chunks, &m_heap);
+
+        spdlog::info("Generating chunks. This might take a while...");
         {
-            ScopeArena scope(&m_scratch_arena);
-            ArenaResource resource(&m_scratch_arena);
-
-            std::pmr::vector<u32> spv(&resource);
-            load_spv("assets/shaders/dda.spv", spv);
-            ShaderHandle shader =
-                m_renderer.resource_manager().create_shader(spv);
-
-            m_dda_pipeline =
-                m_renderer.resource_manager().create_compute_pipeline({
-                    .shader = {"main", ShaderStage::Compute, shader},
-                    .push_constants = {ShaderStage::Compute, sizeof(DDAPC), 0},
-                });
-            m_renderer.resource_manager().destroy_shader(shader, true);
+            for (i32 x = -1; x <= 1; x++) {
+                for (i32 y = -1; y <= 1; y++) {
+                    for (i32 z = -1; z <= 1; z++) {
+                        glm::ivec3 pos(x, y, z);
+                        u32 idx = m_chunk_storage_system.add_chunk(pos);
+                        m_chunk_generation_system.generate(
+                            m_chunk_storage_system.get_chunk(idx), pos);
+                    }
+                }
+            }
+            m_chunk_meshing_system.upload_dirty(m_renderer,
+                                                m_chunk_storage_system);
         }
 
-        {
-            ScopeArena scope(&m_scratch_arena);
-            ArenaResource resource(&m_scratch_arena);
-
-            std::pmr::vector<u32> spv(&resource);
-            load_spv("assets/shaders/blit.spv", spv);
-            ShaderHandle shader =
-                m_renderer.resource_manager().create_shader(spv);
-
-            ShaderModule modules[] = {
-                {"vert_main", ShaderStage::Vertex, shader},
-                {"frag_main", ShaderStage::Fragment, shader},
-            };
-            ImageFormat color_format =
-                m_renderer.get_swapchain_info().surface_format;
-            ColorBlendAttachment attachment = {};
-            ColorBlendState blend = {};
-            blend.attachments = span(attachment);
-            PushConstantsRange blit_pc[] = {
-                {ShaderStage::Fragment, sizeof(BlitPC), 0},
-            };
-
-            m_blit_pipeline =
-                m_renderer.resource_manager().create_graphics_pipeline({
-                    .shaders = modules,
-                    .rasterization = {.cull_mode = CullMode::None},
-                    .color_blend = blend,
-                    .color_formats = span(color_format),
-                    .push_constants = blit_pc,
-                });
-            m_renderer.resource_manager().destroy_shader(shader, true);
-        }
-
-        m_blit_sampler = m_renderer.resource_manager().create_sampler({
-            .min_filter = Filter::Nearest,
-            .mag_filter = Filter::Nearest,
-        });
-        m_blit_sampler_index =
-            m_renderer.resource_manager().get_bindless_index(m_blit_sampler);
-
-        {
-            BufferDesc desc = {
-                .size = sizeof(Chunk),
-                .usage = BufferUsage::Storage,
-                .memory = MemoryType::CpuToGpu,
-            };
-            m_chunk_buffer =
-                m_renderer.resource_manager().create_buffer(desc, true);
-
-            Chunk chunk = {};
-            m_chunk_generation_system.generate(chunk, glm::ivec3(0));
-
-
-            m_renderer.resource_manager().update_buffer(
-                m_chunk_buffer, &chunk, sizeof(Chunk));
-        }
+        m_chunk_rendering_system.init(m_renderer, m_scratch_arena);
 
         m_rendering_arena.init(m_heap.take(megabytes(100)));
 
@@ -139,10 +72,29 @@ namespace mantle {
     }
 
     void Engine::run() {
+        m_fps_timer = static_cast<f32>(m_window.get_time());
         while (!m_window.should_close()) {
             auto current_time = static_cast<f32>(m_window.get_time());
             f32 delta_time = current_time - m_last_time;
             m_last_time = current_time;
+
+            m_fps_frame_count++;
+            m_fps_frametime_accum += delta_time;
+            if (delta_time < m_fps_frametime_min) m_fps_frametime_min = delta_time;
+            if (delta_time > m_fps_frametime_max) m_fps_frametime_max = delta_time;
+
+            if (current_time - m_fps_timer >= 1.0f) {
+                f32 avg_ms = m_fps_frametime_accum / static_cast<f32>(m_fps_frame_count) * 1000.0f;
+
+                spdlog::info("{} FPS | {:>4.1f} ms",
+                             m_fps_frame_count, avg_ms);
+
+                m_fps_frame_count = 0;
+                m_fps_frametime_accum = 0.0f;
+                m_fps_frametime_min = FLT_MAX;
+                m_fps_frametime_max = 0.0f;
+                m_fps_timer = current_time;
+            }
 
             update(delta_time);
             render();
@@ -150,7 +102,9 @@ namespace mantle {
     }
     void Engine::destroy() {
         if (m_is_initialized) {
-            m_renderer.resource_manager().destroy_buffer(m_chunk_buffer);
+            m_chunk_storage_system.destroy();
+            m_chunk_meshing_system.destroy();
+            m_chunk_rendering_system.destroy();
             m_renderer.destroy();
             m_window.destroy();
             m_is_initialized = false;
@@ -207,80 +161,18 @@ namespace mantle {
         }
 
         FrameGraph graph(&m_rendering_arena);
-
-
         FGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
         auto [width, height] = m_window.get_framebuffer_size();
 
-        struct DDAPass final {
-            FGImageHandle out_image;
-            Camera::GPUData camera;
-        };
+        auto &bb = graph.blackboard();
+        bb.add(BbBackbuffer{backbuffer});
+        bb.add(BbCameraData{m_camera.gpu_data().view_proj});
+        bb.add(BbFramebufferSize{width, height});
 
-        struct BlitPass final {
-            FGImageHandle in_image;
-            FGImageHandle out_backbuffer;
-        };
-
-
-        const auto &dda = graph.add_pass<DDAPass>(
-            "DDA Raycast",
-            [&](FrameGraphBuilder &builder, DDAPass &pass) {
-                pass.out_image = builder.create_image({
-                    .width = width,
-                    .height = height,
-                    .format = ImageFormat::Rgba8,
-                    .usage = ImageUsage::Storage | ImageUsage::Sampled,
-                });
-                pass.camera = m_camera.gpu_data();
-                builder.write(pass.out_image, WriteUsage::StorageWrite);
-            },
-            [width, height, this](FGPassContext &ctx, const DDAPass &pass) {
-                ctx.bind_pipeline(m_dda_pipeline);
-                u32 storage_index = ctx.get_bindless_index(
-                    pass.out_image, BindlessImageType::Storage);
-                u32 chunk_buffer_index =
-                    m_renderer.resource_manager().get_bindless_index(m_chunk_buffer);
-                DDAPC pc = {
-                    .storage_index = storage_index,
-                    .chunk_buffer_index = chunk_buffer_index,
-                    .camera = pass.camera,
-                };
-                ctx.push_constants(&pc, ShaderStage::Compute);
-                ctx.dispatch({(width + 7) / 8, (height + 7) / 8, 1});
-            });
-
-        graph.add_pass<BlitPass>(
-            "Blit",
-            [&](FrameGraphBuilder &builder, BlitPass &pass) {
-                pass.in_image = builder.read(dda.out_image, ReadUsage::Sampled);
-                pass.out_backbuffer =
-                    builder.write(backbuffer, WriteUsage::ColorAttachment);
-            },
-            [width, height, this](FGPassContext &ctx,
-                                  const BlitPass &pass) {
-                std::array<FGColorAttachment, 1> colors = {{{
-                    .image = pass.out_backbuffer,
-                    .load = AttachmentLoad::Clear,
-                    .store = AttachmentStore::Store,
-                }}};
-                ctx.begin_rendering(
-                    {.colors = colors, .width = width, .height = height});
-                ctx.set_viewport(0, 0, width, height);
-                ctx.set_scissor(0, 0, width, height);
-                ctx.bind_pipeline(m_blit_pipeline);
-
-                BlitPC pc = {
-                    ctx.get_bindless_index(pass.in_image,
-                                           BindlessImageType::Sampled),
-                    m_blit_sampler_index,
-                };
-                ctx.push_constants(&pc, ShaderStage::Fragment);
-
-                ctx.draw({.vertex_count = 3});
-                ctx.end_rendering();
-            });
-
+        m_chunk_meshing_system.upload_dirty(m_renderer,
+                                            m_chunk_storage_system);
+        m_chunk_meshing_system.add_passes(graph, bb);
+        m_chunk_rendering_system.add_passes(graph, bb);
 
         m_renderer.execute(graph);
 

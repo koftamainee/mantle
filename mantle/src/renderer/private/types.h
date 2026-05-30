@@ -108,6 +108,13 @@ namespace mantle {
         usize size = 0;
     };
 
+    struct FillBufferInfo final {
+        BufferResource *dst = nullptr;
+        u32 value = 0;
+        usize offset = 0;
+        usize size = 0;
+    };
+
     struct BufferImageCopyInfo final {
         BufferResource *src = nullptr;
         ImageResource *dst = nullptr;
@@ -134,6 +141,10 @@ namespace mantle {
 
     using DispatchInfo = FGDispatchInfo;
 
+    struct DispatchIndirectInfo final {
+        BufferResource *buffer = nullptr;
+        usize offset = 0;
+    };
 
     struct ImageBufferCopyInfo final {
         ImageResource *src = nullptr;

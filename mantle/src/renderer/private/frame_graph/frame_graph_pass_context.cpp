@@ -228,6 +228,21 @@ namespace mantle {
         m_impl->cmd->dispatch(info);
     }
 
+    void FGPassContext::dispatch_indirect(
+        const FGDispatchIndirectInfo &info) {
+        BufferHandle buffer_handle =
+            m_impl->transient_resources->get_buffer(info.buffer);
+        BufferResource &buffer_resource =
+            m_impl->resource_manager->m_impl->get_buffer(buffer_handle);
+
+        DispatchIndirectInfo info_internal = {
+            .buffer = &buffer_resource,
+            .offset = info.offset,
+        };
+
+        m_impl->cmd->dispatch_indirect(info_internal);
+    }
+
     void FGPassContext::copy_buffer(const FGBufferCopyInfo &info) {
         BufferHandle dst_handle = m_impl->transient_resources->get_buffer(info.dst);
         BufferResource &dst = m_impl->resource_manager->m_impl->get_buffer(dst_handle);
@@ -244,6 +259,22 @@ namespace mantle {
         };
 
         m_impl->cmd->copy_buffer(info_internal);
+    }
+
+    void FGPassContext::fill_buffer(const FGFillBufferInfo &info) {
+        BufferHandle dst_handle =
+            m_impl->transient_resources->get_buffer(info.dst);
+        BufferResource &dst =
+            m_impl->resource_manager->m_impl->get_buffer(dst_handle);
+
+        FillBufferInfo info_internal = {
+            .dst = &dst,
+            .value = info.value,
+            .offset = info.offset,
+            .size = info.size,
+        };
+
+        m_impl->cmd->fill_buffer(info_internal);
     }
 
     void

@@ -234,6 +234,19 @@ namespace mantle {
         vkCmdDispatch(m_cmd, info.x, info.y, info.z);
     }
 
+    void CommandRecorder::dispatch_indirect(
+        const DispatchIndirectInfo &info) const {
+        vkCmdDispatchIndirect(m_cmd, info.buffer->buffer,
+                              static_cast<VkDeviceSize>(info.offset));
+    }
+
+    void CommandRecorder::fill_buffer(const FillBufferInfo &info) const {
+        vkCmdFillBuffer(m_cmd, info.dst->buffer,
+                        static_cast<VkDeviceSize>(info.offset),
+                        info.size > 0 ? static_cast<VkDeviceSize>(info.size) : VK_WHOLE_SIZE,
+                        info.value);
+    }
+
     void CommandRecorder::copy_buffer(const BufferCopyInfo &info) const {
         VkBufferCopy2 region = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_COPY_2,

@@ -1,1 +1,1 @@
-mantle_module(NAME world DEPS core noise)
+mantle_module(NAME world DEPS core noise renderer)

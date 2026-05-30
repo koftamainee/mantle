@@ -572,6 +572,19 @@ namespace mantle {
         memcpy(static_cast<u8 *>(buffer.resource.mapped) + offset, data, size);
     }
 
+    void GPUResourceManager::read_buffer(BufferHandle handle, void *data,
+                                         usize size, usize offset) {
+        check(m_is_initialized);
+        check(handle.index < m_impl->buffers.size());
+
+        auto &buffer = m_impl->buffers[handle.index];
+        fatal(handle.generation != buffer.generation, "Invalid buffer handle");
+        checkf(buffer.resource.mapped != nullptr,
+               "Attempting to read from device local memory buffer");
+
+        memcpy(data, static_cast<u8 *>(buffer.resource.mapped) + offset, size);
+    }
+
     void GPUResourceManager::destroy_buffer(BufferHandle handle,
                                             bool immediate) {
         check(m_is_initialized);

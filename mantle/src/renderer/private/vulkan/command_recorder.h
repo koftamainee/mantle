@@ -43,6 +43,8 @@ namespace mantle {
         void draw_indexed_indirect(const DrawIndexedIndirectInfo &info) const;
 
         void dispatch(const DispatchInfo &info) const;
+        void dispatch_indirect(const DispatchIndirectInfo &info) const;
+        void fill_buffer(const FillBufferInfo &info) const;
         void copy_buffer(const BufferCopyInfo &info) const;
         void copy_buffer_to_image(const BufferImageCopyInfo &info) const;
         void copy_image(const ImageCopyInfo &info) const;

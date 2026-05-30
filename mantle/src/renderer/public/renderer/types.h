@@ -125,6 +125,9 @@ namespace mantle {
         Float2,
         Float3,
         Float4,
+        Uint1,
+        Uint2,
+        Uint4,
     };
     struct VertexAttribute final {
         u32 location = 0;
@@ -476,11 +479,23 @@ namespace mantle {
         u32 z = 1;
     };
 
+    struct FGDispatchIndirectInfo final {
+        FGBufferHandle buffer = {};
+        usize offset = 0;
+    };
+
     struct FGBufferCopyInfo final {
         FGBufferHandle src = {};
         FGBufferHandle dst = {};
         usize src_offset = 0;
         usize dst_offset = 0;
+        usize size = 0;
+    };
+
+    struct FGFillBufferInfo final {
+        FGBufferHandle dst = {};
+        u32 value = 0;
+        usize offset = 0;
         usize size = 0;
     };
 

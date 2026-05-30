@@ -32,6 +32,8 @@ namespace mantle {
         BufferHandle create_buffer(const BufferDesc &desc, bool map = false);
         void update_buffer(BufferHandle handle, const void *data, usize size,
                            usize offset = 0);
+        void read_buffer(BufferHandle handle, void *data, usize size,
+                         usize offset = 0);
         void destroy_buffer(BufferHandle handle, bool immediate = false);
 
         ImageHandle create_image(const ImageDesc &desc);

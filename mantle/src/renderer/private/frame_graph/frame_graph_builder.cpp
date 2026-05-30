@@ -35,6 +35,7 @@ namespace mantle {
             .handle = image,
             .usage = usage,
         });
+
         return image;
     }
 

@@ -1,0 +1,71 @@
+#pragma once
+#define GLM_ENABLE_EXPERIMENTAL
+
+#include <unordered_map>
+#include <vector>
+
+#include "chunk.h"
+#include "core/macros.h"
+#include "core/memory/pmr/arena_resource.h"
+#include "core/types.h"
+#include "glm/gtx/hash.hpp"
+#include "glm/vec3.hpp"
+
+namespace mantle {
+    class VirtualHeap;
+
+    class ChunkStorageSystem final {
+      public:
+        ChunkStorageSystem() = default;
+        ~ChunkStorageSystem();
+
+        MANTLE_NO_COPY_NO_MOVE(ChunkStorageSystem);
+
+        void init(u32 capacity, VirtualHeap *heap);
+        void destroy();
+
+        u32 add_chunk(glm::ivec3 position);
+        void remove_chunk(glm::ivec3 position);
+
+        bool has_chunk(glm::ivec3 position) const;
+        u32 get_index(glm::ivec3 position) const;
+
+        Chunk &get_chunk(u32 index);
+        const Chunk &get_chunk(u32 index) const;
+        Chunk &get_chunk(glm::ivec3 position);
+        const Chunk &get_chunk(glm::ivec3 position) const;
+
+        glm::ivec3 get_position(u32 index) const;
+
+        void mark_dirty(u32 index);
+        void mark_clean(u32 index);
+        void clear_dirty();
+
+        bool is_dirty(u32 index) const;
+        bool any_dirty() const;
+
+        const std::pmr::vector<u32> &dirty_indices() const;
+
+        u32 capacity() const { return m_capacity; }
+        u32 count() const { return m_count; }
+
+      private:
+        struct Slot {
+            Chunk chunk = {};
+            glm::ivec3 position = {};
+            bool dirty = false;
+            bool active = false;
+        };
+
+        u32 m_capacity = 0;
+        u32 m_count = 0;
+
+        ArenaAllocator m_arena;
+        ArenaResource m_resource{};
+        std::pmr::vector<Slot> m_slots;
+        std::pmr::unordered_map<glm::ivec3, u32> m_map;
+        std::pmr::vector<u32> m_dirty_queue;
+
+        bool m_is_initialized = false;
+    };
+} // namespace mantle

@@ -8,6 +8,7 @@
 #include "core/memory/pmr/arena_resource.h"
 #include "core/memory/scope_arena.h"
 #include "gpu_resource_manager.h"
+#include "renderer/blackboard.h"
 
 namespace mantle {
     class TransientResources;
@@ -100,7 +101,9 @@ namespace mantle {
         void draw_indirect(const FGDrawIndirectInfo &info);
         void draw_indexed_indirect(const FGDrawIndexedIndirectInfo &info);
         void dispatch(const FGDispatchInfo &info);
+        void dispatch_indirect(const FGDispatchIndirectInfo &info);
 
+        void fill_buffer(const FGFillBufferInfo &info);
         void copy_buffer(const FGBufferCopyInfo &info);
         void copy_buffer_to_image(const FGBufferImageCopyInfo &info);
         void copy_image_to_buffer(const FGImageBufferCopyInfo &info);
@@ -187,11 +190,10 @@ namespace mantle {
             return combined->data;
         }
 
-        FGImageHandle create_image(const ImageDesc &desc);
         FGImageHandle import_image(ImageHandle image);
-        FGBufferHandle create_buffer(const BufferDesc &desc);
         FGBufferHandle import_buffer(BufferHandle buffer);
 
+        Blackboard &blackboard() { return m_blackboard; }
 
       private:
         struct RenderPassNode {
@@ -204,6 +206,7 @@ namespace mantle {
         ArenaAllocator *m_arena = nullptr;
         ScopeArena m_scope;
         ArenaResource m_resource{};
+        Blackboard m_blackboard;
         std::pmr::vector<RenderPassNode> m_passes;
 
         std::pmr::vector<FGImageEntry> m_images;
