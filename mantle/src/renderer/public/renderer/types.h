@@ -64,6 +64,10 @@ namespace mantle {
         usize size = 0;
         BufferUsage usage = {};
         MemoryType memory = MemoryType::Gpu;
+
+        bool operator==(const BufferDesc &o) const {
+            return size == o.size && usage == o.usage && memory == o.memory;
+        }
     };
 
     enum class ImageFormat {
@@ -105,6 +109,14 @@ namespace mantle {
         ImageFormat format = {};
         ImageUsage usage = {};
         bool create_view = true;
+
+        bool operator==(const ImageDesc &o) const {
+            return width == o.width && height == o.height &&
+                   depth == o.depth && mip_levels == o.mip_levels &&
+                   array_layers == o.array_layers &&
+                   sample_count == o.sample_count && format == o.format &&
+                   usage == o.usage;
+        }
     };
 
     enum class ShaderStage {
@@ -332,7 +344,7 @@ namespace mantle {
         ImageFormat depth_format = ImageFormat::Undefined;
         ImageFormat stencil_format = ImageFormat::Undefined;
 
-        std::span<PushConstantsRange> push_constants;
+        std::span<const PushConstantsRange> push_constants;
     };
 
 

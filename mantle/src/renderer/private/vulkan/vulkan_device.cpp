@@ -489,7 +489,7 @@ namespace mantle {
         VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamic_state_features = {
             .sType =
                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
-            .pNext = nullptr,
+            .extendedDynamicState = VK_TRUE,
         };
 
         features2.pNext = &vulkan11_features;
@@ -552,6 +552,37 @@ namespace mantle {
             return false;
 
         if (!is_physical_device_supports_required_extensions(physical_device)) {
+            return false;
+        }
+
+        VkPhysicalDeviceDescriptorIndexingFeatures indexing_query = {
+            .sType =
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
+        };
+        VkPhysicalDeviceVulkan13Features vulkan13_query = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        };
+        VkPhysicalDeviceFeatures2 features2_query = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+            .pNext = &vulkan13_query,
+        };
+        vulkan13_query.pNext = &indexing_query;
+        vkGetPhysicalDeviceFeatures2(physical_device, &features2_query);
+
+        if (!indexing_query.runtimeDescriptorArray) {
+            spdlog::warn("Device does not support runtimeDescriptorArray");
+            return false;
+        }
+        if (!indexing_query.descriptorBindingPartiallyBound) {
+            spdlog::warn("Device does not support descriptorBindingPartiallyBound");
+            return false;
+        }
+        if (!vulkan13_query.synchronization2) {
+            spdlog::warn("Device does not support synchronization2");
+            return false;
+        }
+        if (!vulkan13_query.dynamicRendering) {
+            spdlog::warn("Device does not support dynamicRendering");
             return false;
         }
 

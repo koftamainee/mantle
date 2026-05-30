@@ -118,15 +118,8 @@ namespace mantle {
 
 
       private:
-#ifndef NDEBUG
-        static constexpr std::array<const char *, 2> ms_device_extensions = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-        };
-#else
         static constexpr std::array<const char *, 1> ms_device_extensions = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         };
-#endif
     };
 } // namespace mantle

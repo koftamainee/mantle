@@ -141,9 +141,8 @@ namespace mantle {
         u32 prev_face_count = 0;
         rm.read_buffer(m_counter_buffer, &prev_face_count, sizeof(u32));
         if (prev_face_count > m_max_faces) {
-            spdlog::warn("Vertex buffer overflow: {} faces generated but only {} available ({} dropped)",
-                          prev_face_count, m_max_faces,
-                          prev_face_count - m_max_faces);
+            spdlog::warn("Vertex buffer overflow: {} faces, max {}",
+                         prev_face_count, m_max_faces);
         } else if (prev_face_count > m_max_faces * 9 / 10) {
             spdlog::warn("Vertex buffer near capacity: {}/{} faces used ({}%)",
                           prev_face_count, m_max_faces,

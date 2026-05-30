@@ -35,4 +35,6 @@ void main() {
     g_storage_buffers[indirect_buffer_index][2] = cmd.first_index;
     g_storage_buffers[indirect_buffer_index][3] = asuint(cmd.vertex_offset);
     g_storage_buffers[indirect_buffer_index][4] = cmd.first_instance;
+
+    g_storage_buffers[counter_buffer_index][0] = face_count;
 }

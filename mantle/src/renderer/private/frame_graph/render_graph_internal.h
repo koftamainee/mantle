@@ -35,7 +35,7 @@ inline PipelineStage write_usage_to_stage(WriteUsage usage) {
     case WriteUsage::TransferDst:
         return PipelineStage::Transfer;
     case WriteUsage::Clear:
-        return PipelineStage::Top;
+        return PipelineStage::Transfer;
     case WriteUsage::Present:
         return PipelineStage::Bottom;
     default:
@@ -54,7 +54,7 @@ inline AccessType write_usage_to_access(WriteUsage usage) {
     case WriteUsage::TransferDst:
         return AccessType::TransferWrite;
     case WriteUsage::Clear:
-        return AccessType::None;
+        return AccessType::TransferWrite;
     case WriteUsage::Present:
         return AccessType::None;
     default:
@@ -106,8 +106,6 @@ inline AccessType read_usage_to_access(ReadUsage usage) {
         return AccessType::ShaderRead;
     case ReadUsage::TransferSrc:
         return AccessType::TransferRead;
-    case ReadUsage::IndirectArg:
-        return AccessType::None;
     default:
         fatal(true, "unknown ReadUsage");
     }

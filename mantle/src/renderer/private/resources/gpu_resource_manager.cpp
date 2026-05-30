@@ -72,6 +72,51 @@ namespace mantle {
         }
     }
 
+    namespace {
+
+        template <typename T>
+            requires std::is_trivially_copyable_v<std::remove_cv_t<T>>
+        std::span<const std::remove_cv_t<T>>
+        deep_copy_span(std::span<T> src, PersistentResource &resource) {
+            using U = std::remove_cv_t<T>;
+            if (src.empty()) {
+                return {};
+            }
+            U *dst = static_cast<U *>(resource.allocate(
+                src.size() * sizeof(U), alignof(U)));
+            memcpy(dst, src.data(), src.size() * sizeof(U));
+            return {dst, src.size()};
+        }
+
+        std::string_view
+        deep_copy_string(std::string_view src, PersistentResource &resource) {
+            if (src.empty()) {
+                return {};
+            }
+            char *dst = static_cast<char *>(
+                resource.allocate(src.size() + 1, 1));
+            memcpy(dst, src.data(), src.size());
+            dst[src.size()] = '\0';
+            return {dst, src.size()};
+        }
+
+        std::span<const ShaderModule>
+        deep_copy_shader_modules(std::span<const ShaderModule> src,
+                                 PersistentResource &resource) {
+            if (src.empty()) {
+                return {};
+            }
+            auto *dst = static_cast<ShaderModule *>(resource.allocate(
+                src.size() * sizeof(ShaderModule), alignof(ShaderModule)));
+            for (usize i = 0; i < src.size(); i++) {
+                dst[i] = src[i];
+                dst[i].entry_point = deep_copy_string(src[i].entry_point, resource);
+            }
+            return {dst, src.size()};
+        }
+
+    } // namespace
+
     GraphicsPipelineHandle GPUResourceManager::create_graphics_pipeline(
         const GraphicsPipelineDesc &desc) {
         check(m_is_initialized);
@@ -321,16 +366,12 @@ namespace mantle {
             &pipeline));
 
         GraphicsPipelineDesc stored_desc = desc;
-        if (!stored_desc.push_constants.empty()) {
-            auto *persistent_push = static_cast<PushConstantsRange *>(
-                m_impl->resource.allocate(
-                    stored_desc.push_constants.size() * sizeof(PushConstantsRange),
-                    alignof(PushConstantsRange)));
-            for (usize i = 0; i < stored_desc.push_constants.size(); i++) {
-                persistent_push[i] = stored_desc.push_constants[i];
-            }
-            stored_desc.push_constants = std::span(persistent_push, stored_desc.push_constants.size());
-        }
+        stored_desc.shaders = deep_copy_shader_modules(desc.shaders, m_impl->resource);
+        stored_desc.vertex_input.bindings = deep_copy_span(desc.vertex_input.bindings, m_impl->resource);
+        stored_desc.vertex_input.attributes = deep_copy_span(desc.vertex_input.attributes, m_impl->resource);
+        stored_desc.color_formats = deep_copy_span(desc.color_formats, m_impl->resource);
+        stored_desc.color_blend.attachments = deep_copy_span(desc.color_blend.attachments, m_impl->resource);
+        stored_desc.push_constants = deep_copy_span(desc.push_constants, m_impl->resource);
 
         u32 index = 0;
         u32 generation = 0;
@@ -408,6 +449,12 @@ namespace mantle {
             &pipeline));
 
 
+        ComputePipelineDesc stored_desc = {};
+        stored_desc.shader = desc.shader;
+        stored_desc.shader.entry_point =
+            deep_copy_string(desc.shader.entry_point, m_impl->resource);
+        stored_desc.push_constants = desc.push_constants;
+
         u32 index = 0;
         u32 generation = 0;
         if (!m_impl->compute_pipelines_free_list.empty()) {
@@ -418,13 +465,13 @@ namespace mantle {
             m_impl->compute_pipelines[index].resource = {
                 .pipeline = pipeline,
                 .layout = layout,
-                .desc = desc,
+                .desc = stored_desc,
             };
         } else {
             index = m_impl->compute_pipelines.size();
             generation = 0;
             m_impl->compute_pipelines.push_back(
-                {{.pipeline = pipeline, .layout = layout, .desc = desc},
+                {{.pipeline = pipeline, .layout = layout, .desc = stored_desc},
                  generation});
         }
 

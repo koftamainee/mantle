@@ -39,9 +39,7 @@ namespace mantle {
 
         auto &cached = m_image_cache[handle.index];
         if (cached.handle.is_valid()) {
-            if (cached.desc.width == entry.desc.width &&
-                cached.desc.height == entry.desc.height &&
-                cached.desc.format == entry.desc.format) {
+            if (cached.desc == entry.desc) {
                 return cached.handle;
             }
             m_resource_manager->destroy_image(cached.handle);
@@ -70,9 +68,7 @@ namespace mantle {
 
         auto &cached = m_buffer_cache[handle.index];
         if (cached.handle.is_valid()) {
-            if (cached.desc.size == entry.desc.size &&
-                cached.desc.usage == entry.desc.usage &&
-                cached.desc.memory == entry.desc.memory) {
+            if (cached.desc == entry.desc) {
                 return cached.handle;
             }
             m_resource_manager->destroy_buffer(cached.handle);
