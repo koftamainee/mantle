@@ -11,6 +11,20 @@
 #include "window/window.h"
 
 namespace mantle {
+    namespace {
+        struct GenTask {
+            const ChunkGenerationSystem *gen;
+            Chunk *chunk;
+            glm::ivec3 pos;
+        };
+
+        void gen_work(ArenaAllocator &, void *data) {
+            auto *d = static_cast<GenTask *>(data);
+            d->gen->generate(*d->chunk, d->pos);
+        }
+
+    } // anonymous namespace
+
     Engine::~Engine() { destroy(); }
 
     void Engine::init() {
@@ -42,30 +56,42 @@ namespace mantle {
 
         m_last_time = 0;
 
-        constexpr u32 max_chunks = 100;
+        constexpr u32 max_chunks = 150;
+        constexpr i32 R = 2;
+        constexpr u32 num_chunks = (R * 2 + 1) * (R * 2 + 1) * (R * 2 + 1);
+
         m_chunk_generation_system.init(std::random_device{}() % 1000);
+
+        m_worker_pool.init(4, megabytes(8), &m_heap);
+
+        m_meshing_arena.init(m_heap.take(megabytes(128)));
         m_chunk_meshing_system.init(m_renderer, m_scratch_arena, max_chunks);
         m_chunk_storage_system.init(max_chunks, &m_heap);
 
+        m_rendering_arena.init(m_heap.take(megabytes(100)));
+
         spdlog::info("Generating chunks. This might take a while...");
+
         {
-            for (i32 x = -1; x <= 1; x++) {
-                for (i32 y = -1; y <= 1; y++) {
-                    for (i32 z = -1; z <= 1; z++) {
+            std::vector<GenTask> tasks;
+            tasks.reserve(num_chunks);
+            for (i32 x = -R; x <= R; x++) {
+                for (i32 y = -R; y <= R; y++) {
+                    for (i32 z = -R; z <= R; z++) {
                         glm::ivec3 pos(x, y, z);
                         u32 idx = m_chunk_storage_system.add_chunk(pos);
-                        m_chunk_generation_system.generate(
-                            m_chunk_storage_system.get_chunk(idx), pos);
+                        tasks.push_back({&m_chunk_generation_system,
+                                         &m_chunk_storage_system.get_chunk(idx),
+                                         pos});
+                        m_worker_pool.submit(gen_work, &tasks.back());
                     }
                 }
             }
-            m_chunk_meshing_system.upload_dirty(m_renderer,
-                                                m_chunk_storage_system);
+            m_worker_pool.wait();
         }
 
-        m_chunk_rendering_system.init(m_renderer, m_scratch_arena);
-
-        m_rendering_arena.init(m_heap.take(megabytes(100)));
+        m_chunk_meshing_system.upload_dirty(m_renderer, m_chunk_storage_system,
+                                            m_meshing_arena, &m_worker_pool);
 
         m_is_initialized = true;
         spdlog::info("Engine is initialized. Starting the game");
@@ -80,14 +106,16 @@ namespace mantle {
 
             m_fps_frame_count++;
             m_fps_frametime_accum += delta_time;
-            if (delta_time < m_fps_frametime_min) m_fps_frametime_min = delta_time;
-            if (delta_time > m_fps_frametime_max) m_fps_frametime_max = delta_time;
+            if (delta_time < m_fps_frametime_min)
+                m_fps_frametime_min = delta_time;
+            if (delta_time > m_fps_frametime_max)
+                m_fps_frametime_max = delta_time;
 
             if (current_time - m_fps_timer >= 1.0f) {
-                f32 avg_ms = m_fps_frametime_accum / static_cast<f32>(m_fps_frame_count) * 1000.0f;
+                f32 avg_ms = m_fps_frametime_accum /
+                    static_cast<f32>(m_fps_frame_count) * 1000.0f;
 
-                spdlog::info("{} FPS | {:>4.1f} ms",
-                             m_fps_frame_count, avg_ms);
+                spdlog::info("{} FPS | {:>4.1f} ms", m_fps_frame_count, avg_ms);
 
                 m_fps_frame_count = 0;
                 m_fps_frametime_accum = 0.0f;
@@ -102,9 +130,9 @@ namespace mantle {
     }
     void Engine::destroy() {
         if (m_is_initialized) {
+            m_worker_pool.destroy();
             m_chunk_storage_system.destroy();
             m_chunk_meshing_system.destroy();
-            m_chunk_rendering_system.destroy();
             m_renderer.destroy();
             m_window.destroy();
             m_is_initialized = false;
@@ -160,6 +188,10 @@ namespace mantle {
             return;
         }
 
+        m_meshing_arena.reset();
+        m_chunk_meshing_system.upload_dirty(m_renderer, m_chunk_storage_system,
+                                            m_meshing_arena, &m_worker_pool);
+
         FrameGraph graph(&m_rendering_arena);
         FGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
         auto [width, height] = m_window.get_framebuffer_size();
@@ -169,10 +201,7 @@ namespace mantle {
         bb.add(BbCameraData{m_camera.gpu_data().view_proj});
         bb.add(BbFramebufferSize{width, height});
 
-        m_chunk_meshing_system.upload_dirty(m_renderer,
-                                            m_chunk_storage_system);
         m_chunk_meshing_system.add_passes(graph, bb);
-        m_chunk_rendering_system.add_passes(graph, bb);
 
         m_renderer.execute(graph);
 

@@ -7,8 +7,11 @@
 namespace mantle {
     enum class VoxelType : u16 {
         Air = 0,
-        Dirt = 1,
-        Stone = 2,
+        Stone = 1,
+        Limestone = 2,
+        MossGreen = 3,
+        MossLight = 4,
+        MossDark = 5,
     };
 
     class ChunkGenerationSystem final {
@@ -28,6 +31,9 @@ namespace mantle {
 
         Sampler<f32 (*)(glm::vec3)> m_cave_noise{};
         Sampler<f32 (*)(glm::vec3)> m_warp_noise{};
+        Sampler<f32 (*)(glm::vec3)> m_detail_noise{};
+        Sampler<f32 (*)(glm::vec3)> m_moss_noise{};
+        Sampler<f32 (*)(glm::vec2)> m_floor_noise{};
 
     };
 } // namespace mantle

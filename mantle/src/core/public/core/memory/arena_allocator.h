@@ -16,6 +16,7 @@ namespace mantle {
         ~ArenaAllocator();
 
         MANTLE_NO_COPY(ArenaAllocator);
+        ArenaAllocator(ArenaAllocator &&) = default;
 
         void init(MemoryBlock block);
         void destroy();

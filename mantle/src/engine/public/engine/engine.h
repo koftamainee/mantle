@@ -3,11 +3,11 @@
 #include "renderer/renderer.h"
 #include "window/window.h"
 
+#include "core/concurrency/worker_pool.h"
 #include "core/memory/arena_allocator.h"
 #include "core/memory/virtual_heap.h"
 #include "world/chunk_generation_system.h"
 #include "world/chunk_meshing_system.h"
-#include "world/chunk_rendering_system.h"
 #include "world/chunk_storage_system.h"
 
 namespace mantle {
@@ -37,9 +37,11 @@ namespace mantle {
         VirtualHeap m_heap;
         ArenaAllocator m_scratch_arena;
 
-        ArenaAllocator m_rendering_arena;
+        WorkerPool m_worker_pool;
 
-        ChunkRenderingSystem m_chunk_rendering_system{};
+        ArenaAllocator m_rendering_arena;
+        ArenaAllocator m_meshing_arena;
+
         ChunkMeshingSystem m_chunk_meshing_system{};
         ChunkStorageSystem m_chunk_storage_system{};
 
