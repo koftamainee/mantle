@@ -18,12 +18,12 @@ cbuffer PushConstants {
 };
 
 static const float3 face_normals[6] = {
-    float3(-1, 0, 0),    // 0: axis=0 (X), positive=0  → -X
-    float3(1, 0, 0),     // 1: axis=0 (X), positive=1  → +X
-    float3(0, -1, 0),    // 2: axis=1 (Y), positive=0  → -Y
-    float3(0, 1, 0),     // 3: axis=1 (Y), positive=1  → +Y
-    float3(0, 0, -1),    // 4: axis=2 (Z), positive=0  → -Z
-    float3(0, 0, 1),     // 5: axis=2 (Z), positive=1  → +Z
+    float3(-1, 0, 0),    // -X
+    float3(1, 0, 0),     // +X
+    float3(0, -1, 0),    // -Y
+    float3(0, 1, 0),     // +Y
+    float3(0, 0, -1),    // -Z
+    float3(0, 0, 1),     // +Z
 };
 
 static const float3 block_colors[8] = {
