@@ -1,5 +1,6 @@
 #include "bgm.h"
 
+#include <algorithm>
 #include <bit>
 
 #include "core/assert.h"
@@ -39,6 +40,52 @@ namespace mantle::bgm {
 
             u32 na = (a < 0) ? CHUNK_SIZE - 1 : 0;
             return nb->voxels[voxel_index(axis, na, u, v)];
+        }
+
+        u8 sample_light_safe(const Chunk &chunk, const Chunk *neighbors[6],
+                              u32 axis, i32 a, i32 u, i32 v) noexcept {
+            bool a_oob = a < 0 || a >= static_cast<i32>(CHUNK_SIZE);
+            bool u_oob = u < 0 || u >= static_cast<i32>(CHUNK_SIZE);
+            bool v_oob = v < 0 || v >= static_cast<i32>(CHUNK_SIZE);
+
+            u32 oob_count = (a_oob ? 1u : 0u) + (u_oob ? 1u : 0u) + (v_oob ? 1u : 0u);
+            if (oob_count > 1) return 0;
+
+            if (a_oob) {
+                u32 nb_idx = axis * 2 + (a < 0 ? 0u : 1u);
+                const Chunk *nb = neighbors[nb_idx];
+                if (!nb) return 0;
+                u32 na = (a < 0) ? CHUNK_SIZE - 1 : 0;
+                return nb->light[voxel_index(axis, na,
+                                  static_cast<u32>(u), static_cast<u32>(v))];
+            }
+
+            if (u_oob) {
+                u32 nb_idx;
+                if (axis == 0) nb_idx = 2;
+                else nb_idx = 0;
+                nb_idx += (u < 0 ? 0u : 1u);
+                const Chunk *nb = neighbors[nb_idx];
+                if (!nb) return 0;
+                u32 nu = (u < 0) ? CHUNK_SIZE - 1 : 0;
+                return nb->light[voxel_index(axis, static_cast<u32>(a), nu,
+                                  static_cast<u32>(v))];
+            }
+
+            if (v_oob) {
+                u32 nb_idx;
+                if (axis <= 1) nb_idx = 4;
+                else nb_idx = 2;
+                nb_idx += (v < 0 ? 0u : 1u);
+                const Chunk *nb = neighbors[nb_idx];
+                if (!nb) return 0;
+                u32 nv = (v < 0) ? CHUNK_SIZE - 1 : 0;
+                return nb->light[voxel_index(axis, static_cast<u32>(a),
+                                  static_cast<u32>(u), nv)];
+            }
+
+            return chunk.light[voxel_index(axis, static_cast<u32>(a),
+                               static_cast<u32>(u), static_cast<u32>(v))];
         }
 
         u16 sample_voxel_safe(const Chunk &chunk, const Chunk *neighbors[6],
@@ -176,9 +223,19 @@ namespace mantle::bgm {
             i32 v_c[4] = {v0i, v0i, v0i + hi, v0i + hi};
 
             u32 ao[4];
+            u8 light_val[4] = {};
+            i32 light_plane = positive ? ai + 1 : ai - 1;
             for (u32 i = 0; i < 4; i++) {
                 ao[i] = vertex_ao(chunk, neighbors, axis, positive, ai,
                                   u_c[i], v_c[i]);
+
+                u8 l1 = sample_light_safe(chunk, neighbors, axis,
+                                          light_plane, u_c[i] - 1, v_c[i] - 1);
+                u8 l2 = sample_light_safe(chunk, neighbors, axis,
+                                          light_plane, u_c[i], v_c[i] - 1);
+                u8 l3 = sample_light_safe(chunk, neighbors, axis,
+                                          light_plane, u_c[i] - 1, v_c[i]);
+                light_val[i] = std::max(l1, std::max(l2, l3));
             }
 
             f32 depth = static_cast<f32>(a) + (positive ? 1.f : 0.f);
@@ -209,7 +266,8 @@ namespace mantle::bgm {
             for (u32 i = 0; i < 4; i++) {
                 glm::vec3 world = chunk_world_origin + corners[i] * VOXEL_SCALE;
                 u32 packed = face_index | (ao[i] << 3u) |
-                             (static_cast<u32>(material) << 8u);
+                             (static_cast<u32>(light_val[i]) << 5u) |
+                             (static_cast<u32>(material) << 9u);
                 out.vertices[base_vertex + i] = {world.x, world.y, world.z,
                                                  packed};
             }
@@ -236,11 +294,34 @@ namespace mantle::bgm {
                     u32 u0 = static_cast<u32>(std::countr_zero(bits));
                     u32 shift = bits >> u0;
                     u32 width = static_cast<u32>(std::countr_zero(~shift));
+
+                    i32 na = static_cast<i32>(depth);
+                    u16 base_mat = sample_voxel(chunk, neighbors, axis, na,
+                                                u0, v);
+
+                    for (u32 u = u0 + 1; u < u0 + width; u++) {
+                        u16 m = sample_voxel(chunk, neighbors, axis, na,
+                                             u, v);
+                        if (m != base_mat) {
+                            width = u - u0;
+                            break;
+                        }
+                    }
                     u32 strip = static_cast<u32>(((1ull << width) - 1ull) << u0);
 
                     u32 height = 1;
                     while (v + height < CHUNK_SIZE &&
                            (mask.rows[v + height] & strip) == strip) {
+                        bool same = true;
+                        for (u32 u = u0; u < u0 + width; u++) {
+                            u16 m = sample_voxel(chunk, neighbors, axis, na,
+                                                 u, v + height);
+                            if (m != base_mat) {
+                                same = false;
+                                break;
+                            }
+                        }
+                        if (!same) break;
                         mask.rows[v + height] &= ~strip;
                         height++;
                     }
@@ -248,10 +329,8 @@ namespace mantle::bgm {
                     bits &= ~strip;
                     mask.rows[v] = bits;
 
-                    i32 na = static_cast<i32>(depth) - (positive ? 1 : 0);
-                    u16 vox_val =
-                        sample_voxel(chunk, neighbors, axis, na, u0, v);
-                    u16 material = vox_val != 0 ? vox_val : static_cast<u16>(1);
+                    u16 material = base_mat != 0 ? base_mat
+                                                 : static_cast<u16>(1);
                     emit_quad(out, chunk_world_origin, axis, positive, depth,
                               u0, v, width, height, material, chunk, neighbors);
                 }

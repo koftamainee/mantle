@@ -9,5 +9,6 @@ namespace mantle {
         static constexpr u32 volume = size * size * size;
 
         Voxel voxels[volume];
+        u8 light[volume] = {};
     };
 }

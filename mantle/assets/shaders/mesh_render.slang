@@ -9,7 +9,7 @@ struct VSOut {
     float4 pos : SV_Position;
     float3 color : TEXCOORD1;
     float ao : TEXCOORD2;
-    float top_bias : TEXCOORD3;
+    float light : TEXCOORD3;
 };
 
 [[vk::push_constant]]
@@ -30,9 +30,9 @@ static const float3 block_colors[8] = {
     float3(1, 0, 1),             // 0: unused (magenta)
     float3(0.50, 0.52, 0.55),    // 1: Stone-grey
     float3(0.78, 0.75, 0.65),    // 2: Limestone-cream
-    float3(0.25, 0.55, 0.25),    // 3: Moss green
-    float3(0.40, 0.60, 0.35),    // 4: Moss light
-    float3(0.18, 0.30, 0.18),    // 5: Moss dark
+    float3(1.00, 0.35, 0.00),    // 3: Moss orange
+    float3(1.00, 0.45, 0.05),    // 4: Moss light orange
+    float3(0.65, 0.20, 0.00),    // 5: Moss dark orange
 };
 
 [shader("vertex")]
@@ -42,21 +42,20 @@ VSOut vert_main(MeshVertex vertex) {
 
     uint face_index = vertex.packed & 0x7;
     uint ao_raw = (vertex.packed >> 3) & 0x3;
-    uint block_type = (vertex.packed >> 8) & 0xFFFF;
+    uint light_raw = (vertex.packed >> 5) & 0xF;
+    uint block_type = (vertex.packed >> 9) & 0xFFFF;
 
     output.color = block_colors[block_type < 16 ? block_type : 0];
     output.ao = ao_raw / 3.0;
-
-    float3 N = face_normals[face_index];
-    output.top_bias = max(dot(N, float3(0, 1, 0)), 0.0);
+    output.light = light_raw / 15.0;
 
     return output;
 }
 
 [shader("fragment")]
 float4 frag_main(VSOut input) : SV_Target {
-    float ambient = 0.85 + 0.15 * input.top_bias;
     float ao_factor = 1.0 - input.ao * 0.4;
-    float3 color = input.color * ambient * ao_factor;
+    float light_factor = max(input.light, 0.08);
+    float3 color = input.color * ao_factor * light_factor;
     return float4(color, 1.0);
 }

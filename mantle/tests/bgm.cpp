@@ -120,7 +120,8 @@ TEST(BGM, VertexFormat) {
     u32 packed = mesh.vertices[0].packed;
     EXPECT_EQ(packed & 0x7, 0u);               // face_index = 0 (axis=0, pos=0)
     EXPECT_EQ((packed >> 3) & 0x3, 0u);         // AO = 0
-    EXPECT_EQ((packed >> 8) & 0xFFFF, 1u);      // material = 1
+    EXPECT_EQ((packed >> 5) & 0xF, 0u);         // light = 0
+    EXPECT_EQ((packed >> 9) & 0xFFFF, 1u);      // material = 1
 
     EXPECT_FLOAT_EQ(mesh.vertices[0].x, 0.0f);
     EXPECT_FLOAT_EQ(mesh.vertices[0].y, 0.0f);

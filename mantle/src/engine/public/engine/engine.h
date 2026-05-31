@@ -8,6 +8,7 @@
 #include "core/memory/virtual_heap.h"
 #include "world/chunk_generation_system.h"
 #include "world/chunk_meshing_system.h"
+#include "world/chunk_rendering_system.h"
 #include "world/chunk_storage_system.h"
 
 namespace mantle {
@@ -43,6 +44,7 @@ namespace mantle {
         ArenaAllocator m_meshing_arena;
 
         ChunkMeshingSystem m_chunk_meshing_system{};
+        ChunkRenderingSystem m_chunk_rendering_system{};
         ChunkStorageSystem m_chunk_storage_system{};
 
         f32 m_last_time = 0.0f;

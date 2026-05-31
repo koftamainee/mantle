@@ -5,6 +5,7 @@
 #include <random>
 
 #include "core/assert.h"
+#include "world/light_propagation.h"
 #include "core/memory/memory_units.h"
 #include "renderer/blackboard_types.h"
 #include "spdlog/spdlog.h"
@@ -12,6 +13,20 @@
 
 namespace mantle {
     namespace {
+        void get_neighbors(ChunkStorageSystem &storage, glm::ivec3 pos,
+                                  Chunk *out[6]) {
+            static const glm::ivec3 offsets[6] = {
+                {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0},
+                {0, 0, -1}, {0, 0, 1},
+            };
+            for (u32 i = 0; i < 6; i++) {
+                glm::ivec3 nb_pos = pos + offsets[i];
+                out[i] = storage.has_chunk(nb_pos)
+                             ? &storage.get_chunk(nb_pos)
+                             : nullptr;
+            }
+        }
+
         struct GenTask {
             const ChunkGenerationSystem *gen;
             Chunk *chunk;
@@ -65,14 +80,15 @@ namespace mantle {
         m_worker_pool.init(4, megabytes(8), &m_heap);
 
         m_meshing_arena.init(m_heap.take(megabytes(128)));
-        m_chunk_meshing_system.init(m_renderer, m_scratch_arena, max_chunks);
+        m_chunk_rendering_system.init(m_renderer, m_scratch_arena, max_chunks);
+        m_chunk_meshing_system.init();
         m_chunk_storage_system.init(max_chunks, &m_heap);
 
         m_rendering_arena.init(m_heap.take(megabytes(100)));
 
         spdlog::info("Generating chunks. This might take a while...");
 
-        f32 gen_start = m_window.get_time();
+        f32 gen_start = static_cast<f32>(m_window.get_time());
         {
             std::vector<GenTask> tasks;
             tasks.reserve(num_chunks);
@@ -90,14 +106,48 @@ namespace mantle {
             }
             m_worker_pool.wait();
         }
-        f32 gen_elapsed = (m_window.get_time() - gen_start) * 1000.0f;
+        f32 gen_elapsed = (static_cast<f32>(m_window.get_time()) - gen_start) * 1000.0f;
         spdlog::info("Generation: {} chunks, {:.2f} ms total, {:.4f} ms avg",
                      num_chunks, gen_elapsed, gen_elapsed / num_chunks);
 
-        f32 mesh_start = m_window.get_time();
+        f32 light_start = static_cast<f32>(m_window.get_time());
+        {
+            for (i32 x = -R; x <= R; x++) {
+                for (i32 y = -R; y <= R; y++) {
+                    for (i32 z = -R; z <= R; z++) {
+                        glm::ivec3 pos(x, y, z);
+                        u32 idx = m_chunk_storage_system.get_index(pos);
+                        init_chunk_light(
+                            m_chunk_storage_system.get_chunk(idx));
+                    }
+                }
+            }
+
+            for (u8 level = 8; level > 0; level--) {
+                for (i32 x = -R; x <= R; x++) {
+                    for (i32 y = -R; y <= R; y++) {
+                        for (i32 z = -R; z <= R; z++) {
+                            glm::ivec3 pos(x, y, z);
+                            u32 idx = m_chunk_storage_system.get_index(pos);
+                            Chunk *neighbors[6];
+                            get_neighbors(m_chunk_storage_system, pos,
+                                          neighbors);
+                            propagate_chunk_light_level(
+                                m_chunk_storage_system.get_chunk(idx),
+                                neighbors, level);
+                        }
+                    }
+                }
+            }
+        }
+        f32 light_elapsed = static_cast<f32>(m_window.get_time() - light_start) * 1000.0f;
+        spdlog::info("Light propagation: {:.2f} ms", light_elapsed);
+
+        f32 mesh_start = static_cast<f32>(m_window.get_time());
         m_chunk_meshing_system.upload_dirty(m_renderer, m_chunk_storage_system,
-                                            m_meshing_arena, &m_worker_pool);
-        f32 mesh_elapsed = (m_window.get_time() - mesh_start) * 1000.0f;
+                                            m_meshing_arena, &m_worker_pool,
+                                            m_chunk_rendering_system);
+        f32 mesh_elapsed = static_cast<f32>(m_window.get_time() - mesh_start) * 1000.0f;
         spdlog::info("Meshing: {} chunks, {:.2f} ms total, {:.4f} ms avg",
                      num_chunks, mesh_elapsed, mesh_elapsed / num_chunks);
 
@@ -141,6 +191,7 @@ namespace mantle {
             m_worker_pool.destroy();
             m_chunk_storage_system.destroy();
             m_chunk_meshing_system.destroy();
+            m_chunk_rendering_system.destroy();
             m_renderer.destroy();
             m_window.destroy();
             m_is_initialized = false;
@@ -198,7 +249,8 @@ namespace mantle {
 
         m_meshing_arena.reset();
         m_chunk_meshing_system.upload_dirty(m_renderer, m_chunk_storage_system,
-                                            m_meshing_arena, &m_worker_pool);
+                                            m_meshing_arena, &m_worker_pool,
+                                            m_chunk_rendering_system);
 
         FrameGraph graph(&m_rendering_arena);
         FGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
@@ -209,7 +261,7 @@ namespace mantle {
         bb.add(BbCameraData{m_camera.gpu_data().view_proj});
         bb.add(BbFramebufferSize{width, height});
 
-        m_chunk_meshing_system.add_passes(graph, bb);
+        m_chunk_rendering_system.add_passes(graph, bb);
 
         m_renderer.execute(graph);
 
