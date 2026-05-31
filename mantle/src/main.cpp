@@ -1,4 +1,5 @@
 #include "engine/engine.h"
+#include "spdlog/sinks/stdout_color_sinks-inl.h"
 #include "spdlog/spdlog.h"
 
 int main() {
@@ -13,7 +14,8 @@ int main() {
     engine.run();
     engine.destroy();
 
-    printf("see you soon~\n");
+    fflush(stdout);
+    printf("see you soon~");
 
     return 0;
 }

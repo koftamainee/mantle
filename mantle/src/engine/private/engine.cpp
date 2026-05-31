@@ -155,9 +155,7 @@ namespace mantle {
 
         m_is_initialized = true;
         spdlog::info("Engine is initialized. Starting the game");
-        auto ascii_logger = spdlog::stdout_color_mt("ascii");
-        ascii_logger->set_pattern("%v");
-
+        fflush(stdout);
         constexpr auto art = R"(
 =================================================================================
 
@@ -172,7 +170,7 @@ namespace mantle {
 
 =================================================================================
 )";
-        ascii_logger->info(art);
+        printf("%s\n", art);
     }
 
     void Engine::run() {
@@ -210,6 +208,7 @@ namespace mantle {
         if (m_is_initialized) {
             m_worker_pool.destroy();
             m_chunk_storage_system.destroy();
+            m_chunk_generation_system.destroy();
             m_chunk_meshing_system.destroy();
             m_chunk_rendering_system.destroy();
             m_renderer.destroy();
