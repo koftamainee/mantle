@@ -13,5 +13,7 @@ int main() {
     engine.run();
     engine.destroy();
 
+    printf("see you soon~\n");
+
     return 0;
 }
