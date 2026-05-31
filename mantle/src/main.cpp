@@ -15,7 +15,7 @@ int main() {
     engine.destroy();
 
     fflush(stdout);
-    printf("see you soon~");
+    printf("see you soon~\n");
 
     return 0;
 }
