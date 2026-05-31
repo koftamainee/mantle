@@ -4,26 +4,28 @@
 #include <cfloat>
 #include <random>
 
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include "core/assert.h"
-#include "world/light_propagation.h"
 #include "core/memory/memory_units.h"
 #include "renderer/blackboard_types.h"
+#include "spdlog/sinks/stdout_color_sinks-inl.h"
 #include "spdlog/spdlog.h"
 #include "window/window.h"
+#include "world/light_propagation.h"
 
 namespace mantle {
     namespace {
         void get_neighbors(ChunkStorageSystem &storage, glm::ivec3 pos,
-                                  Chunk *out[6]) {
+                           Chunk *out[6]) {
             static const glm::ivec3 offsets[6] = {
-                {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0},
-                {0, 0, -1}, {0, 0, 1},
+                {-1, 0, 0}, {1, 0, 0},  {0, -1, 0},
+                {0, 1, 0},  {0, 0, -1}, {0, 0, 1},
             };
             for (u32 i = 0; i < 6; i++) {
                 glm::ivec3 nb_pos = pos + offsets[i];
-                out[i] = storage.has_chunk(nb_pos)
-                             ? &storage.get_chunk(nb_pos)
-                             : nullptr;
+                out[i] = storage.has_chunk(nb_pos) ? &storage.get_chunk(nb_pos)
+                                                   : nullptr;
             }
         }
 
@@ -106,7 +108,8 @@ namespace mantle {
             }
             m_worker_pool.wait();
         }
-        f32 gen_elapsed = (static_cast<f32>(m_window.get_time()) - gen_start) * 1000.0f;
+        f32 gen_elapsed =
+            (static_cast<f32>(m_window.get_time()) - gen_start) * 1000.0f;
         spdlog::info("Generation: {} chunks, {:.2f} ms total, {:.4f} ms avg",
                      num_chunks, gen_elapsed, gen_elapsed / num_chunks);
 
@@ -117,8 +120,7 @@ namespace mantle {
                     for (i32 z = -R; z <= R; z++) {
                         glm::ivec3 pos(x, y, z);
                         u32 idx = m_chunk_storage_system.get_index(pos);
-                        init_chunk_light(
-                            m_chunk_storage_system.get_chunk(idx));
+                        init_chunk_light(m_chunk_storage_system.get_chunk(idx));
                     }
                 }
             }
@@ -140,19 +142,39 @@ namespace mantle {
                 }
             }
         }
-        f32 light_elapsed = static_cast<f32>(m_window.get_time() - light_start) * 1000.0f;
+        f32 light_elapsed =
+            static_cast<f32>(m_window.get_time() - light_start) * 1000.0f;
         spdlog::info("Light propagation: {:.2f} ms", light_elapsed);
 
         f32 mesh_start = static_cast<f32>(m_window.get_time());
         m_chunk_meshing_system.upload_dirty(m_renderer, m_chunk_storage_system,
                                             m_meshing_arena, &m_worker_pool,
                                             m_chunk_rendering_system);
-        f32 mesh_elapsed = static_cast<f32>(m_window.get_time() - mesh_start) * 1000.0f;
+        f32 mesh_elapsed =
+            static_cast<f32>(m_window.get_time() - mesh_start) * 1000.0f;
         spdlog::info("Meshing: {} chunks, {:.2f} ms total, {:.4f} ms avg",
                      num_chunks, mesh_elapsed, mesh_elapsed / num_chunks);
 
         m_is_initialized = true;
         spdlog::info("Engine is initialized. Starting the game");
+        auto ascii_logger = spdlog::stdout_color_mt("ascii");
+        ascii_logger->set_pattern("%v");
+
+        constexpr auto art = R"(
+=================================================================================
+
+             /$$      /$$                       /$$     /$$
+            | $$$    /$$$                      | $$    | $$
+            | $$$$  /$$$$  /$$$$$$  /$$$$$$$  /$$$$$$  | $$  /$$$$$$
+            | $$ $$/$$ $$ |____  $$| $$__  $$|_  $$_/  | $$ /$$__  $$
+            | $$  $$$| $$  /$$$$$$$| $$  \ $$  | $$    | $$| $$$$$$$$
+            | $$\  $ | $$ /$$__  $$| $$  | $$  | $$ /$$| $$| $$_____/
+            | $$ \/  | $$|  $$$$$$$| $$  | $$  |  $$$$/| $$|  $$$$$$$
+            |__/     |__/ \_______/|__/  |__/   \___/  |__/ \_______/
+
+=================================================================================
+)";
+        ascii_logger->info(art);
     }
 
     void Engine::run() {
