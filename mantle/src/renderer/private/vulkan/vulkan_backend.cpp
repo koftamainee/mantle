@@ -15,6 +15,7 @@ namespace mantle {
                              VirtualHeap *heap, ArenaAllocator *scratch_arena) {
         check(!m_is_initialized);
 
+        m_logger = spdlog::get("vulkan").get();
         m_heap = heap;
         m_scratch_arena = scratch_arena;
         m_vsync = vsync;
@@ -43,7 +44,7 @@ namespace mantle {
 
 
         m_is_initialized = true;
-        spdlog::info("Vulkan Backend is initialized");
+        m_logger->info("Vulkan backend initialized");
     }
 
     void VulkanBackend::destroy() {
@@ -53,7 +54,7 @@ namespace mantle {
             m_context.destroy();
             m_is_initialized = false;
 
-            spdlog::info("Vulkan Backend is destroyed");
+            m_logger->info("Vulkan backend destroyed");
         }
     }
 

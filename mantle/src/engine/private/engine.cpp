@@ -5,10 +5,9 @@
 #include <random>
 
 #include "core/assert.h"
+#include "core/logger.h"
 #include "core/memory/memory_units.h"
 #include "renderer/blackboard_types.h"
-#include "spdlog/sinks/stdout_color_sinks-inl.h"
-#include "spdlog/spdlog.h"
 #include "window/window.h"
 #include "world/light_propagation.h"
 
@@ -44,6 +43,8 @@ namespace mantle {
 
     void Engine::init() {
         check(!m_is_initialized);
+
+        m_logger = spdlog::get("engine").get();
 
         m_os_memory.init();
         m_heap.init(m_os_memory, gigabytes(2));
@@ -86,7 +87,7 @@ namespace mantle {
 
         m_rendering_arena.init(m_heap.take(megabytes(100)));
 
-        spdlog::info("Generating chunks. This might take a while...");
+        m_logger->info("Generating chunks. This might take a while...");
 
         f32 gen_start = static_cast<f32>(m_window.get_time());
         {
@@ -108,7 +109,7 @@ namespace mantle {
         }
         f32 gen_elapsed =
             (static_cast<f32>(m_window.get_time()) - gen_start) * 1000.0f;
-        spdlog::info("Generation: {} chunks, {:.2f} ms total, {:.4f} ms avg",
+        m_logger->info("Generation: {} chunks, {:.2f} ms total, {:.4f} ms avg",
                      num_chunks, gen_elapsed, gen_elapsed / num_chunks);
 
         f32 light_start = static_cast<f32>(m_window.get_time());
@@ -142,7 +143,7 @@ namespace mantle {
         }
         f32 light_elapsed =
             static_cast<f32>(m_window.get_time() - light_start) * 1000.0f;
-        spdlog::info("Light propagation: {:.2f} ms", light_elapsed);
+        m_logger->info("Light propagation: {:.2f} ms", light_elapsed);
 
         f32 mesh_start = static_cast<f32>(m_window.get_time());
         m_chunk_meshing_system.upload_dirty(m_renderer, m_chunk_storage_system,
@@ -150,14 +151,14 @@ namespace mantle {
                                             m_chunk_rendering_system);
         f32 mesh_elapsed =
             static_cast<f32>(m_window.get_time() - mesh_start) * 1000.0f;
-        spdlog::info("Meshing: {} chunks, {:.2f} ms total, {:.4f} ms avg",
+        m_logger->info("Meshing: {} chunks, {:.2f} ms total, {:.4f} ms avg",
                      num_chunks, mesh_elapsed, mesh_elapsed / num_chunks);
 
         m_is_initialized = true;
-        spdlog::info("Engine is initialized. Starting the game");
-        fflush(stdout);
+        m_logger->info("Engine initialized. Starting the game");
+
         constexpr auto art = R"(
-=================================================================================
+================================================================================
 
              /$$      /$$                       /$$     /$$
             | $$$    /$$$                      | $$    | $$
@@ -168,9 +169,9 @@ namespace mantle {
             | $$ \/  | $$|  $$$$$$$| $$  | $$  |  $$$$/| $$|  $$$$$$$
             |__/     |__/ \_______/|__/  |__/   \___/  |__/ \_______/
 
-=================================================================================
+================================================================================
 )";
-        printf("%s\n", art);
+        mantle::raw_logger()->info(art);
     }
 
     void Engine::run() {
@@ -191,7 +192,7 @@ namespace mantle {
                 f32 avg_ms = m_fps_frametime_accum /
                     static_cast<f32>(m_fps_frame_count) * 1000.0f;
 
-                spdlog::info("{} FPS | {:>4.1f} ms", m_fps_frame_count, avg_ms);
+                m_logger->info("{} FPS | {:>4.1f} ms", m_fps_frame_count, avg_ms);
 
                 m_fps_frame_count = 0;
                 m_fps_frametime_accum = 0.0f;
@@ -214,7 +215,7 @@ namespace mantle {
             m_renderer.destroy();
             m_window.destroy();
             m_is_initialized = false;
-            spdlog::info("Engine is destroyed");
+            m_logger->info("Engine destroyed");
         }
     }
 

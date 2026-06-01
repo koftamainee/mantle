@@ -8,6 +8,8 @@
 
 #include "core/memory/arena_allocator.h"
 
+namespace spdlog { class logger; }
+
 #ifndef NDEBUG
 #define ENABLE_VALIDATION_LAYERS
 #endif
@@ -75,5 +77,7 @@ namespace mantle {
 
         VkInstance m_instance = VK_NULL_HANDLE;
         VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+
+        spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

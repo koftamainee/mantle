@@ -20,6 +20,7 @@ namespace mantle {
                             VirtualHeap *heap, ArenaAllocator *scratch_arena) {
         check(!m_is_initialized);
 
+        m_logger = spdlog::get("vulkan").get();
         m_alloc_callbacks = vk_callbacks;
         m_resource = PersistentResource(heap);
         m_scratch_arena = scratch_arena;
@@ -75,7 +76,7 @@ namespace mantle {
         m_command_pool = create_command_pool(m_queue_indices.graphics_family);
         m_transfer_command_pool =
             create_command_pool(m_queue_indices.transfer_family);
-        spdlog::info("Logical device command pool created");
+        m_logger->info("Logical device command pool created");
     }
 
     void VulkanDevice::destroy() {
@@ -418,7 +419,7 @@ namespace mantle {
             if (is_physical_device_suitable(physical_device_candidate, surface,
                                             m_queue_indices)) {
                 m_physical_device = physical_device_candidate;
-                spdlog::info("Physical Device created");
+                m_logger->info("Physical device created");
                 break;
             }
         }
@@ -430,7 +431,7 @@ namespace mantle {
     void VulkanDevice::destroy_physical_device() {
         if (m_physical_device != VK_NULL_HANDLE) {
             m_physical_device = VK_NULL_HANDLE;
-            spdlog::info("Physical device destroyed");
+            m_logger->info("Physical device destroyed");
         }
     }
 
@@ -519,7 +520,7 @@ namespace mantle {
         vkGetDeviceQueue(m_device, m_queue_indices.transfer_family, 0,
                          &m_transfer_queue);
 
-        spdlog::info("Logical device created");
+        m_logger->info("Logical device created");
     }
 
     void VulkanDevice::destroy_logical_device() {
@@ -530,7 +531,7 @@ namespace mantle {
 
             m_queue_indices = QueueFamilyIndices{};
 
-            spdlog::info("Logical device destroyed");
+            m_logger->info("Logical device destroyed");
         }
     }
 
@@ -570,19 +571,19 @@ namespace mantle {
         vkGetPhysicalDeviceFeatures2(physical_device, &features2_query);
 
         if (!indexing_query.runtimeDescriptorArray) {
-            spdlog::warn("Device does not support runtimeDescriptorArray");
+            m_logger->warn("Device does not support runtimeDescriptorArray");
             return false;
         }
         if (!indexing_query.descriptorBindingPartiallyBound) {
-            spdlog::warn("Device does not support descriptorBindingPartiallyBound");
+            m_logger->warn("Device does not support descriptorBindingPartiallyBound");
             return false;
         }
         if (!vulkan13_query.synchronization2) {
-            spdlog::warn("Device does not support synchronization2");
+            m_logger->warn("Device does not support synchronization2");
             return false;
         }
         if (!vulkan13_query.dynamicRendering) {
-            spdlog::warn("Device does not support dynamicRendering");
+            m_logger->warn("Device does not support dynamicRendering");
             return false;
         }
 
@@ -627,7 +628,7 @@ namespace mantle {
             for (usize i = 0; i < extensions_count; i++) {
                 if (std::strcmp(required, extensions[i].extensionName) == 0) {
                     found = true;
-                    spdlog::trace("Found required device extension: {}",
+                    m_logger->trace("Found required device extension: {}",
                                   required);
                     break;
                 }
@@ -688,7 +689,7 @@ namespace mantle {
         }
 
         if (indices.transfer_family == UINT32_MAX) {
-            spdlog::trace("No separate transfer queue found. Fallback transfer "
+            m_logger->trace("No separate transfer queue found. Fallback transfer "
                           "queue = graphics_queue");
             indices.transfer_family = indices.graphics_family;
         }

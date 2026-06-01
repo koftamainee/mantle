@@ -14,6 +14,8 @@
 #include "core/types.h"
 #include "vulkan_types.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     class VulkanDevice final {
     public:
@@ -121,5 +123,7 @@ namespace mantle {
         static constexpr std::array<const char *, 1> ms_device_extensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         };
+
+        spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

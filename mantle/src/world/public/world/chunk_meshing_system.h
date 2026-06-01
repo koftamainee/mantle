@@ -5,6 +5,8 @@
 #include "glm/vec3.hpp"
 #include "world/chunk.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     class ArenaAllocator;
     class ChunkRenderingSystem;
@@ -33,5 +35,7 @@ namespace mantle {
 
       private:
         bool m_is_initialized = false;
+
+        mutable spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

@@ -24,6 +24,8 @@ namespace mantle {
                                ArenaAllocator *scratch_arena) {
         check(!m_is_initialized);
         check(device != VK_NULL_HANDLE);
+
+        m_logger = spdlog::get("vulkan").get();
         m_device = device;
         m_alloc_callbacks = vk_callbacks;
 
@@ -106,7 +108,7 @@ namespace mantle {
         }
 
         m_is_initialized = true;
-        spdlog::info("Swapchain {}x{} created", m_extent.width,
+        m_logger->info("Swapchain {}x{} created", m_extent.width,
                      m_extent.height);
     }
 
@@ -123,7 +125,7 @@ namespace mantle {
 
             m_device = VK_NULL_HANDLE;
             m_is_initialized = false;
-            spdlog::info("Swapchain destroyed");
+            m_logger->info("Swapchain destroyed");
         }
     }
 
@@ -178,23 +180,23 @@ namespace mantle {
         for (const auto &mode : present_modes) {
             if (vsync) {
                 if (mode == VK_PRESENT_MODE_FIFO_KHR) {
-                    spdlog::info("VSync enabled. Chosen present mode: "
-                                 "VK_PRESENT_MOD_FIFO_KHR");
+                    spdlog::get("vulkan")->info("VSync enabled. Chosen present mode: "
+                                                "VK_PRESENT_MOD_FIFO_KHR");
                     return mode;
                 }
             } else {
                 if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
-                    spdlog::info(
+                    spdlog::get("vulkan")->info(
                         "Chosen present mode: VK_PRESENT_MODE_MAILBOX_KHR");
                     return mode;
                 }
                 if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-                    spdlog::info("VK_PRESENT_MODE_MAILBOX_KHR is not found. "
-                                 "Using VK_PRESENT_MODE_IMMEDIATE_KHR");
+                    spdlog::get("vulkan")->info("VK_PRESENT_MODE_MAILBOX_KHR is not found. "
+                                                "Using VK_PRESENT_MODE_IMMEDIATE_KHR");
                     return mode;
                 }
                 if (mode == VK_PRESENT_MODE_FIFO_KHR) {
-                    spdlog::warn(
+                    spdlog::get("vulkan")->warn(
                         "VSync is off, but no preffered modes available. "
                         "Fallback to VK_PRESENT_MODE_FIFO_KHR");
                     return mode;

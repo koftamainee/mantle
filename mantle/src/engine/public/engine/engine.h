@@ -11,6 +11,8 @@
 #include "world/chunk_rendering_system.h"
 #include "world/chunk_storage_system.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     class Engine final {
       public:
@@ -61,5 +63,7 @@ namespace mantle {
 
         static constexpr f32 m_base_camera_speed = 5.0f;
         static constexpr f32 m_mouse_sensitivity = 0.5f;
+
+        spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

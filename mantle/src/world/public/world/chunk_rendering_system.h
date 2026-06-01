@@ -7,6 +7,8 @@
 #include "renderer/types.h"
 #include "world/chunk_meshing_system.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     class ArenaAllocator;
     class Renderer;
@@ -40,5 +42,7 @@ namespace mantle {
         u32 m_index_stride = 0;
 
         ChunkMeshSlot *m_slots = nullptr;
+
+        spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

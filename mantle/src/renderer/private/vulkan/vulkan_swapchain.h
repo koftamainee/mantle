@@ -15,6 +15,8 @@
 #include "core/memory/virtual_heap.h"
 #include "core/types.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
 
     class VulkanSwapchain final {
@@ -71,6 +73,8 @@ namespace mantle {
         VkSurfaceFormatKHR m_surface_format{};
         VkExtent2D m_extent{};
         VkPresentModeKHR m_present_mode{};
+
+        spdlog::logger *m_logger = nullptr;
     };
 
 } // namespace mantle

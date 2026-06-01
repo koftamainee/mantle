@@ -9,6 +9,8 @@
 #include "core/types.h"
 #include "glfw_custom_allocator.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     class Window final {
       public:
@@ -97,5 +99,7 @@ namespace mantle {
         std::array<bool, glfw_mb.size()> m_pressed_mb_prev{};
 
         std::function<void(u32, u32)> m_resize_callback{};
+
+        spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

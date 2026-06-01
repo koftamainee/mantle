@@ -14,6 +14,8 @@ namespace mantle {
                                   VkAllocationCallbacks *vk_callbacks) {
         check(!m_is_initialized);
 
+        m_logger = spdlog::get("renderer").get();
+
         auto load = [instance](const char *name) {
             return vkGetInstanceProcAddr(instance, name);
         };
@@ -93,7 +95,7 @@ namespace mantle {
         vk_verify(vmaCreateAllocator(&create_info, &m_allocator));
 
         m_is_initialized = true;
-        spdlog::info("VulkanMemoryAllocator is initialized");
+        m_logger->info("Vulkan memory allocator initialized");
     } // namespace mantle
 
     void VulkanGPUAllocator::destroy() {
@@ -101,7 +103,7 @@ namespace mantle {
             vmaDestroyAllocator(m_allocator);
             m_allocator = VK_NULL_HANDLE;
             m_is_initialized = false;
-            spdlog::info("VulkanMemoryAllocator is destroyed");
+            m_logger->info("Vulkan memory allocator destroyed");
         }
     }
 

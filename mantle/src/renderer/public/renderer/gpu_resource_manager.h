@@ -7,6 +7,8 @@
 #include "core/types.h"
 #include "renderer/types.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     struct SwapchainInfo;
     class VulkanBackend;
@@ -79,5 +81,7 @@ namespace mantle {
 
         bool m_is_initialized = false;
         Impl *m_impl = nullptr;
+
+        spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

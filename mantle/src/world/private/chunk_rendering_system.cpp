@@ -4,11 +4,12 @@
 #include <array>
 #include <cstring>
 
+#include "camera/camera.h"
 #include "core/assert.h"
-#include "helpers.h"
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"
 #include "core/memory/scope_arena.h"
+#include "helpers.h"
 #include "math/aabb.h"
 #include "math/frustum.h"
 #include "renderer/blackboard_types.h"
@@ -29,6 +30,7 @@ namespace mantle {
                                     u32 max_chunks) {
         check(!m_is_initialized);
 
+        m_logger = spdlog::get("world").get();
         m_renderer = &renderer;
         m_max_chunks = max_chunks;
         auto &rm = renderer.resource_manager();
@@ -107,7 +109,7 @@ namespace mantle {
         }
 
         m_is_initialized = true;
-        spdlog::info(
+        m_logger->info(
             "Chunk rendering system initialized ({} chunks, {} MB total)",
             max_chunks,
             (static_cast<u64>(max_chunks) * (m_vertex_stride + m_index_stride)) /
@@ -121,7 +123,7 @@ namespace mantle {
             rm.destroy_buffer(m_index_buffer);
             rm.destroy_graphics_pipeline(m_mesh_pipeline);
             m_is_initialized = false;
-            spdlog::info("Chunk rendering system destroyed");
+            m_logger->info("Chunk rendering system destroyed");
         }
     }
 
@@ -144,6 +146,7 @@ namespace mantle {
             FGBufferHandle index;
             FGImageHandle color;
             FGImageHandle depth;
+            glm::mat4 camera_data;
         };
 
         graph.add_pass<RenderPass>(
@@ -160,11 +163,12 @@ namespace mantle {
                 pass.color =
                     builder.write(backbuffer, WriteUsage::ColorAttachment);
                 builder.write(pass.depth, WriteUsage::DepthAttachment);
+                pass.camera_data = camera_data.view_proj;
             },
-            [this, width, height, camera_data](FGPassContext &ctx,
+            [this, width, height](FGPassContext &ctx,
                                                const RenderPass &pass) {
                 Frustum frustum;
-                frustum.extract(camera_data.view_proj);
+                frustum.extract(pass.camera_data);
 
                 std::array<FGColorAttachment, 1> colors = {{
                     {
@@ -189,7 +193,7 @@ namespace mantle {
                                  static_cast<f32>(height));
                 ctx.set_scissor(0, 0, width, height);
                 ctx.bind_pipeline(m_mesh_pipeline);
-                ctx.push_constants(&camera_data.view_proj, ShaderStage::Vertex);
+                ctx.push_constants(&pass.camera_data, ShaderStage::Vertex);
 
                 for (u32 i = 0; i < m_max_chunks; i++) {
                     const auto &slot = m_slots[i];

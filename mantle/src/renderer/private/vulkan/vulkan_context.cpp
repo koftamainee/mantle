@@ -30,24 +30,24 @@ namespace {
             return "unknown";
         };
 
-        auto msg = fmt::format("[vulkan] [{}] {}", type_to_str(type),
+        auto msg = fmt::format("[VVL] [{}] {}", type_to_str(type),
                                p_callback_data->pMessage);
 
         switch (severity) {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-            spdlog::trace(msg);
+            spdlog::get("vulkan")->trace(msg);
             break;
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-            spdlog::info(msg);
+            spdlog::get("vulkan")->info(msg);
             break;
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-            spdlog::warn(msg);
+            spdlog::get("vulkan")->warn(msg);
             break;
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-            spdlog::error(msg);
+            spdlog::get("vulkan")->error(msg);
             break;
         default:
-            spdlog::info(msg);
+            spdlog::get("vulkan")->info(msg);
             break;
         }
 
@@ -66,6 +66,7 @@ namespace mantle {
                              VkAllocationCallbacks *vk_callbacks) {
         check(!m_is_initialized);
 
+        m_logger = spdlog::get("vulkan").get();
         m_alloc_callbacks = vk_callbacks;
         m_scratch_arena = scratch_arena;
 
@@ -140,14 +141,14 @@ namespace mantle {
 
         vk_verify(vkCreateInstance(&instance_create_info, m_alloc_callbacks,
                                    &m_instance));
-        spdlog::info("Vulkan Instance Created");
+        m_logger->info("Vulkan instance created");
     }
 
     void VulkanContext::destroy_instance() {
         if (m_instance != VK_NULL_HANDLE) {
             vkDestroyInstance(m_instance, m_alloc_callbacks);
             m_instance = VK_NULL_HANDLE;
-            spdlog::info("Vulkan Instance Destroyed");
+            m_logger->info("Vulkan instance destroyed");
         }
     }
 
@@ -172,7 +173,7 @@ namespace mantle {
 
         vk_verify(vk_create_debug_utils_messenger(
             m_instance, &create_info, m_alloc_callbacks, &m_debug_messenger));
-        spdlog::info("Debug Messenger Created");
+        m_logger->info("Debug messenger created");
     }
 
     void VulkanContext::destroy_debug_messenger_ext() {
@@ -190,7 +191,7 @@ namespace mantle {
             }
 
             m_debug_messenger = VK_NULL_HANDLE;
-            spdlog::info("Debug Messenger destroyed");
+            m_logger->info("Debug messenger destroyed");
         }
     }
 #endif
@@ -203,7 +204,7 @@ namespace mantle {
                                       &m_surface) != VK_SUCCESS,
               "Failed to create surface");
 
-        spdlog::info("Surface Created");
+        m_logger->info("Surface created");
     }
 
     void VulkanContext::destroy_surface() {
@@ -213,7 +214,7 @@ namespace mantle {
             vkDestroySurfaceKHR(m_instance, m_surface, m_alloc_callbacks);
             m_surface = VK_NULL_HANDLE;
 
-            spdlog::info("Surface destroyed");
+            m_logger->info("Surface destroyed");
         }
     }
 
@@ -240,7 +241,7 @@ namespace mantle {
             for (const auto &[extension_name, _] : vk_extensions) {
                 if (std::strcmp(extension_name, glfw_extensions[i]) == 0) {
                     found = true;
-                    spdlog::trace("Found extension: {}", extension_name);
+                    spdlog::get("vulkan")->trace("Found extension: {}", extension_name);
                     break;
                 }
             }
@@ -259,8 +260,7 @@ namespace mantle {
 
 #ifdef ENABLE_VALIDATION_LAYERS
         extensions[glfw_extensions_count] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-        spdlog::info(
-            "Validation layers are enabled. Enabling VK_EXT_debug_utils");
+        spdlog::get("vulkan")->info("Validation layers are enabled. Enabling VK_EXT_debug_utils");
 #endif
 
         return extensions;
@@ -301,7 +301,7 @@ namespace mantle {
             for (const auto &vk_layer : vk_layers) {
                 if (strcmp(needed_layer, vk_layer.layerName) == 0) {
                     found = true;
-                    spdlog::trace("Found validation layer: {}", needed_layer);
+                    spdlog::get("vulkan")->trace("Found validation layer: {}", needed_layer);
                     break;
                 }
             }

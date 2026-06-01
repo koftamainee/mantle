@@ -17,6 +17,7 @@ namespace mantle {
         check(backend != nullptr);
         check(frames_in_flight > 0);
 
+        m_logger = spdlog::get("vulkan").get();
         m_frame_arena.init(heap->take(megabytes(1)));
         m_pmr = ArenaResource(&m_frame_arena);
 
@@ -76,7 +77,7 @@ namespace mantle {
         m_recorder.set_arena(&m_pmr);
 
         m_is_initialized = true;
-        spdlog::info("Frame scheduler is initialized");
+        m_logger->info("Frame scheduler initialized");
     }
 
     void FrameScheduler::destroy() {
@@ -99,7 +100,7 @@ namespace mantle {
             vkDestroyCommandPool(vk_device, m_command_pool, vk_callbacks);
 
             m_is_initialized = false;
-            spdlog::info("Frame scheduler is destroyed");
+            m_logger->info("Frame scheduler destroyed");
         }
     }
 

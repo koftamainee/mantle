@@ -4,6 +4,8 @@
 #include "glm/vec3.hpp"
 #include "noise/sampler.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     enum class VoxelType : u16 {
         Air = 0,
@@ -35,5 +37,6 @@ namespace mantle {
         Sampler<f32 (*)(glm::vec3)> m_moss_noise{};
         Sampler<f32 (*)(glm::vec2)> m_floor_noise{};
 
+        spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

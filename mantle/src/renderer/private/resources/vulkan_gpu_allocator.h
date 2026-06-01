@@ -5,6 +5,8 @@
 #include "core/macros.h"
 #include "vma/vk_mem_alloc.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     class VulkanGPUAllocator final {
       public:
@@ -41,5 +43,7 @@ namespace mantle {
       private:
         VmaAllocator m_allocator{};
         bool m_is_initialized = false;
+
+        spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

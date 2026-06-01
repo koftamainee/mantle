@@ -19,8 +19,9 @@ namespace mantle {
 
     void ChunkMeshingSystem::init() {
         check(!m_is_initialized);
+        m_logger = spdlog::get("world").get();
         m_is_initialized = true;
-        spdlog::info("Chunk meshing system initialized");
+        m_logger->info("Chunk meshing system initialized");
     }
 
     void ChunkMeshingSystem::destroy() {
@@ -154,7 +155,7 @@ namespace mantle {
 
                 u32 q = mesh.quad_count;
                 if (q > MAX_QUADS_PER_CHUNK) {
-                    spdlog::warn("Chunk mesh truncated: {} → {} quads", q,
+                    m_logger->warn("Chunk mesh truncated: {} → {} quads", q,
                                  MAX_QUADS_PER_CHUNK);
                     q = MAX_QUADS_PER_CHUNK;
                 }

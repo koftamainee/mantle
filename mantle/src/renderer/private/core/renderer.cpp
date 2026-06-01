@@ -78,6 +78,8 @@ namespace mantle {
                         ArenaAllocator *scratch_arena) {
         check(!m_is_initialized);
 
+        m_logger = spdlog::get("renderer").get();
+
         PersistentAllocator alloc;
         alloc.init(heap);
         m_impl = alloc.emplace<Impl>();
@@ -98,7 +100,7 @@ namespace mantle {
                                          &m_impl->resource_manager);
 
         m_is_initialized = true;
-        spdlog::info("Renderer is initialized");
+        m_logger->info("Renderer initialized");
     }
 
     void Renderer::destroy() {
@@ -116,7 +118,7 @@ namespace mantle {
         m_impl->backend.destroy();
         m_impl = nullptr;
         m_is_initialized = false;
-        spdlog::info("Renderer is destroyed");
+        m_logger->info("Renderer destroyed");
     }
 
     Renderer::Result Renderer::begin_frame() {
@@ -166,10 +168,8 @@ namespace mantle {
                     resource_manager.m_impl->get_image(img_handle);
 
                 if (img.current_layout != required_layout) {
-                    PipelineStage src_stage =
-                        infer_stage(img.current_layout);
-                    AccessType src_access =
-                        infer_access(img.current_layout);
+                    PipelineStage src_stage = infer_stage(img.current_layout);
+                    AccessType src_access = infer_access(img.current_layout);
 
                     barriers.push_back({
                         .image = &img,
@@ -185,7 +185,8 @@ namespace mantle {
             };
 
             for (auto &read : graph.m_image_reads) {
-                if (read.pass_index != pass_idx) continue;
+                if (read.pass_index != pass_idx)
+                    continue;
                 ImageLayout layout = read_usage_to_layout(read.usage);
                 PipelineStage stage = read_usage_to_stage(read.usage);
                 AccessType access = read_usage_to_access(read.usage);
@@ -193,7 +194,8 @@ namespace mantle {
             }
 
             for (auto &write : graph.m_image_writes) {
-                if (write.pass_index != pass_idx) continue;
+                if (write.pass_index != pass_idx)
+                    continue;
                 ImageLayout layout = write_usage_to_layout(write.usage);
                 PipelineStage stage = write_usage_to_stage(write.usage);
                 AccessType access = write_usage_to_access(write.usage);
@@ -230,20 +232,18 @@ namespace mantle {
             };
 
             for (auto &read : graph.m_buffer_reads) {
-                if (read.pass_index != pass_idx) continue;
-                PipelineStage stage =
-                    buffer_read_usage_to_stage(read.usage);
-                AccessType access =
-                    buffer_read_usage_to_access(read.usage);
+                if (read.pass_index != pass_idx)
+                    continue;
+                PipelineStage stage = buffer_read_usage_to_stage(read.usage);
+                AccessType access = buffer_read_usage_to_access(read.usage);
                 resolve_buffer(read.handle, stage, access);
             }
 
             for (auto &write : graph.m_buffer_writes) {
-                if (write.pass_index != pass_idx) continue;
-                PipelineStage stage =
-                    buffer_write_usage_to_stage(write.usage);
-                AccessType access =
-                    buffer_write_usage_to_access(write.usage);
+                if (write.pass_index != pass_idx)
+                    continue;
+                PipelineStage stage = buffer_write_usage_to_stage(write.usage);
+                AccessType access = buffer_write_usage_to_access(write.usage);
                 resolve_buffer(write.handle, stage, access);
             }
 
@@ -259,7 +259,7 @@ namespace mantle {
                 .scratch_resource = &frame_scheduler.frame_arena_resource(),
             };
 
-            FGPassContext ctx;
+            FGPassContext ctx{};
             ctx.init(&ctx_impl);
             pass.execute_fn(pass.execute_data, ctx);
         }

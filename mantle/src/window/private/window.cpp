@@ -16,16 +16,17 @@ namespace mantle {
     void Window::init(const Properties &properties, VirtualHeap *heap) {
         check(!m_is_initialized);
 
+        m_logger = spdlog::get("window").get();
         m_tlsf_alloc.init(heap->take(kilobytes(128)));
         m_glfw_alloc.init(&m_tlsf_alloc);
 
         glfwInitAllocator(m_glfw_alloc.glfw_alloc());
 
         glfwSetErrorCallback([](int error, const char *desc) {
-            spdlog::error("GLFW error {}: {}", error, desc);
+            spdlog::get("window")->error("GLFW error {}: {}", error, desc);
         });
         fatal(!glfwInit(), "Failed to initialize GLFW");
-        spdlog::info("GLFW initialized");
+        m_logger->info("GLFW initialized");
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -40,7 +41,7 @@ namespace mantle {
 
         glfwSetWindowUserPointer(m_native_window, this);
 
-        spdlog::info("Window created: {} ({}x{})", properties.title.data(),
+        m_logger->info("Window created: {} ({}x{})", properties.title.data(),
                      properties.size.width, properties.size.height);
         m_is_initialized = true;
     }
@@ -49,9 +50,9 @@ namespace mantle {
         if (m_is_initialized) {
             glfwDestroyWindow(m_native_window);
             m_native_window = nullptr;
-            spdlog::info("GLFW window destroyed");
+            m_logger->info("GLFW window destroyed");
             glfwTerminate();
-            spdlog::info("GLFW terminated");
+            m_logger->info("GLFW terminated");
 
             m_is_initialized = false;
         }

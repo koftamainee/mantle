@@ -8,6 +8,8 @@
 #include "vulkan_swapchain.h"
 #include "window/window.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
     enum class SwapchainResult {
         Ok,
@@ -57,6 +59,8 @@ namespace mantle {
         VulkanCPUAllocator m_vk_allocator{};
 
         bool m_vsync = true;
+
+        spdlog::logger *m_logger = nullptr;
     };
 
 

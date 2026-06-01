@@ -1070,13 +1070,12 @@ namespace mantle {
 
     void GPUResourceManager::init(VulkanBackend *backend) {
         check(!m_is_initialized);
-        check(backend != nullptr);
 
+        m_logger = spdlog::get("renderer").get();
         PersistentAllocator alloc;
         alloc.init(backend->m_heap);
         m_impl = alloc.emplace<Impl>();
         check(m_impl != nullptr);
-
         m_impl->backend = backend;
         m_impl->resource = PersistentResource(m_impl->backend->m_heap);
 
@@ -1127,7 +1126,7 @@ namespace mantle {
             std::pmr::vector<u32>(&m_impl->resource);
 
         m_is_initialized = true;
-        spdlog::info("GPU resource manager is initialized");
+        m_logger->info("GPU resource manager initialized");
     }
 
     void GPUResourceManager::destroy() {
@@ -1183,7 +1182,7 @@ namespace mantle {
             m_impl->gpu_allocator.destroy();
 
             m_is_initialized = false;
-            spdlog::info("GPU resource manager is destroyed");
+            m_logger->info("GPU resource manager destroyed");
         }
     }
 

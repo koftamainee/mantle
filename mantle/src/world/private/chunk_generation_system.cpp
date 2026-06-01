@@ -11,6 +11,7 @@ namespace mantle {
 
     void ChunkGenerationSystem::init(u32 seed) {
         check(!m_is_initialized);
+        m_logger = spdlog::get("world").get();
         m_cave_noise = {
             .noise_fn = simplex3,
             .seed = seed,
@@ -57,12 +58,12 @@ namespace mantle {
         };
 
         m_is_initialized = true;
-        spdlog::info("Chunk generation system is initialized");
+        m_logger->info("Chunk generation system initialized");
     }
 
     void ChunkGenerationSystem::destroy() {
         if (m_is_initialized) {
-            spdlog::info("Chunk generation system is destroyed");
+            m_logger->info("Chunk generation system destroyed");
             m_is_initialized = false;
         }
     }

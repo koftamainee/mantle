@@ -10,6 +10,8 @@
 #include "core/memory/virtual_heap.h"
 #include "core/types.h"
 
+namespace spdlog { class logger; }
+
 namespace mantle {
 
     class VulkanBackend;
@@ -67,6 +69,8 @@ namespace mantle {
         VkCommandPool m_command_pool{};
         FrameData *m_frames = nullptr;
         CommandRecorder m_recorder;
+
+        spdlog::logger *m_logger = nullptr;
     };
 
 } // namespace mantle
