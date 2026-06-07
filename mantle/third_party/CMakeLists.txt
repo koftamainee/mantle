@@ -1,6 +1,15 @@
 add_subdirectory(glm)
 
 
+# flecs
+set(FLECS_SHARED OFF CACHE BOOL "" FORCE)
+set(FLECS_STATIC ON CACHE BOOL "" FORCE)
+set(FLECS_TESTS OFF CACHE BOOL "" FORCE)
+set(FLECS_PIC ON CACHE BOOL "" FORCE)
+add_subdirectory(flecs)
+add_library(flecs ALIAS flecs_static)
+
+
 # SDL3
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)

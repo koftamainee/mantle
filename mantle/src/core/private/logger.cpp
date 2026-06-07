@@ -28,6 +28,7 @@ namespace mantle {
         make_logger("world");
         make_logger("window");
         make_logger("core");
+        make_logger("ecs");
 
         spdlog::set_default_logger(spdlog::get("engine"));
 

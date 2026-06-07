@@ -1,11 +1,11 @@
 #pragma once
-#include "camera/camera.h"
 #include "renderer/renderer.h"
 #include "window/window.h"
 
 #include "core/concurrency/worker_pool.h"
 #include "core/memory/arena_allocator.h"
 #include "core/memory/virtual_heap.h"
+#include "ecs/ecs.h"
 #include "world/chunk_generation_system.h"
 #include "world/chunk_meshing_system.h"
 #include "world/chunk_rendering_system.h"
@@ -32,8 +32,8 @@ namespace mantle {
       private:
         bool m_is_initialized = false;
         Window m_window{};
+        Ecs m_ecs{};
         Renderer m_renderer{};
-        Camera m_camera{};
         ChunkGenerationSystem m_chunk_generation_system{};
 
         OSMemory m_os_memory;

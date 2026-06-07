@@ -16,3 +16,6 @@
 [submodule "mantle/third_party/sdl"]
 	path = mantle/third_party/sdl
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "mantle/third_party/flecs"]
+	path = mantle/third_party/flecs
+	url = git@github.com:SanderMertens/flecs.git

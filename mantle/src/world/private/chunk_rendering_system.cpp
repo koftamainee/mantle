@@ -3,8 +3,6 @@
 
 #include <array>
 #include <cstring>
-
-#include "camera/camera.h"
 #include "core/assert.h"
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"

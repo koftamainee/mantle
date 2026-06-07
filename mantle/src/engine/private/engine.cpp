@@ -61,19 +61,20 @@ namespace mantle {
 
         m_window.init({}, &m_heap);
 
-        m_renderer.init(m_window, false, &m_heap, &m_scratch_arena);
+        f32 camera_aspect = static_cast<f32>(m_window.get_width())
+           / static_cast<f32>(m_window.get_height());
 
-        m_camera.aspect = static_cast<f32>(m_window.get_width()) /
-            static_cast<f32>(m_window.get_height());
+        m_ecs.init(m_window, camera_aspect);
+
+        m_renderer.init(m_window, false, &m_heap, &m_scratch_arena);
 
         m_window.set_resize_callback([this](u32 w, u32 h) {
             m_logger->info(
                 "Swapchain recreation triggered by window resize: {}x{}", w, h);
             m_renderer.resize_swapchain(w, h);
-            m_camera.aspect = static_cast<f32>(w) / static_cast<f32>(h);
+            m_ecs.set_camera_aspect(static_cast<f32>(w) / static_cast<f32>(h));
         });
 
-        m_camera.position = glm::vec3(1.6f, 3.0f, 1.6f);
 
         m_last_time = 0;
 
@@ -232,6 +233,7 @@ namespace mantle {
     }
     void Engine::destroy() {
         if (m_is_initialized) {
+            m_ecs.destroy();
             m_worker_pool.destroy();
             m_chunk_storage_system.destroy();
             m_chunk_generation_system.destroy();
@@ -246,80 +248,7 @@ namespace mantle {
 
     void Engine::update(f32 delta_time) {
         m_window.update();
-
-        bool is_sprinting = false;
-
-        constexpr f32 stick_deadzone = 0.15f;
-        constexpr f32 trigger_deadzone = 0.1f;
-
-        f32 rx = m_window.get_controller_axis(Window::ControllerAxis::RightX);
-        f32 ry = m_window.get_controller_axis(Window::ControllerAxis::RightY);
-        if (std::abs(rx) > stick_deadzone || std::abs(ry) > stick_deadzone) {
-            m_camera.rotate(rx * m_controller_look_sensitivity * delta_time,
-                            -ry * m_controller_look_sensitivity * delta_time);
-        }
-
-        f32 lx = m_window.get_controller_axis(Window::ControllerAxis::LeftX);
-        f32 ly = m_window.get_controller_axis(Window::ControllerAxis::LeftY);
-        if (std::abs(lx) > stick_deadzone) {
-            m_camera.position +=
-                m_camera.right * lx * m_camera_speed * delta_time;
-        }
-        if (std::abs(ly) > stick_deadzone) {
-            m_camera.position -=
-                m_camera.front * ly * m_camera_speed * delta_time;
-        }
-
-        f32 lt =
-            m_window.get_controller_axis(Window::ControllerAxis::LeftTrigger);
-        f32 rt =
-            m_window.get_controller_axis(Window::ControllerAxis::RightTrigger);
-        if (lt > trigger_deadzone) {
-            m_camera.position -=
-                Camera::world_up * lt * m_camera_speed * delta_time;
-        }
-        if (rt > trigger_deadzone) {
-            m_camera.position +=
-                Camera::world_up * rt * m_camera_speed * delta_time;
-        }
-
-        if (m_window.is_controller_button_pressed(
-                Window::ControllerButton::B)) {
-            is_sprinting = true;
-            m_window.set_controller_rumble(0x6000, 0x1000, UINT32_MAX);
-        } else {
-            m_window.stop_controller_rumble();
-        }
-
-        Window::MouseDelta md = m_window.get_mouse_delta();
-        md.x *= m_mouse_sensitivity;
-        md.y *= m_mouse_sensitivity;
-
-        m_camera.rotate(md.x, md.y);
-
-        if (m_window.is_key_pressed(Window::Key::W)) {
-            m_camera.position += m_camera.front * m_camera_speed * delta_time;
-        }
-        if (m_window.is_key_pressed(Window::Key::S)) {
-            m_camera.position -= m_camera.front * m_camera_speed * delta_time;
-        }
-        if (m_window.is_key_pressed(Window::Key::A)) {
-            m_camera.position -= m_camera.right * m_camera_speed * delta_time;
-        }
-        if (m_window.is_key_pressed(Window::Key::D)) {
-            m_camera.position += m_camera.right * m_camera_speed * delta_time;
-        }
-        if (m_window.is_key_pressed(Window::Key::LShift)) {
-            m_camera.position -= Camera::world_up * m_camera_speed * delta_time;
-        }
-        if (m_window.is_key_pressed(Window::Key::Space)) {
-            m_camera.position += Camera::world_up * m_camera_speed * delta_time;
-        }
-
-        is_sprinting = m_window.is_key_pressed(Window::Key::LControl);
-
-        m_camera_speed =
-            is_sprinting ? m_base_camera_speed * 2 : m_base_camera_speed;
+        m_ecs.update(delta_time);
     }
 
     void Engine::render() {
@@ -346,7 +275,7 @@ namespace mantle {
 
         auto &bb = graph.blackboard();
         bb.add(BbBackbuffer{backbuffer});
-        bb.add(BbCameraData{m_camera.gpu_data().view_proj});
+        bb.add(BbCameraData{m_ecs.camera_view_proj()});
         bb.add(BbFramebufferSize{width, height});
 
         m_chunk_rendering_system.add_passes(graph, bb);
