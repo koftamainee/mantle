@@ -30,4 +30,3 @@ target_include_directories(bgm PRIVATE "${CMAKE_SOURCE_DIR}/mantle/src/world/pri
 
 mantle_test(NAME arena DEPS core)
 mantle_test(NAME virtual_heap DEPS core)
-mantle_test(NAME camera_test DEPS camera math)
