@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       skipped: ${{ steps.check.outputs.skipped }}
+      committed: ${{ steps.commit.outputs.committed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,6 +78,7 @@ jobs:
         run: cmake --build build --target mantle-format
 
       - name: Commit formatting changes
+        id: commit
         if: steps.check.outputs.skipped == 'false'
         shell: bash
         run: |
@@ -86,12 +88,14 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "Format code [disable-format]"
             git push
-            echo "committed=true" >> $GITHUB_ENV
+            echo "committed=true" >> $GITHUB_OUTPUT
+          else
+            echo "committed=false" >> $GITHUB_OUTPUT
           fi
 
   build:
     needs: format
-    if: needs.format.outputs.skipped == 'false' && env.committed != 'true'
+    if: needs.format.outputs.skipped == 'false' && needs.format.outputs.committed == 'false'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
