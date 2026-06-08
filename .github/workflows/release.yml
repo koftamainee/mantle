@@ -315,7 +315,7 @@ jobs:
           echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
       - name: Notify
-        uses: ./.github/workflows/notify.yml
+        uses: ./.github/actions/notify/
         with:
           success:          ${{ steps.status.outputs.success }}
           workflow:         "Daily Release (${{ needs.info.outputs.tag }})"
