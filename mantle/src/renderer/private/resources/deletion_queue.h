@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
 
@@ -25,12 +27,11 @@ namespace mantle {
             m_arena.init(heap->take(kilobytes(256)));
             m_resource = ArenaResource(&m_arena);
             m_deletors = std::pmr::vector<Deletor>(&m_resource);
-        }   
+        }
 
         template <typename T>
         void push(T *ptr) {
-            m_deletors.push_back(
-                {[](void *p) { static_cast<T *>(p)->~T(); }, ptr});
+            m_deletors.push_back({[](void *p) { static_cast<T *>(p)->~T(); }, ptr});
         }
 
         template <typename F>
@@ -64,7 +65,7 @@ namespace mantle {
         };
 
         std::pmr::vector<Deletor> m_deletors;
-        ArenaAllocator m_arena;
-        ArenaResource m_resource;
+        ArenaAllocator            m_arena;
+        ArenaResource             m_resource;
     };
 } // namespace mantle

@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(cmake/output_dirs.cmake)
 include(cmake/compile_flags.cmake)
+include(cmake/tooling.cmake)
 
 execute_process(COMMAND git -C "${CMAKE_SOURCE_DIR}" describe --always --dirty
     OUTPUT_VARIABLE MANTLE_GIT_HASH

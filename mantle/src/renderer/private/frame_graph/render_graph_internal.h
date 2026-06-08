@@ -5,169 +5,266 @@
 
 namespace mantle {
 
-inline ImageLayout write_usage_to_layout(WriteUsage usage) {
-    switch (usage) {
-    case WriteUsage::ColorAttachment:
-        return ImageLayout::ColorAttachment;
-    case WriteUsage::DepthAttachment:
-        return ImageLayout::DepthAttachment;
-    case WriteUsage::StorageWrite:
-        return ImageLayout::General;
-    case WriteUsage::TransferDst:
-        return ImageLayout::TransferDst;
-    case WriteUsage::Clear:
-        return ImageLayout::General;
-    case WriteUsage::Present:
-        return ImageLayout::Present;
-    default:
-        MANTLE_FATAL(true, "unknown WriteUsage");
-    }
-}
+    inline ImageLayout write_usage_to_layout(WriteUsage usage) {
+        auto result = ImageLayout::Undefined;
 
-inline PipelineStage write_usage_to_stage(WriteUsage usage) {
-    switch (usage) {
-    case WriteUsage::ColorAttachment:
-        return PipelineStage::ColorOutput;
-    case WriteUsage::DepthAttachment:
-        return PipelineStage::EarlyDepth;
-    case WriteUsage::StorageWrite:
-        return PipelineStage::ComputeShader;
-    case WriteUsage::TransferDst:
-        return PipelineStage::Transfer;
-    case WriteUsage::Clear:
-        return PipelineStage::Transfer;
-    case WriteUsage::Present:
-        return PipelineStage::Bottom;
-    default:
-        MANTLE_FATAL(true, "unknown WriteUsage");
-    }
-}
+        switch (usage) {
+            case WriteUsage::ColorAttachment: {
+                result = ImageLayout::ColorAttachment;
+            } break;
+            case WriteUsage::DepthAttachment: {
+                result = ImageLayout::DepthAttachment;
+            } break;
+            case WriteUsage::StorageWrite: {
+                result = ImageLayout::General;
+            } break;
+            case WriteUsage::TransferDst: {
+                result = ImageLayout::TransferDst;
+            } break;
+            case WriteUsage::Clear: {
+                result = ImageLayout::General;
+            } break;
+            case WriteUsage::Present: {
+                result = ImageLayout::Present;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown WriteUsage");
+            } break;
+        }
 
-inline AccessType write_usage_to_access(WriteUsage usage) {
-    switch (usage) {
-    case WriteUsage::ColorAttachment:
-        return AccessType::ColorAttachmentWrite;
-    case WriteUsage::DepthAttachment:
-        return AccessType::DepthAttachmentWrite;
-    case WriteUsage::StorageWrite:
-        return AccessType::ShaderWrite;
-    case WriteUsage::TransferDst:
-        return AccessType::TransferWrite;
-    case WriteUsage::Clear:
-        return AccessType::TransferWrite;
-    case WriteUsage::Present:
-        return AccessType::None;
-    default:
-        MANTLE_FATAL(true, "unknown WriteUsage");
+        return result;
     }
-}
 
-inline ImageLayout read_usage_to_layout(ReadUsage usage) {
-    switch (usage) {
-    case ReadUsage::Sampled:
-        return ImageLayout::ShaderReadOnly;
-    case ReadUsage::StorageRead:
-        return ImageLayout::General;
-    case ReadUsage::InputAttachment:
-        return ImageLayout::ShaderReadOnly;
-    case ReadUsage::TransferSrc:
-        return ImageLayout::TransferSrc;
-    case ReadUsage::IndirectArg:
-        return ImageLayout::ShaderReadOnly;
-    default:
-        MANTLE_FATAL(true, "unknown ReadUsage");
-    }
-}
+    inline PipelineStage write_usage_to_stage(WriteUsage usage) {
+        auto result = PipelineStage::Top;
 
-inline PipelineStage read_usage_to_stage(ReadUsage usage) {
-    switch (usage) {
-    case ReadUsage::Sampled:
-        return PipelineStage::FragmentShader;
-    case ReadUsage::StorageRead:
-        return PipelineStage::ComputeShader;
-    case ReadUsage::InputAttachment:
-        return PipelineStage::FragmentShader;
-    case ReadUsage::TransferSrc:
-        return PipelineStage::Transfer;
-    case ReadUsage::IndirectArg:
-        return PipelineStage::DrawIndirect;
-    default:
-        MANTLE_FATAL(true, "unknown ReadUsage");
-    }
-}
+        switch (usage) {
+            case WriteUsage::ColorAttachment: {
+                result = PipelineStage::ColorOutput;
+            } break;
+            case WriteUsage::DepthAttachment: {
+                result = PipelineStage::EarlyDepth;
+            } break;
+            case WriteUsage::StorageWrite: {
+                result = PipelineStage::ComputeShader;
+            } break;
+            case WriteUsage::TransferDst: {
+                result = PipelineStage::Transfer;
+            } break;
+            case WriteUsage::Clear: {
+                result = PipelineStage::Transfer;
+            } break;
+            case WriteUsage::Present: {
+                result = PipelineStage::Bottom;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown WriteUsage");
+            } break;
+        }
 
-inline AccessType read_usage_to_access(ReadUsage usage) {
-    switch (usage) {
-    case ReadUsage::Sampled:
-        return AccessType::ShaderRead;
-    case ReadUsage::StorageRead:
-        return AccessType::ShaderRead;
-    case ReadUsage::InputAttachment:
-        return AccessType::ShaderRead;
-    case ReadUsage::TransferSrc:
-        return AccessType::TransferRead;
-    default:
-        MANTLE_FATAL(true, "unknown ReadUsage");
+        return result;
     }
-}
 
-inline PipelineStage buffer_read_usage_to_stage(BufferReadUsage usage) {
-    switch (usage) {
-    case BufferReadUsage::Vertex:
-    case BufferReadUsage::Index:
-        return PipelineStage::VertexInput;
-    case BufferReadUsage::Uniform:
-        return PipelineStage::FragmentShader;
-    case BufferReadUsage::Storage:
-        return PipelineStage::ComputeShader;
-    case BufferReadUsage::TransferSrc:
-        return PipelineStage::Transfer;
-    case BufferReadUsage::IndirectArg:
-        return PipelineStage::DrawIndirect;
-    default:
-        MANTLE_FATAL(true, "unknown BufferReadUsage");
-    }
-}
+    inline AccessType write_usage_to_access(WriteUsage usage) {
+        auto result = AccessType::None;
 
-inline AccessType buffer_read_usage_to_access(BufferReadUsage usage) {
-    switch (usage) {
-    case BufferReadUsage::Vertex:
-        return AccessType::VertexAttributeRead;
-    case BufferReadUsage::Index:
-        return AccessType::IndexRead;
-    case BufferReadUsage::Uniform:
-        return AccessType::UniformRead;
-    case BufferReadUsage::Storage:
-        return AccessType::ShaderRead;
-    case BufferReadUsage::TransferSrc:
-        return AccessType::TransferRead;
-    case BufferReadUsage::IndirectArg:
-        return AccessType::IndirectCommandRead;
-    default:
-        MANTLE_FATAL(true, "unknown BufferReadUsage");
-    }
-}
+        switch (usage) {
+            case WriteUsage::ColorAttachment: {
+                result = AccessType::ColorAttachmentWrite;
+            } break;
+            case WriteUsage::DepthAttachment: {
+                result = AccessType::DepthAttachmentWrite;
+            } break;
+            case WriteUsage::StorageWrite: {
+                result = AccessType::ShaderWrite;
+            } break;
+            case WriteUsage::TransferDst: {
+                result = AccessType::TransferWrite;
+            } break;
+            case WriteUsage::Clear: {
+                result = AccessType::TransferWrite;
+            } break;
+            case WriteUsage::Present: {
+                result = AccessType::None;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown WriteUsage");
+            } break;
+        }
 
-inline PipelineStage buffer_write_usage_to_stage(BufferWriteUsage usage) {
-    switch (usage) {
-    case BufferWriteUsage::Storage:
-        return PipelineStage::ComputeShader;
-    case BufferWriteUsage::TransferDst:
-        return PipelineStage::Transfer;
-    default:
-        MANTLE_FATAL(true, "unknown BufferWriteUsage");
+        return result;
     }
-}
 
-inline AccessType buffer_write_usage_to_access(BufferWriteUsage usage) {
-    switch (usage) {
-    case BufferWriteUsage::Storage:
-        return AccessType::ShaderWrite;
-    case BufferWriteUsage::TransferDst:
-        return AccessType::TransferWrite;
-    default:
-        MANTLE_FATAL(true, "unknown BufferWriteUsage");
+    inline ImageLayout read_usage_to_layout(ReadUsage usage) {
+        auto result = ImageLayout::Undefined;
+
+        switch (usage) {
+            case ReadUsage::Sampled: {
+                result = ImageLayout::ShaderReadOnly;
+            } break;
+            case ReadUsage::StorageRead: {
+                result = ImageLayout::General;
+            } break;
+            case ReadUsage::InputAttachment: {
+                result = ImageLayout::ShaderReadOnly;
+            } break;
+            case ReadUsage::TransferSrc: {
+                result = ImageLayout::TransferSrc;
+            } break;
+            case ReadUsage::IndirectArg: {
+                result = ImageLayout::ShaderReadOnly;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown ReadUsage");
+            } break;
+        }
+
+        return result;
     }
-}
+
+    inline PipelineStage read_usage_to_stage(ReadUsage usage) {
+        auto result = PipelineStage::Top;
+
+        switch (usage) {
+            case ReadUsage::Sampled: {
+                result = PipelineStage::FragmentShader;
+            } break;
+            case ReadUsage::StorageRead: {
+                result = PipelineStage::ComputeShader;
+            } break;
+            case ReadUsage::InputAttachment: {
+                result = PipelineStage::FragmentShader;
+            } break;
+            case ReadUsage::TransferSrc: {
+                result = PipelineStage::Transfer;
+            } break;
+            case ReadUsage::IndirectArg: {
+                result = PipelineStage::DrawIndirect;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown ReadUsage");
+            } break;
+        }
+
+        return result;
+    }
+
+    inline AccessType read_usage_to_access(ReadUsage usage) {
+        auto result = AccessType::None;
+
+        switch (usage) {
+            case ReadUsage::Sampled: {
+                result = AccessType::ShaderRead;
+            } break;
+            case ReadUsage::StorageRead: {
+                result = AccessType::ShaderRead;
+            } break;
+            case ReadUsage::InputAttachment: {
+                result = AccessType::ShaderRead;
+            } break;
+            case ReadUsage::TransferSrc: {
+                result = AccessType::TransferRead;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown ReadUsage");
+            } break;
+        }
+
+        return result;
+    }
+
+    inline PipelineStage buffer_read_usage_to_stage(BufferReadUsage usage) {
+        auto result = PipelineStage::Top;
+
+        switch (usage) {
+            case BufferReadUsage::Vertex:
+            case BufferReadUsage::Index: {
+                result = PipelineStage::VertexInput;
+            } break;
+            case BufferReadUsage::Uniform: {
+                result = PipelineStage::FragmentShader;
+            } break;
+            case BufferReadUsage::Storage: {
+                result = PipelineStage::ComputeShader;
+            } break;
+            case BufferReadUsage::TransferSrc: {
+                result = PipelineStage::Transfer;
+            } break;
+            case BufferReadUsage::IndirectArg: {
+                result = PipelineStage::DrawIndirect;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown BufferReadUsage");
+            } break;
+        }
+
+        return result;
+    }
+
+    inline AccessType buffer_read_usage_to_access(BufferReadUsage usage) {
+        auto result = AccessType::None;
+
+        switch (usage) {
+            case BufferReadUsage::Vertex: {
+                result = AccessType::VertexAttributeRead;
+            } break;
+            case BufferReadUsage::Index: {
+                result = AccessType::IndexRead;
+            } break;
+            case BufferReadUsage::Uniform: {
+                result = AccessType::UniformRead;
+            } break;
+            case BufferReadUsage::Storage: {
+                result = AccessType::ShaderRead;
+            } break;
+            case BufferReadUsage::TransferSrc: {
+                result = AccessType::TransferRead;
+            } break;
+            case BufferReadUsage::IndirectArg: {
+                result = AccessType::IndirectCommandRead;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown BufferReadUsage");
+            } break;
+        }
+
+        return result;
+    }
+
+    inline PipelineStage buffer_write_usage_to_stage(BufferWriteUsage usage) {
+        auto result = PipelineStage::Top;
+
+        switch (usage) {
+            case BufferWriteUsage::Storage: {
+                result = PipelineStage::ComputeShader;
+            } break;
+            case BufferWriteUsage::TransferDst: {
+                result = PipelineStage::Transfer;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown BufferWriteUsage");
+            } break;
+        }
+
+        return result;
+    }
+
+    inline AccessType buffer_write_usage_to_access(BufferWriteUsage usage) {
+        auto result = AccessType::None;
+
+        switch (usage) {
+            case BufferWriteUsage::Storage: {
+                result = AccessType::ShaderWrite;
+            } break;
+            case BufferWriteUsage::TransferDst: {
+                result = AccessType::TransferWrite;
+            } break;
+            default: {
+                MANTLE_FATAL(true, "unknown BufferWriteUsage");
+            } break;
+        }
+
+        return result;
+    }
 
 } // namespace mantle

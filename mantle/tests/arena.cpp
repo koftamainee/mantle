@@ -1,7 +1,10 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
+#include <gtest/gtest.h>
+
 #include "core/memory/arena_allocator.h"
 #include "core/memory/memory_block.h"
 #include "core/types.h"
-#include <gtest/gtest.h>
 
 using namespace mantle;
 
@@ -10,13 +13,9 @@ static u8 g_scratch[1024 * 1024];
 struct ArenaTest : ::testing::Test {
     ArenaAllocator arena;
 
-    void SetUp() override {
-        arena.init({g_scratch, sizeof(g_scratch)});
-    }
+    void SetUp() override { arena.init({g_scratch, sizeof(g_scratch)}); }
 
-    void TearDown() override {
-        arena.destroy();
-    }
+    void TearDown() override { arena.destroy(); }
 };
 
 TEST_F(ArenaTest, initially_empty) {
@@ -91,7 +90,7 @@ TEST_F(ArenaTest, reset) {
 }
 
 TEST_F(ArenaTest, multiple_arenas_independent) {
-    static u8 buf2[256];
+    static u8      buf2[256];
     ArenaAllocator a2;
     a2.init({buf2, sizeof(buf2)});
 
@@ -107,7 +106,7 @@ TEST_F(ArenaTest, multiple_arenas_independent) {
 
 TEST_F(ArenaTest, push_large_alignment) {
     alignas(256) static u8 aligned_buf[1024];
-    ArenaAllocator aligned_arena;
+    ArenaAllocator         aligned_arena;
     aligned_arena.init({aligned_buf, sizeof(aligned_buf)});
 
     void *p = aligned_arena.push(1, 256);

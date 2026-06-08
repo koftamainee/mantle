@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "renderer/frame_graph.h"
 
 #include "core/assert.h"
@@ -5,12 +7,19 @@
 
 namespace mantle {
     FrameGraph::FrameGraph(ArenaAllocator *arena) :
-        m_arena(arena), m_scope(arena), m_resource(arena),
-        m_blackboard(&m_resource), m_passes(&m_resource),
-        m_images(&m_resource), m_buffers(&m_resource),
-        m_next_image_index(0), m_next_buffer_index(0),
-        m_image_reads(&m_resource), m_image_writes(&m_resource),
-        m_buffer_reads(&m_resource), m_buffer_writes(&m_resource) {
+        m_arena(arena),
+        m_scope(arena),
+        m_resource(arena),
+        m_blackboard(&m_resource),
+        m_passes(&m_resource),
+        m_images(&m_resource),
+        m_buffers(&m_resource),
+        m_next_image_index(0),
+        m_next_buffer_index(0),
+        m_image_reads(&m_resource),
+        m_image_writes(&m_resource),
+        m_buffer_reads(&m_resource),
+        m_buffer_writes(&m_resource) {
         MANTLE_CHECK(arena != nullptr);
     }
 
@@ -22,7 +31,7 @@ namespace mantle {
         if (handle.index >= m_images.size()) {
             m_images.resize((handle.index + 1) * 2);
         }
-        m_images[handle.index] = FGImageEntry{.imported_handle = image};
+        m_images[handle.index] = FGImageEntry {.imported_handle = image};
 
         return handle;
     }
@@ -35,7 +44,7 @@ namespace mantle {
         if (handle.index >= m_buffers.size()) {
             m_buffers.resize((handle.index + 1) * 2);
         }
-        m_buffers[handle.index] = FGBufferEntry{.imported_handle = buffer};
+        m_buffers[handle.index] = FGBufferEntry {.imported_handle = buffer};
 
         return handle;
     }

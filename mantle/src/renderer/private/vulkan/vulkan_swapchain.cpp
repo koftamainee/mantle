@@ -151,29 +151,38 @@ namespace mantle {
     namespace {
         const char *format_name(VkFormat format) {
             switch (format) {
-            case VK_FORMAT_R8G8B8A8_UNORM:
+            case VK_FORMAT_R8G8B8A8_UNORM: {
                 return "R8G8B8A8_UNORM";
-            case VK_FORMAT_R8G8B8A8_SRGB:
+            }
+            case VK_FORMAT_R8G8B8A8_SRGB: {
                 return "R8G8B8A8_SRGB";
-            case VK_FORMAT_B8G8R8A8_UNORM:
+            }
+            case VK_FORMAT_B8G8R8A8_UNORM: {
                 return "B8G8R8A8_UNORM";
-            case VK_FORMAT_B8G8R8A8_SRGB:
+            }
+            case VK_FORMAT_B8G8R8A8_SRGB: {
                 return "B8G8R8A8_SRGB";
-            case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+            }
+            case VK_FORMAT_A8B8G8R8_UNORM_PACK32: {
                 return "A8B8G8R8_UNORM_PACK32";
-            case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+            }
+            case VK_FORMAT_A8B8G8R8_SRGB_PACK32: {
                 return "A8B8G8R8_SRGB_PACK32";
-            default:
+            }
+            default: {
                 return "UNKNOWN";
+            }
             }
         }
 
         const char *colorspace_name(VkColorSpaceKHR cs) {
             switch (cs) {
-            case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR:
+            case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR: {
                 return "SRGB_NONLINEAR_KHR";
-            default:
+            }
+            default: {
                 return "UNKNOWN";
+            }
             }
         }
     } // namespace

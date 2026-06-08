@@ -1,11 +1,17 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
+#include <glm/vec3.hpp>
+
 #include "core/concurrency/worker_pool.h"
 #include "core/macros.h"
 #include "core/types.h"
-#include "glm/vec3.hpp"
 #include "world/chunk.h"
 
-namespace spdlog { class logger; }
+namespace spdlog {
+    class logger;
+}
 
 namespace mantle {
     class ArenaAllocator;
@@ -25,9 +31,8 @@ namespace mantle {
         MANTLE_DEFAULT_INIT(ChunkMeshingSystem);
 
         void init();
-        void upload_dirty(Renderer &renderer, ChunkStorageSystem &storage,
-                          ArenaAllocator &scratch, WorkerPool *pool,
-                          ChunkRenderingSystem &rendering) const;
+        void upload_dirty(Renderer &renderer, ChunkStorageSystem &storage, ArenaAllocator &scratch,
+                          WorkerPool *pool, ChunkRenderingSystem &rendering) const;
         void destroy();
 
       private:

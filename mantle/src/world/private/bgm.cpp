@@ -16,12 +16,15 @@ namespace mantle::bgm {
 
         u32 voxel_index(u32 axis, u32 a, u32 u, u32 v) noexcept {
             switch (axis) {
-            case 0:
+            case 0: {
                 return a + u * 32 + v * 1024;
-            case 1:
+            }
+            case 1: {
                 return u + a * 32 + v * 1024;
-            default:
+            }
+            default: {
                 return u + v * 32 + a * 1024;
+            }
             }
         }
 
@@ -198,12 +201,15 @@ namespace mantle::bgm {
         glm::vec3 to_world_offset(u32 axis, f32 a, f32 u,
                                          f32 v) noexcept {
             switch (axis) {
-            case 0:
+            case 0: {
                 return {a, u, v};
-            case 1:
+            }
+            case 1: {
                 return {u, a, v};
-            default:
+            }
+            default: {
                 return {u, v, a};
+            }
             }
         }
 

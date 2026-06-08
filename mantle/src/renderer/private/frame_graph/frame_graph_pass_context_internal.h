@@ -1,4 +1,8 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
+#include <vulkan/command_recorder.h>
 
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"
@@ -6,7 +10,6 @@
 #include "renderer/types.h"
 #include "resources/gpu_resource_manager_internal.h"
 #include "resources/transient_resources.h"
-#include "vulkan/command_recorder.h"
 
 namespace mantle {
     struct FGPassContext::Impl {
@@ -17,6 +20,6 @@ namespace mantle {
         TransientResources *transient_resources = nullptr;
 
         ArenaAllocator *scratch_arena = nullptr;
-        ArenaResource *scratch_resource = nullptr;
+        ArenaResource  *scratch_resource = nullptr;
     };
 } // namespace mantle

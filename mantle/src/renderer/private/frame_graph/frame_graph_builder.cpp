@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "renderer/frame_graph.h"
 
 namespace mantle {
@@ -7,7 +9,7 @@ namespace mantle {
         if (index >= m_images->size()) {
             m_images->resize(index + 1);
         }
-        (*m_images)[index] = FGImageEntry{.desc = desc};
+        (*m_images)[index] = FGImageEntry {.desc = desc};
 
         FGImageHandle handle;
         handle.index = index;
@@ -20,7 +22,7 @@ namespace mantle {
         if (index >= m_buffers->size()) {
             m_buffers->resize(index + 1);
         }
-        (*m_buffers)[index] = FGBufferEntry{.desc = desc};
+        (*m_buffers)[index] = FGBufferEntry {.desc = desc};
 
         FGBufferHandle handle;
         handle.index = index;
@@ -28,8 +30,7 @@ namespace mantle {
         return handle;
     }
 
-    FGImageHandle FrameGraphBuilder::read(FGImageHandle image,
-                                           ReadUsage usage) {
+    FGImageHandle FrameGraphBuilder::read(FGImageHandle image, ReadUsage usage) {
         m_image_reads->push_back({
             .pass_index = m_pass_index,
             .handle = image,
@@ -39,8 +40,7 @@ namespace mantle {
         return image;
     }
 
-    FGImageHandle FrameGraphBuilder::write(FGImageHandle image,
-                                            WriteUsage usage) {
+    FGImageHandle FrameGraphBuilder::write(FGImageHandle image, WriteUsage usage) {
         m_image_writes->push_back({
             .pass_index = m_pass_index,
             .handle = image,
@@ -56,8 +56,7 @@ namespace mantle {
         return new_handle;
     }
 
-    FGBufferHandle FrameGraphBuilder::read(FGBufferHandle buffer,
-                                            BufferReadUsage usage) {
+    FGBufferHandle FrameGraphBuilder::read(FGBufferHandle buffer, BufferReadUsage usage) {
         m_buffer_reads->push_back({
             .pass_index = m_pass_index,
             .handle = buffer,
@@ -66,8 +65,7 @@ namespace mantle {
         return buffer;
     }
 
-    FGBufferHandle FrameGraphBuilder::write(FGBufferHandle buffer,
-                                             BufferWriteUsage usage) {
+    FGBufferHandle FrameGraphBuilder::write(FGBufferHandle buffer, BufferWriteUsage usage) {
         m_buffer_writes->push_back({
             .pass_index = m_pass_index,
             .handle = buffer,

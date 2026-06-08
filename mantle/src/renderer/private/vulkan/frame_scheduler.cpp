@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "frame_scheduler.h"
 
 #include "core/assert.h"
@@ -8,8 +10,7 @@
 #include "vulkan_utils.h"
 
 namespace mantle {
-    void FrameScheduler::init(VulkanBackend *backend,
-                              GPUResourceManager *resource_manager,
+    void FrameScheduler::init(VulkanBackend *backend, GPUResourceManager *resource_manager,
                               u32 frames_in_flight, VirtualHeap *heap) {
         MANTLE_CHECK(!m_is_initialized);
         MANTLE_CHECK(backend != nullptr);
@@ -40,22 +41,20 @@ namespace mantle {
             .flags = VK_FENCE_CREATE_SIGNALED_BIT,
         };
 
-        VulkanDevice &device = m_backend->m_device;
-        VkDevice vk_device = device.get_device();
-        VkAllocationCallbacks *vk_callbacks =
-            m_backend->m_vk_allocator.vk_allocator();
+        VulkanDevice          &device = m_backend->m_device;
+        VkDevice               vk_device = device.get_device();
+        VkAllocationCallbacks *vk_callbacks = m_backend->m_vk_allocator.vk_allocator();
 
 
         for (usize i = 0; i < m_frames_in_flight; i++) {
-            VkFence fence;
-            VkSemaphore image_available;
-            VkCommandBuffer cmd = device.create_command_buffer(
-                VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_command_pool);
+            VkFence         fence;
+            VkSemaphore     image_available;
+            VkCommandBuffer cmd =
+                device.create_command_buffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_command_pool);
 
+            MANTLE_VK_VERIFY(vkCreateFence(vk_device, &fence_info, vk_callbacks, &fence));
             MANTLE_VK_VERIFY(
-                vkCreateFence(vk_device, &fence_info, vk_callbacks, &fence));
-            MANTLE_VK_VERIFY(vkCreateSemaphore(vk_device, &semaphore_info,
-                                        vk_callbacks, &image_available));
+                vkCreateSemaphore(vk_device, &semaphore_info, vk_callbacks, &image_available));
 
             m_frames[i] = {
                 .fence = fence,
@@ -66,8 +65,8 @@ namespace mantle {
 
         for (usize i = 0; i < m_swapchain_image_count; i++) {
             VkSemaphore render_finished;
-            MANTLE_VK_VERIFY(vkCreateSemaphore(vk_device, &semaphore_info,
-                                        vk_callbacks, &render_finished));
+            MANTLE_VK_VERIFY(
+                vkCreateSemaphore(vk_device, &semaphore_info, vk_callbacks, &render_finished));
             m_render_finished[i] = render_finished;
         }
 
@@ -80,19 +79,16 @@ namespace mantle {
 
     void FrameScheduler::destroy() {
         if (m_is_initialized) {
-            VkDevice vk_device = m_backend->m_device.get_device();
-            VkAllocationCallbacks *vk_callbacks =
-                m_backend->m_vk_allocator.vk_allocator();
+            VkDevice               vk_device = m_backend->m_device.get_device();
+            VkAllocationCallbacks *vk_callbacks = m_backend->m_vk_allocator.vk_allocator();
 
             for (usize i = 0; i < m_frames_in_flight; i++) {
                 vkDestroyFence(vk_device, m_frames[i].fence, vk_callbacks);
-                vkDestroySemaphore(vk_device, m_frames[i].image_available,
-                                   vk_callbacks);
+                vkDestroySemaphore(vk_device, m_frames[i].image_available, vk_callbacks);
             }
 
             for (usize i = 0; i < m_swapchain_image_count; i++) {
-                vkDestroySemaphore(vk_device, m_render_finished[i],
-                   vk_callbacks);
+                vkDestroySemaphore(vk_device, m_render_finished[i], vk_callbacks);
             }
 
             vkDestroyCommandPool(vk_device, m_command_pool, vk_callbacks);
@@ -104,17 +100,16 @@ namespace mantle {
 
     FrameResult FrameScheduler::begin_frame(FrameContext &out_ctx) {
         MANTLE_CHECK(m_is_initialized);
-        FrameData &frame = m_frames[m_current_frame];
+        FrameData    &frame = m_frames[m_current_frame];
         VulkanDevice &device = m_backend->m_device;
-        VkDevice vk_device = device.get_device();
+        VkDevice      vk_device = device.get_device();
 
         m_frame_arena.reset();
 
-        MANTLE_VK_VERIFY(
-            vkWaitForFences(vk_device, 1, &frame.fence, VK_TRUE, UINT64_MAX));
+        MANTLE_VK_VERIFY(vkWaitForFences(vk_device, 1, &frame.fence, VK_TRUE, UINT64_MAX));
 
-        AcquiredImage acquired = m_backend->acquire_next_image(
-            m_frames[m_current_frame].image_available);
+        AcquiredImage acquired =
+            m_backend->acquire_next_image(m_frames[m_current_frame].image_available);
 
         if (acquired.result == SwapchainResult::OutOfDate) {
             return FrameResult::NeedsResize;
@@ -143,9 +138,8 @@ namespace mantle {
         MANTLE_CHECK(m_is_initialized);
         FrameData &frame = m_frames[ctx.frame_index];
 
-        VkPipelineStageFlags wait_stage =
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        VkSubmitInfo submit_info = {
+        VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        VkSubmitInfo         submit_info = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .waitSemaphoreCount = 1,
             .pWaitSemaphores = &frame.image_available,
@@ -158,16 +152,15 @@ namespace mantle {
 
         MANTLE_VK_VERIFY(vkEndCommandBuffer(frame.cmd));
 
-        MANTLE_VK_VERIFY(vkQueueSubmit(m_backend->m_device.get_graphics_queue(), 1,
-                                &submit_info, frame.fence));
+        MANTLE_VK_VERIFY(
+            vkQueueSubmit(m_backend->m_device.get_graphics_queue(), 1, &submit_info, frame.fence));
 
         SwapchainResult result =
             m_backend->present(ctx.image_index, m_render_finished[ctx.image_index]);
 
         m_current_frame = (m_current_frame + 1) % m_frames_in_flight;
 
-        if (result == SwapchainResult::OutOfDate ||
-            result == SwapchainResult::Suboptimal) {
+        if (result == SwapchainResult::OutOfDate || result == SwapchainResult::Suboptimal) {
             return FrameResult::NeedsResize;
         }
 
@@ -175,8 +168,7 @@ namespace mantle {
     }
 
     void FrameScheduler::on_swapchain_rebuilt(u32 new_image_count) const {
-        MANTLE_FATAL(m_frames_in_flight !=
-                  std::min(m_frames_in_flight, new_image_count),
-              "Image count in swapchain changed. Should be unreachable");
+        MANTLE_FATAL(m_frames_in_flight != std::min(m_frames_in_flight, new_image_count),
+                     "Image count in swapchain changed. Should be unreachable");
     }
 } // namespace mantle

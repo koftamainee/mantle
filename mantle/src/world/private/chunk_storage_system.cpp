@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "world/chunk_storage_system.h"
 
 #include "core/assert.h"
@@ -148,7 +150,9 @@ namespace mantle {
     bool ChunkStorageSystem::any_dirty() const {
         MANTLE_CHECK(m_is_initialized);
         for (u32 i = 0; i < m_capacity; i++) {
-            if (m_slots[i].active && m_slots[i].dirty) return true;
+            if (m_slots[i].active && m_slots[i].dirty) {
+                return true;
+            }
         }
         return false;
     }

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "math/frustum.h"
 
 #include <utility>
@@ -5,9 +7,7 @@
 namespace mantle {
 
     void Frustum::extract(const glm::mat4 &vp) {
-        auto row = [&](int i) -> glm::vec4 {
-            return {vp[0][i], vp[1][i], vp[2][i], vp[3][i]};
-        };
+        auto row = [&](int i) -> glm::vec4 { return {vp[0][i], vp[1][i], vp[2][i], vp[3][i]}; };
 
         glm::vec4 r0 = row(0), r1 = row(1), r2 = row(2), r3 = row(3);
 

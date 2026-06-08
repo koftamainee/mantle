@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
 #include <cstring>
@@ -21,8 +23,7 @@ namespace mantle {
         void init(MemoryBlock block);
         void destroy();
 
-        [[nodiscard]] void *push(usize size,
-                                 usize align = alignof(std::max_align_t));
+        [[nodiscard]] void *push(usize size, usize align = alignof(std::max_align_t));
 
         template <typename T>
         [[nodiscard]] T *push(usize count = 1) {
@@ -49,8 +50,8 @@ namespace mantle {
         };
 
         Marker save() const;
-        void restore(Marker marker);
-        void reset();
+        void   restore(Marker marker);
+        void   reset();
 
         usize size() const;
         usize offset() const;
@@ -60,7 +61,7 @@ namespace mantle {
         void *m_base = nullptr;
         usize m_size = 0;
         usize m_offset = 0;
-        bool m_is_initialized = false;
+        bool  m_is_initialized = false;
     };
 
 } // namespace mantle

@@ -1,53 +1,42 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
-AlignConsecutiveShortCaseStatements:
-  Enabled: true
-  AcrossEmptyLines: false
-  AcrossComments: false
-  AlignCaseColons: false
-AlignOperands: false
-AlignTrailingComments: false
+AlignConsecutiveDeclarations: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
 AlwaysBreakTemplateDeclarations: Yes
 BraceWrapping:
-  AfterCaseLabel: false
-  AfterClass: false
-  AfterControlStatement: false
-  AfterEnum: false
-  AfterFunction: false
-  AfterNamespace: false
-  AfterStruct: false
-  AfterUnion: false
-  AfterExternBlock: false
-  BeforeCatch: true
+  AfterControlStatement: Never
   BeforeElse: false
-  BeforeLambdaBody: false
-  BeforeWhile: true
+  BeforeCatch: false
+  BeforeWhile: false
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 BreakBeforeBraces: Custom
 BreakConstructorInitializers: AfterColon
 BreakConstructorInitializersBeforeComma: true
-ColumnLimit: 80
+ColumnLimit: 100
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ContinuationIndentWidth: 4
+DerivePointerAlignment: false
+IndentCaseLabels: true
 IncludeCategories:
-  - Regex: '^<.*'
+  - Regex: '^"'
     Priority: 1
-  - Regex: '^".*'
+  - Regex: '^<.*'
     Priority: 2
   - Regex: '.*'
     Priority: 3
 IncludeIsMainRegex: '([-_](test|unittest))?$'
+InsertBraces: true
 InsertNewlineAtEOF: true
-MacroBlockBegin: ''
-MacroBlockEnd: ''
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
 PointerAlignment: Right
+ReflowComments: false
+SortIncludes: false
+SpaceBeforeCpp11BracedList: true
 SpaceInEmptyParentheses: false
 SpacesInAngles: false
 SpacesInConditionalStatement: false

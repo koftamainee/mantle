@@ -1,9 +1,13 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
+#include "glm/gtc/noise.hpp"
 
 #include <concepts>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <glm/gtc/noise.hpp>
+
 #include "core/types.h"
 
 namespace mantle {

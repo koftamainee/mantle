@@ -11,8 +11,7 @@ namespace mantle {
 
         m_logger = spdlog::get("window").get();
 
-        MANTLE_FATAL(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD),
-              "Failed to initialize SDL");
+        MANTLE_FATAL(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD), "Failed to initialize SDL");
         m_logger->info("SDL initialized");
 
         u32 window_w = properties.size.width;
@@ -20,25 +19,22 @@ namespace mantle {
 
         if (window_w == 0 || window_h == 0) {
             SDL_DisplayID display = SDL_GetPrimaryDisplay();
-            if (const SDL_DisplayMode *mode =
-                    SDL_GetCurrentDisplayMode(display)) {
+            if (const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display)) {
                 window_w = static_cast<u32>(mode->w);
                 window_h = static_cast<u32>(mode->h);
-                m_logger->info("Deriving window display resolution: {}x{}",
-                               window_w, window_h);
+                m_logger->info("Deriving window display resolution: {}x{}", window_w, window_h);
             } else {
                 window_w = 1920;
                 window_h = 1080;
-                m_logger->warn("Failed to query display mode, falling back to {}x{}",
-                               window_w, window_h);
+                m_logger->warn("Failed to query display mode, falling back to {}x{}", window_w,
+                               window_h);
             }
         }
 
-        m_native_window = SDL_CreateWindow(
-            properties.title.data(), static_cast<int>(window_w),
-            static_cast<int>(window_h),
-            SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE |
-            (properties.fullscreen ? SDL_WINDOW_FULLSCREEN : 0));
+        m_native_window = SDL_CreateWindow(properties.title.data(), static_cast<int>(window_w),
+                                           static_cast<int>(window_h),
+                                           SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE |
+                                               (properties.fullscreen ? SDL_WINDOW_FULLSCREEN : 0));
 
         MANTLE_FATAL(!m_native_window, "Failed to create SDL window");
         m_fullscreen = properties.fullscreen;
@@ -47,15 +43,13 @@ namespace mantle {
 
         {
             SDL_DisplayID display = SDL_GetPrimaryDisplay();
-            if (const SDL_DisplayMode *mode =
-                    SDL_GetCurrentDisplayMode(display)) {
+            if (const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display)) {
                 m_refresh_rate = static_cast<f32>(mode->refresh_rate);
                 m_logger->info("Display: {} Hz", mode->refresh_rate);
             }
         }
 
-        m_logger->info("Window created: {} ({}x{})", properties.title.data(),
-                       window_w, window_h);
+        m_logger->info("Window created: {} ({}x{})", properties.title.data(), window_w, window_h);
         m_is_initialized = true;
     }
 
@@ -93,129 +87,129 @@ namespace mantle {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-            case SDL_EVENT_QUIT:
-                m_should_close = true;
-                break;
+                case SDL_EVENT_QUIT: {
+                    m_should_close = true;
+                } break;
 
-            case SDL_EVENT_WINDOW_RESIZED:
-                if (m_resize_callback) {
-                    m_resize_callback(event.window.data1, event.window.data2);
-                }
-                break;
+                case SDL_EVENT_WINDOW_RESIZED: {
+                    if (m_resize_callback) {
+                        m_resize_callback(event.window.data1, event.window.data2);
+                    }
+                } break;
 
-            case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
-                if (m_resize_callback) {
-                    int w, h;
-                    SDL_GetWindowSizeInPixels(m_native_window, &w, &h);
-                    m_resize_callback(static_cast<u32>(w), static_cast<u32>(h));
-                }
-                break;
+                case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED: {
+                    if (m_resize_callback) {
+                        int w, h;
+                        SDL_GetWindowSizeInPixels(m_native_window, &w, &h);
+                        m_resize_callback(static_cast<u32>(w), static_cast<u32>(h));
+                    }
+                } break;
 
-            case SDL_EVENT_KEY_DOWN:
-            case SDL_EVENT_KEY_UP: {
-                m_keyboard_active = true;
-                bool pressed = event.type == SDL_EVENT_KEY_DOWN;
-                if (event.key.scancode < static_cast<SDL_Scancode>(Key::Count)) {
-                    Key key = static_cast<Key>(event.key.scancode);
-                    m_pressed_keys.set(std::to_underlying(key), pressed);
+                case SDL_EVENT_KEY_DOWN:
+                case SDL_EVENT_KEY_UP: {
+                    m_keyboard_active = true;
+                    bool pressed = event.type == SDL_EVENT_KEY_DOWN;
+                    if (event.key.scancode < static_cast<SDL_Scancode>(Key::Count)) {
+                        Key key = static_cast<Key>(event.key.scancode);
+                        m_pressed_keys.set(std::to_underlying(key), pressed);
+                        if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
+                            auto &re = m_frame_events[m_frame_event_count++];
+                            re.type = RawEvent::Type::Key;
+                            re.key = {key, pressed};
+                        }
+                    }
+                } break;
+
+                case SDL_EVENT_MOUSE_MOTION: {
+                    m_mouse_active = true;
+                    m_mouse_delta.x += event.motion.xrel;
+                    m_mouse_delta.y -= event.motion.yrel;
                     if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
                         auto &re = m_frame_events[m_frame_event_count++];
-                        re.type = RawEvent::Type::Key;
-                        re.key = {key, pressed};
+                        re.type = RawEvent::Type::MouseMotion;
+                        re.mouse_motion = {event.motion.xrel, -event.motion.yrel};
                     }
-                }
-                break;
-            }
+                } break;
 
-            case SDL_EVENT_MOUSE_MOTION:
-                m_mouse_active = true;
-                m_mouse_delta.x += event.motion.xrel;
-                m_mouse_delta.y -= event.motion.yrel;
-                if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
-                    auto &re = m_frame_events[m_frame_event_count++];
-                    re.type = RawEvent::Type::MouseMotion;
-                    re.mouse_motion = {event.motion.xrel, -event.motion.yrel};
-                }
-                break;
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                case SDL_EVENT_MOUSE_BUTTON_UP: {
+                    m_mouse_active = true;
+                    bool pressed = event.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
+                    if (event.button.button >= 1 && event.button.button < MOUSE_BUTTON_COUNT) {
+                        MouseButton mb = static_cast<MouseButton>(event.button.button);
+                        m_pressed_mb[std::to_underlying(mb)] = pressed;
+                        if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
+                            auto &re = m_frame_events[m_frame_event_count++];
+                            re.type = RawEvent::Type::MouseButton;
+                            re.mouse_button = {mb, pressed};
+                        }
+                    }
+                } break;
 
-            case SDL_EVENT_MOUSE_BUTTON_DOWN:
-            case SDL_EVENT_MOUSE_BUTTON_UP: {
-                m_mouse_active = true;
-                bool pressed = event.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
-                if (event.button.button >= 1 && event.button.button < MOUSE_BUTTON_COUNT) {
-                    MouseButton mb = static_cast<MouseButton>(event.button.button);
-                    m_pressed_mb[std::to_underlying(mb)] = pressed;
+                case SDL_EVENT_MOUSE_WHEEL: {
+                    m_mouse_active = true;
+                    m_mouse_wheel.x += event.wheel.x;
+                    m_mouse_wheel.y += event.wheel.y;
                     if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
                         auto &re = m_frame_events[m_frame_event_count++];
-                        re.type = RawEvent::Type::MouseButton;
-                        re.mouse_button = {mb, pressed};
+                        re.type = RawEvent::Type::MouseWheel;
+                        re.mouse_wheel = {event.wheel.x, event.wheel.y};
                     }
-                }
-                break;
-            }
+                } break;
 
-            case SDL_EVENT_MOUSE_WHEEL:
-                m_mouse_active = true;
-                m_mouse_wheel.x += event.wheel.x;
-                m_mouse_wheel.y += event.wheel.y;
-                if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
-                    auto &re = m_frame_events[m_frame_event_count++];
-                    re.type = RawEvent::Type::MouseWheel;
-                    re.mouse_wheel = {event.wheel.x, event.wheel.y};
-                }
-                break;
-
-            case SDL_EVENT_GAMEPAD_ADDED:
-                if (!m_controller) {
-                    m_controller = SDL_OpenGamepad(event.gdevice.which);
-                    if (m_controller) {
-                        m_logger->info("Controller connected: {}", SDL_GetGamepadName(m_controller));
+                case SDL_EVENT_GAMEPAD_ADDED: {
+                    if (!m_controller) {
+                        m_controller = SDL_OpenGamepad(event.gdevice.which);
+                        if (m_controller) {
+                            m_logger->info("Controller connected: {}",
+                                           SDL_GetGamepadName(m_controller));
+                        }
                     }
-                }
-                break;
+                } break;
 
-            case SDL_EVENT_GAMEPAD_REMOVED:
-                if (m_controller &&
-                    event.gdevice.which == SDL_GetGamepadID(m_controller)) {
-                    m_logger->info("Controller disconnected: {}", SDL_GetGamepadName(m_controller));
-                    SDL_CloseGamepad(m_controller);
-                    m_controller = nullptr;
-                }
-                break;
-
-            case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-            case SDL_EVENT_GAMEPAD_BUTTON_UP: {
-                m_controller_active = true;
-                bool pressed = event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN;
-                if (event.gbutton.button < CONTROLLER_BUTTON_COUNT) {
-                    ControllerButton cb = static_cast<ControllerButton>(event.gbutton.button);
-                    m_pressed_cb[std::to_underlying(cb)] = pressed;
-                    if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
-                        auto &re = m_frame_events[m_frame_event_count++];
-                        re.type = RawEvent::Type::ControllerButton;
-                        re.controller_button = {cb, pressed};
+                case SDL_EVENT_GAMEPAD_REMOVED: {
+                    if (m_controller && event.gdevice.which == SDL_GetGamepadID(m_controller)) {
+                        m_logger->info("Controller disconnected: {}",
+                                       SDL_GetGamepadName(m_controller));
+                        SDL_CloseGamepad(m_controller);
+                        m_controller = nullptr;
                     }
-                }
-                break;
-            }
+                } break;
 
-            case SDL_EVENT_GAMEPAD_AXIS_MOTION:
-                m_controller_active = true;
-                if (event.gaxis.axis < CONTROLLER_AXIS_COUNT) {
-                    ControllerAxis ca = static_cast<ControllerAxis>(event.gaxis.axis);
-                    f32 val = static_cast<f32>(event.gaxis.value) / 32767.0f;
-                    if (val < -1.0f) { val = -1.0f; }
-                    m_controller_axes[std::to_underlying(ca)] = val;
-                    if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
-                        auto &re = m_frame_events[m_frame_event_count++];
-                        re.type = RawEvent::Type::ControllerAxis;
-                        re.controller_axis = {ca, val};
+                case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+                case SDL_EVENT_GAMEPAD_BUTTON_UP: {
+                    m_controller_active = true;
+                    bool pressed = event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN;
+                    if (event.gbutton.button < CONTROLLER_BUTTON_COUNT) {
+                        ControllerButton cb = static_cast<ControllerButton>(event.gbutton.button);
+                        m_pressed_cb[std::to_underlying(cb)] = pressed;
+                        if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
+                            auto &re = m_frame_events[m_frame_event_count++];
+                            re.type = RawEvent::Type::ControllerButton;
+                            re.controller_button = {cb, pressed};
+                        }
                     }
-                }
-                break;
+                } break;
 
-            default:
-                break;
+                case SDL_EVENT_GAMEPAD_AXIS_MOTION: {
+                    m_controller_active = true;
+                    if (event.gaxis.axis < CONTROLLER_AXIS_COUNT) {
+                        ControllerAxis ca = static_cast<ControllerAxis>(event.gaxis.axis);
+                        f32            val = static_cast<f32>(event.gaxis.value) / 32767.0f;
+                        if (val < -1.0f) {
+                            val = -1.0f;
+                        }
+                        m_controller_axes[std::to_underlying(ca)] = val;
+                        if (m_frame_event_count < MAX_EVENTS_PER_FRAME) {
+                            auto &re = m_frame_events[m_frame_event_count++];
+                            re.type = RawEvent::Type::ControllerAxis;
+                            re.controller_axis = {ca, val};
+                        }
+                    }
+                } break;
+
+                default: {
+                } break;
             }
         }
     }
@@ -302,14 +296,12 @@ namespace mantle {
         return m_controller_axes[std::to_underlying(axis)];
     }
 
-    void Window::set_controller_rumble(u16 low_frequency, u16 high_frequency,
-                                        u32 duration_ms) {
+    void Window::set_controller_rumble(u16 low_frequency, u16 high_frequency, u32 duration_ms) {
         MANTLE_CHECK(m_is_initialized);
         if (!m_controller) {
             return;
         }
-        if (!SDL_RumbleGamepad(m_controller, low_frequency, high_frequency,
-                               duration_ms)) {
+        if (!SDL_RumbleGamepad(m_controller, low_frequency, high_frequency, duration_ms)) {
             m_logger->warn("set_controller_rumble failed");
         }
     }

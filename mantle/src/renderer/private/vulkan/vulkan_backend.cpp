@@ -1,16 +1,18 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "vulkan_backend.h"
-#include "vulkan/vulkan_utils.h"
+
+#include <vulkan/vulkan_utils.h>
 
 #include "core/assert.h"
 #include "core/memory/memory_units.h"
 #include "core/memory/scope_arena.h"
 #include "vkassert.h"
 
-
 namespace mantle {
 
-    void VulkanBackend::init(const Window &window, bool vsync,
-                             VirtualHeap *heap, ArenaAllocator *scratch_arena) {
+    void VulkanBackend::init(const Window &window, bool vsync, VirtualHeap *heap,
+                             ArenaAllocator *scratch_arena) {
         MANTLE_CHECK(!m_is_initialized);
 
         m_logger = spdlog::get("vulkan").get();
@@ -21,22 +23,20 @@ namespace mantle {
         m_tlsf_allocator.init(m_heap->take(megabytes(100)));
         m_vk_allocator.init(&m_tlsf_allocator);
 
-        m_context.init(window.get_native_window(), scratch_arena,
-                       m_vk_allocator.vk_allocator());
+        m_context.init(window.get_native_window(), scratch_arena, m_vk_allocator.vk_allocator());
 
         VkSurfaceKHR surface = m_context.get_surface();
 
-        m_device.init(m_context.get_instance(), surface,
-                      m_vk_allocator.vk_allocator(), m_heap, m_scratch_arena);
+        m_device.init(m_context.get_instance(), surface, m_vk_allocator.vk_allocator(), m_heap,
+                      m_scratch_arena);
         VkDevice device = m_device.get_device();
 
         auto [width, height] = window.get_framebuffer_size();
 
-        ScopeArena scope (m_scratch_arena);
+        ScopeArena    scope(m_scratch_arena);
         ArenaResource pmr(m_scratch_arena);
 
-        m_swapchain.init(device, surface,
-                         m_device.get_swapchain_support_details(surface, &pmr),
+        m_swapchain.init(device, surface, m_device.get_swapchain_support_details(surface, &pmr),
                          m_device.get_queue_families(), width, height, m_vsync,
                          m_vk_allocator.vk_allocator(), m_heap, m_scratch_arena);
 
@@ -68,12 +68,11 @@ namespace mantle {
 
         m_swapchain.destroy();
 
-        VkDevice device = m_device.get_device();
-        VkSurfaceKHR surface = m_context.get_surface();
-        ScopeArena scope(m_scratch_arena);
+        VkDevice      device = m_device.get_device();
+        VkSurfaceKHR  surface = m_context.get_surface();
+        ScopeArena    scope(m_scratch_arena);
         ArenaResource pmr(m_scratch_arena);
-        m_swapchain.init(device, surface,
-                         m_device.get_swapchain_support_details(surface, &pmr),
+        m_swapchain.init(device, surface, m_device.get_swapchain_support_details(surface, &pmr),
                          m_device.get_queue_families(), width, height, m_vsync,
                          m_vk_allocator.vk_allocator(), m_heap, m_scratch_arena);
     }
@@ -91,22 +90,17 @@ namespace mantle {
         };
     }
 
-    std::string_view VulkanBackend::gpu_name() const {
-        return m_device.gpu_name();
-    }
+    std::string_view VulkanBackend::gpu_name() const { return m_device.gpu_name(); }
 
-    u64 VulkanBackend::vram_bytes() const {
-        return m_device.vram_bytes();
-    }
+    u64 VulkanBackend::vram_bytes() const { return m_device.vram_bytes(); }
 
-    AcquiredImage
-    VulkanBackend::acquire_next_image(VkSemaphore image_available) const {
+    AcquiredImage VulkanBackend::acquire_next_image(VkSemaphore image_available) const {
         MANTLE_CHECK(m_is_initialized);
 
-        u32 image_index = 0;
-        VkResult result = vkAcquireNextImageKHR(
-            m_device.get_device(), m_swapchain.get_swapchain(), UINT64_MAX,
-            image_available, VK_NULL_HANDLE, &image_index);
+        u32      image_index = 0;
+        VkResult result =
+            vkAcquireNextImageKHR(m_device.get_device(), m_swapchain.get_swapchain(), UINT64_MAX,
+                                  image_available, VK_NULL_HANDLE, &image_index);
 
         auto swapchain_result = SwapchainResult::Ok;
         if (result == VK_SUBOPTIMAL_KHR) {
@@ -120,9 +114,8 @@ namespace mantle {
         return {.result = swapchain_result, .image_index = image_index};
     }
 
-    SwapchainResult VulkanBackend::present(u32 image_index,
-                                           VkSemaphore render_finished) const {
-        VkSwapchainKHR swapchain = m_swapchain.get_swapchain();
+    SwapchainResult VulkanBackend::present(u32 image_index, VkSemaphore render_finished) const {
+        VkSwapchainKHR   swapchain = m_swapchain.get_swapchain();
         VkPresentInfoKHR present_info = {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
@@ -132,8 +125,7 @@ namespace mantle {
             .pImageIndices = &image_index,
         };
 
-        VkResult result =
-            vkQueuePresentKHR(m_device.get_present_queue(), &present_info);
+        VkResult result = vkQueuePresentKHR(m_device.get_present_queue(), &present_info);
 
         auto swapchain_result = SwapchainResult::Ok;
         if (result == VK_SUBOPTIMAL_KHR) {

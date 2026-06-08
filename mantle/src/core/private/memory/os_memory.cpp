@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "core/memory/os_memory.h"
 #include "core/assert.h"
 
@@ -10,7 +12,7 @@
 
 namespace mantle {
 
-    static inline bool is_aligned(void* ptr, usize align) {
+    static inline bool is_aligned(void *ptr, usize align) {
         return (reinterpret_cast<uintptr_t>(ptr) & (align - 1)) == 0;
     }
 
@@ -35,44 +37,39 @@ namespace mantle {
 
         MANTLE_FATAL((m_page_size == 0), "Invalid page size");
 
-        MANTLE_FATAL((m_page_size & (m_page_size - 1)) != 0,
-              "Page size is not power of two");
+        MANTLE_FATAL((m_page_size & (m_page_size - 1)) != 0, "Page size is not power of two");
 
         m_is_initialized = true;
     }
 
-    void* OSMemory::reserve(usize size) const {
+    void *OSMemory::reserve(usize size) const {
         MANTLE_CHECK(m_is_initialized);
 
         MANTLE_FATAL(size == 0, "reserve size == 0");
-        MANTLE_FATAL(!is_aligned_size(size, m_page_size),
-              "reserve size not page aligned");
+        MANTLE_FATAL(!is_aligned_size(size, m_page_size), "reserve size not page aligned");
 
 #ifdef _WIN32
-        void* ptr = VirtualAlloc(nullptr, size, MEM_RESERVE, PAGE_NOACCESS);
+        void *ptr = VirtualAlloc(nullptr, size, MEM_RESERVE, PAGE_NOACCESS);
         MANTLE_FATAL(ptr == nullptr, "VirtualAlloc reserve failed");
         return ptr;
 #else
-        void* ptr = mmap(nullptr, size, PROT_NONE,
-                         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        void *ptr = mmap(nullptr, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         MANTLE_FATAL(ptr == MAP_FAILED, "mmap reserve failed");
         return ptr;
 #endif
     }
 
-    void OSMemory::commit(void* ptr, usize size) const {
+    void OSMemory::commit(void *ptr, usize size) const {
         MANTLE_CHECK(m_is_initialized);
 
         MANTLE_FATAL(ptr == nullptr, "commit ptr == nullptr");
         MANTLE_FATAL(size == 0, "commit size == 0");
 
-        MANTLE_FATAL(!is_aligned(ptr, m_page_size),
-              "commit ptr not page aligned");
-        MANTLE_FATAL(!is_aligned_size(size, m_page_size),
-              "commit size not page aligned");
+        MANTLE_FATAL(!is_aligned(ptr, m_page_size), "commit ptr not page aligned");
+        MANTLE_FATAL(!is_aligned_size(size, m_page_size), "commit size not page aligned");
 
 #ifdef _WIN32
-        void* result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
+        void *result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
         MANTLE_FATAL(result == nullptr, "VirtualAlloc commit failed");
 #else
         int res = mprotect(ptr, size, PROT_READ | PROT_WRITE);
@@ -80,16 +77,14 @@ namespace mantle {
 #endif
     }
 
-    void OSMemory::decommit(void* ptr, usize size) const {
+    void OSMemory::decommit(void *ptr, usize size) const {
         MANTLE_CHECK(m_is_initialized);
 
         MANTLE_FATAL(ptr == nullptr, "decommit ptr == nullptr");
         MANTLE_FATAL(size == 0, "decommit size == 0");
 
-        MANTLE_FATAL(!is_aligned(ptr, m_page_size),
-              "decommit ptr not page aligned");
-        MANTLE_FATAL(!is_aligned_size(size, m_page_size),
-              "decommit size not page aligned");
+        MANTLE_FATAL(!is_aligned(ptr, m_page_size), "decommit ptr not page aligned");
+        MANTLE_FATAL(!is_aligned_size(size, m_page_size), "decommit size not page aligned");
 
 #ifdef _WIN32
         BOOL ok = VirtualFree(ptr, size, MEM_DECOMMIT);
@@ -103,16 +98,14 @@ namespace mantle {
 #endif
     }
 
-    void OSMemory::release(void* ptr, usize size) const {
+    void OSMemory::release(void *ptr, usize size) const {
         MANTLE_CHECK(m_is_initialized);
 
         MANTLE_FATAL(ptr == nullptr, "release ptr == nullptr");
         MANTLE_FATAL(size == 0, "release size == 0");
 
-        MANTLE_FATAL(!is_aligned(ptr, m_page_size),
-              "release ptr not page aligned");
-        MANTLE_FATAL(!is_aligned_size(size, m_page_size),
-              "release size not page aligned");
+        MANTLE_FATAL(!is_aligned(ptr, m_page_size), "release ptr not page aligned");
+        MANTLE_FATAL(!is_aligned_size(size, m_page_size), "release size not page aligned");
 
 #ifdef _WIN32
         BOOL ok = VirtualFree(ptr, 0, MEM_RELEASE);

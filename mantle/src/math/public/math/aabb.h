@@ -1,4 +1,7 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
 #include <glm/vec3.hpp>
 
 namespace mantle {
@@ -14,4 +17,4 @@ namespace mantle {
 
         void expand(glm::vec3 point);
     };
-}
+} // namespace mantle

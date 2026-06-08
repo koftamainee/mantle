@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "math/aabb.h"
 
 #include "core/assert.h"
@@ -17,9 +19,8 @@ namespace mantle {
     }
 
     bool AABB::contains(glm::vec3 point) const {
-        return (point.x >= min.x && point.x <= max.x) &&
-            (point.y >= min.y && point.y <= max.y) &&
-            (point.z >= min.z && point.z <= max.z);
+        return (point.x >= min.x && point.x <= max.x) && (point.y >= min.y && point.y <= max.y) &&
+               (point.z >= min.z && point.z <= max.z);
     }
 
     glm::vec3 AABB::size() const { return max - min; }

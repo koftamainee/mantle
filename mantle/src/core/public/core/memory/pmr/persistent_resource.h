@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
 #include <memory_resource>
@@ -9,11 +11,11 @@
 namespace mantle {
 
     class PersistentResource final : public std::pmr::memory_resource {
-    public:
+      public:
         PersistentResource() : m_heap(nullptr) {}
         explicit PersistentResource(VirtualHeap *heap) : m_heap(heap) {}
 
-    private:
+      private:
         void *do_allocate(usize size, usize align) override {
             MANTLE_CHECK(m_heap != nullptr);
             MemoryBlock block = m_heap->take(size);
@@ -26,7 +28,7 @@ namespace mantle {
             return this == &other;
         }
 
-    private:
+      private:
         VirtualHeap *m_heap;
     };
 

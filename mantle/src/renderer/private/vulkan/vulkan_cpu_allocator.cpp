@@ -1,4 +1,7 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "vulkan_cpu_allocator.h"
+
 #include "core/assert.h"
 
 namespace mantle {
@@ -15,20 +18,19 @@ namespace mantle {
         m_callbacks.pfnInternalFree = vk_internal_free;
     }
 
-    VkAllocationCallbacks *VulkanCPUAllocator::vk_allocator(){
-        return &m_callbacks;
-    }
+    VkAllocationCallbacks *VulkanCPUAllocator::vk_allocator() { return &m_callbacks; }
 
     void *VKAPI_CALL VulkanCPUAllocator::vk_alloc(void *user, usize size, usize align,
-                                                VkSystemAllocationScope scope) {
-        if (size == 0) return nullptr;
+                                                  VkSystemAllocationScope scope) {
+        if (size == 0) {
+            return nullptr;
+        }
         auto *self = static_cast<VulkanCPUAllocator *>(user);
         return self->m_tlsf->alloc_aligned(size, align);
     }
 
     void *VKAPI_CALL VulkanCPUAllocator::vk_realloc(void *user, void *original, usize size,
-                                                   usize align,
-                                                   VkSystemAllocationScope scope) {
+                                                    usize align, VkSystemAllocationScope scope) {
         if (size == 0) {
             if (original) {
                 auto *self = static_cast<VulkanCPUAllocator *>(user);
@@ -39,24 +41,27 @@ namespace mantle {
 
         auto *self = static_cast<VulkanCPUAllocator *>(user);
 
-        if (original == nullptr)
+        if (original == nullptr) {
             return self->m_tlsf->alloc_aligned(size, align);
+        }
 
         return self->m_tlsf->realloc(original, size);
     }
 
     void VKAPI_CALL VulkanCPUAllocator::vk_free(void *user, void *memory) {
-        if (memory == nullptr) return;
+        if (memory == nullptr) {
+            return;
+        }
         auto *self = static_cast<VulkanCPUAllocator *>(user);
         self->m_tlsf->free(memory);
     }
 
     void VKAPI_CALL VulkanCPUAllocator::vk_internal_alloc(void *user, usize size,
-                                                         VkInternalAllocationType type,
-                                                         VkSystemAllocationScope scope) {}
+                                                          VkInternalAllocationType type,
+                                                          VkSystemAllocationScope  scope) {}
 
     void VKAPI_CALL VulkanCPUAllocator::vk_internal_free(void *user, usize size,
-                                                        VkInternalAllocationType type,
-                                                        VkSystemAllocationScope scope) {}
+                                                         VkInternalAllocationType type,
+                                                         VkSystemAllocationScope  scope) {}
 
 } // namespace mantle

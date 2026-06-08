@@ -1,65 +1,58 @@
-name: Build & Test
+name: CI
 
 on:
   push:
+  pull_request:
     branches: [master]
 
 env:
   VULKAN_VER: 1.4.304.0
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  ci:
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            build_type: RelWithDebInfo
-            configure: >
-              cmake -B build -G Ninja
-              -DCMAKE_BUILD_TYPE=RelWithDebInfo
-              -DCMAKE_C_COMPILER=gcc
-              -DCMAKE_CXX_COMPILER=g++
-            build: cmake --build build
-            ctest: ctest --test-dir build --output-on-failure
-            artifact: mantle-relwithdebinfo-linux-x64
-
-          - os: ubuntu-latest
-            build_type: Debug
-            configure: >
+            configure_debug: >
               cmake -B build -G Ninja
               -DCMAKE_BUILD_TYPE=Debug
               -DCMAKE_C_COMPILER=gcc
               -DCMAKE_CXX_COMPILER=g++
-            build: cmake --build build
+            configure_release: >
+              cmake -B build -G Ninja
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo
+              -DCMAKE_C_COMPILER=gcc
+              -DCMAKE_CXX_COMPILER=g++
             ctest: ctest --test-dir build --output-on-failure
-            artifact: mantle-debug-linux-x64
+            artifact: mantle-relwithdebinfo-linux-x64
 
           - os: windows-latest
-            build_type: RelWithDebInfo
-            configure: cmake -B build -G "Visual Studio 17 2022" -A x64
-            build: cmake --build build --config RelWithDebInfo
-            ctest: ctest --test-dir build --output-on-failure -C RelWithDebInfo
+            configure_debug: >
+              cmake -B build -G Ninja
+              -DCMAKE_BUILD_TYPE=Debug
+              -DCMAKE_C_COMPILER=cl
+              -DCMAKE_CXX_COMPILER=cl
+            configure_release: >
+              cmake -B build -G Ninja
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo
+              -DCMAKE_C_COMPILER=cl
+              -DCMAKE_CXX_COMPILER=cl
+            ctest: ctest --test-dir build --output-on-failure
             artifact: mantle-relwithdebinfo-windows-x64
-
-          - os: windows-latest
-            build_type: Debug
-            configure: cmake -B build -G "Visual Studio 17 2022" -A x64
-            build: cmake --build build --config Debug
-            ctest: ctest --test-dir build --output-on-failure -C Debug
-            artifact: mantle-debug-windows-x64
-
-    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
+      # ---- Linux deps ----
       - name: Install system deps (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -70,15 +63,17 @@ jobs:
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxss-dev libxtst-dev \
             mesa-common-dev libgl-dev
 
-      - name: Cache Vulkan SDK
-        id: cache-vulkan
+      # ---- Linux Vulkan SDK ----
+      - name: Cache Vulkan SDK (Linux)
+        if: runner.os == 'Linux'
+        id: cache-vulkan-linux
         uses: actions/cache@v4
         with:
-          path: ${{ runner.os == 'Linux' && '.vulkansdk' || format('C:\VulkanSDK\{0}', env.VULKAN_VER) }}
-          key: vulkan-sdk-${{ env.VULKAN_VER }}-${{ runner.os }}
+          path: .vulkansdk
+          key: vulkan-sdk-${{ env.VULKAN_VER }}-linux
 
       - name: Install Vulkan SDK (Linux)
-        if: runner.os == 'Linux' && steps.cache-vulkan.outputs.cache-hit != 'true'
+        if: runner.os == 'Linux' && steps.cache-vulkan-linux.outputs.cache-hit != 'true'
         run: |
           mkdir -p .vulkansdk
           wget -qO- https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VER }}/linux/vulkansdk-linux-x86_64-${{ env.VULKAN_VER }}.tar.xz \
@@ -92,16 +87,17 @@ jobs:
           echo "${SDK}/bin" >> "${GITHUB_PATH}"
           echo "LD_LIBRARY_PATH=${SDK}/lib:${LD_LIBRARY_PATH}" >> "${GITHUB_ENV}"
 
+      # ---- Windows Vulkan SDK ----
       - name: Cache Vulkan SDK installer (Windows)
         if: runner.os == 'Windows'
-        id: cache-installer
+        id: cache-vulkan-win
         uses: actions/cache@v4
         with:
           path: ~\vulkansdk-${{ env.VULKAN_VER }}-installer.exe
           key: vulkan-sdk-installer-${{ env.VULKAN_VER }}
 
       - name: Download Vulkan SDK installer (Windows)
-        if: runner.os == 'Windows' && steps.cache-installer.outputs.cache-hit != 'true'
+        if: runner.os == 'Windows' && steps.cache-vulkan-win.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           $url = "https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VER }}/windows/VulkanSDK-${{ env.VULKAN_VER }}-Installer.exe"
@@ -117,12 +113,10 @@ jobs:
         run: |
           $installer = "$env:USERPROFILE\vulkansdk-${{ env.VULKAN_VER }}-installer.exe"
           $sdkPath = "C:\VulkanSDK\${{ env.VULKAN_VER }}"
-
           if (Test-Path "$sdkPath\Include\vulkan\vulkan.h") {
             Write-Host "Vulkan SDK already installed at $sdkPath"
           } else {
             Write-Host "Installing Vulkan SDK (this may take 3-5 min)..."
-            # Qt Installer Framework flags (required for SDK >= 1.2.189.1)
             $args = @(
               "--accept-licenses",
               "--default-answer",
@@ -145,34 +139,57 @@ jobs:
           echo "VULKAN_SDK=C:\VulkanSDK\${{ env.VULKAN_VER }}" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "C:\VulkanSDK\${{ env.VULKAN_VER }}\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-      - name: Configure
-        run: ${{ matrix.configure }}
+      # ---- Install analysis tools (Windows) ----
+      - name: Install LLVM & Cppcheck (Windows)
+        if: runner.os == 'Windows' && github.event_name != 'pull_request'
+        run: choco install llvm cppcheck ninja -y
+
+      # ---- Analysis phase (push only) ----
+      - name: Configure (analysis)
+        if: github.event_name != 'pull_request'
+        run: ${{ matrix.configure_debug }} -DMANTLE_ENABLE_CLANG_TIDY=ON -DMANTLE_ENABLE_CPPCHECK=ON
+
+      - name: Format
+        if: github.event_name != 'pull_request'
+        run: cmake --build build --target mantle-format 2>&1 || true
+
+      - name: Analyze
+        if: github.event_name != 'pull_request'
+        run: cmake --build build 2>&1 || true
+
+      # ---- Build phase (master push or PR to master) ----
+      - name: Configure (release)
+        if: github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
+        run: ${{ matrix.configure_release }} -DMANTLE_ENABLE_CLANG_TIDY=OFF -DMANTLE_ENABLE_CPPCHECK=OFF -DMANTLE_ENABLE_FORMAT=OFF
 
       - name: Build
-        run: ${{ matrix.build }}
+        if: github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
+        run: cmake --build build
 
       - name: Test
+        if: github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
         run: ${{ matrix.ctest }}
 
-      - name: Stage game package (Linux)
-        if: runner.os == 'Linux'
+      # ---- Package (master push only) ----
+      - name: Stage package (Linux)
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/master'
         run: |
           mkdir -p ${{ matrix.artifact }}
           cp -r build/target/* ${{ matrix.artifact }}/
 
-      - name: Stage game package (Windows)
-        if: runner.os == 'Windows'
+      - name: Stage package (Windows)
+        if: runner.os == 'Windows' && github.ref == 'refs/heads/master'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path ${{ matrix.artifact }}
           Copy-Item -Path build\target\* -Destination ${{ matrix.artifact }}\ -Recurse
 
-      - name: Stage devinfo (Linux, once)
-        if: runner.os == 'Linux' && matrix.build_type == 'RelWithDebInfo'
+      - name: Stage devinfo
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/master'
         run: cp build/devinfo/error_codes.json error_codes.json
 
       - name: Upload devinfo
-        if: runner.os == 'Linux' && matrix.build_type == 'RelWithDebInfo'
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v4
         with:
           name: mantle-devinfo
@@ -180,8 +197,22 @@ jobs:
           if-no-files-found: error
 
       - name: Upload package
+        if: github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.artifact }}
           if-no-files-found: error
+
+      # ---- Auto-commit (push only, not PR) ----
+      - name: Auto-commit format changes
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "Mantle Bot"
+            git config user.email "bot@mantle.dev"
+            git add -A
+            git diff --cached --quiet || git commit -m "auto-format [skip ci]"
+            git push
+          fi

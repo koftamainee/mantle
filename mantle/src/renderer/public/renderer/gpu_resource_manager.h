@@ -1,13 +1,17 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
-#include <vector>
 
 #include <span>
+#include <vector>
 
 #include "core/macros.h"
 #include "core/types.h"
 #include "renderer/types.h"
 
-namespace spdlog { class logger; }
+namespace spdlog {
+    class logger;
+}
 
 namespace mantle {
     struct SwapchainInfo;
@@ -18,29 +22,23 @@ namespace mantle {
         MANTLE_DEFAULT_INIT(GPUResourceManager);
 
         ShaderHandle create_shader(std::span<const u32> spir_v);
-        void destroy_shader(ShaderHandle handle, bool immediate = false);
+        void         destroy_shader(ShaderHandle handle, bool immediate = false);
 
-        GraphicsPipelineHandle
-        create_graphics_pipeline(const GraphicsPipelineDesc &desc);
-        ComputePipelineHandle
-        create_compute_pipeline(const ComputePipelineDesc &desc);
-        void destroy_graphics_pipeline(GraphicsPipelineHandle handle,
-                                       bool immediate = false);
-        void destroy_compute_pipeline(ComputePipelineHandle handle,
-                                      bool immediate = false);
+        GraphicsPipelineHandle create_graphics_pipeline(const GraphicsPipelineDesc &desc);
+        ComputePipelineHandle  create_compute_pipeline(const ComputePipelineDesc &desc);
+        void destroy_graphics_pipeline(GraphicsPipelineHandle handle, bool immediate = false);
+        void destroy_compute_pipeline(ComputePipelineHandle handle, bool immediate = false);
 
         BufferHandle create_buffer(const BufferDesc &desc, bool map = false);
-        void update_buffer(BufferHandle handle, const void *data, usize size,
-                           usize offset = 0);
-        void read_buffer(BufferHandle handle, void *data, usize size,
-                         usize offset = 0);
+        void update_buffer(BufferHandle handle, const void *data, usize size, usize offset = 0);
+        void read_buffer(BufferHandle handle, void *data, usize size, usize offset = 0);
         void destroy_buffer(BufferHandle handle, bool immediate = false);
 
         ImageHandle create_image(const ImageDesc &desc);
-        void destroy_image(ImageHandle handle, bool immediate = false);
+        void        destroy_image(ImageHandle handle, bool immediate = false);
 
         SamplerHandle create_sampler(const SamplerDesc &desc);
-        void destroy_sampler(SamplerHandle handle, bool immediate = false);
+        void          destroy_sampler(SamplerHandle handle, bool immediate = false);
 
         u32 get_bindless_index(ImageHandle handle, BindlessImageType type);
         u32 get_bindless_index(BufferHandle handle);
@@ -72,12 +70,11 @@ namespace mantle {
         void destroy_bindless();
 
 
-
         void init(VulkanBackend *backend);
         void destroy();
         struct Impl;
 
-        bool m_is_initialized = false;
+        bool  m_is_initialized = false;
         Impl *m_impl = nullptr;
 
         spdlog::logger *m_logger = nullptr;

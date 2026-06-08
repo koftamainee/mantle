@@ -1,7 +1,10 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+
 #include "core/types.h"
 #include "noise.h"
 
@@ -9,12 +12,12 @@ namespace mantle {
     namespace detail {
         glm::vec2 seed_offset(u32 seed);
         glm::vec3 seed_offset_3d(u32 seed);
-    }
+    } // namespace detail
 
     template <typename Fn>
         requires is_valid_noise_v<Fn>
     struct Sampler {
-        Fn noise_fn;
+        Fn  noise_fn;
         u32 seed = 0;
         f32 scale = 1.0f;
         i32 octaves = 1;
@@ -28,14 +31,12 @@ namespace mantle {
 
         template <typename Fn2>
             requires CNoise2D<Fn2>
-        f32 sample_warped(glm::vec2 p, const Sampler<Fn2>& noise2,
-                          f32 warp_scale = 1.0f) const
+        f32 sample_warped(glm::vec2 p, const Sampler<Fn2> &noise2, f32 warp_scale = 1.0f) const
             requires CNoise2D<Fn>;
 
         template <typename Fn2>
             requires CNoise3D<Fn2>
-        f32 sample_warped(glm::vec3 p, const Sampler<Fn2>& noise2,
-                          f32 warp_scale = 1.0f) const
+        f32 sample_warped(glm::vec3 p, const Sampler<Fn2> &noise2, f32 warp_scale = 1.0f) const
             requires CNoise3D<Fn>;
 
         f32 sample_range(glm::vec2 p, f32 min, f32 max) const
@@ -45,15 +46,13 @@ namespace mantle {
 
         template <typename Fn2>
             requires CNoise2D<Fn2>
-        f32 sample_range_warped(glm::vec2 p, f32 min, f32 max,
-                                const Sampler<Fn2>& noise2,
+        f32 sample_range_warped(glm::vec2 p, f32 min, f32 max, const Sampler<Fn2> &noise2,
                                 f32 warp_scale = 1.0f) const
             requires CNoise2D<Fn>;
 
         template <typename Fn2>
             requires CNoise3D<Fn2>
-        f32 sample_range_warped(glm::vec3 p, f32 min, f32 max,
-                                const Sampler<Fn2>& noise2,
+        f32 sample_range_warped(glm::vec3 p, f32 min, f32 max, const Sampler<Fn2> &noise2,
                                 f32 warp_scale = 1.0f) const
             requires CNoise3D<Fn>;
     };
@@ -104,13 +103,12 @@ namespace mantle {
         requires is_valid_noise_v<Fn>
     template <typename Fn2>
         requires CNoise2D<Fn2>
-    f32 Sampler<Fn>::sample_warped(glm::vec2 p, const Sampler<Fn2>& noise2,
-                                   f32 warp_scale) const
+    f32 Sampler<Fn>::sample_warped(glm::vec2 p, const Sampler<Fn2> &noise2, f32 warp_scale) const
         requires CNoise2D<Fn>
     {
-        glm::vec2 warp{
-            noise2.sample(p + glm::vec2{5.2f, 1.3f}),
-            noise2.sample(p + glm::vec2{9.7f, 3.5f}),
+        glm::vec2 warp {
+            noise2.sample(p + glm::vec2 {5.2f, 1.3f}),
+            noise2.sample(p + glm::vec2 {9.7f, 3.5f}),
         };
         return sample(p + warp * warp_scale);
     }
@@ -119,14 +117,13 @@ namespace mantle {
         requires is_valid_noise_v<Fn>
     template <typename Fn2>
         requires CNoise3D<Fn2>
-    f32 Sampler<Fn>::sample_warped(glm::vec3 p, const Sampler<Fn2>& noise2,
-                                   f32 warp_scale) const
+    f32 Sampler<Fn>::sample_warped(glm::vec3 p, const Sampler<Fn2> &noise2, f32 warp_scale) const
         requires CNoise3D<Fn>
     {
-        glm::vec3 warp{
-            noise2.sample(p + glm::vec3{5.2f, 1.3f, 7.8f}),
-            noise2.sample(p + glm::vec3{9.7f, 3.5f, 2.1f}),
-            noise2.sample(p + glm::vec3{6.4f, 8.9f, 4.6f}),
+        glm::vec3 warp {
+            noise2.sample(p + glm::vec3 {5.2f, 1.3f, 7.8f}),
+            noise2.sample(p + glm::vec3 {9.7f, 3.5f, 2.1f}),
+            noise2.sample(p + glm::vec3 {6.4f, 8.9f, 4.6f}),
         };
         return sample(p + warp * warp_scale);
     }
@@ -155,8 +152,7 @@ namespace mantle {
         requires is_valid_noise_v<Fn>
     template <typename Fn2>
         requires CNoise2D<Fn2>
-    f32 Sampler<Fn>::sample_range_warped(glm::vec2 p, f32 min, f32 max,
-                                         const Sampler<Fn2>& noise2,
+    f32 Sampler<Fn>::sample_range_warped(glm::vec2 p, f32 min, f32 max, const Sampler<Fn2> &noise2,
                                          f32 warp_scale) const
         requires CNoise2D<Fn>
     {
@@ -169,8 +165,7 @@ namespace mantle {
         requires is_valid_noise_v<Fn>
     template <typename Fn2>
         requires CNoise3D<Fn2>
-    f32 Sampler<Fn>::sample_range_warped(glm::vec3 p, f32 min, f32 max,
-                                         const Sampler<Fn2>& noise2,
+    f32 Sampler<Fn>::sample_range_warped(glm::vec3 p, f32 min, f32 max, const Sampler<Fn2> &noise2,
                                          f32 warp_scale) const
         requires CNoise3D<Fn>
     {

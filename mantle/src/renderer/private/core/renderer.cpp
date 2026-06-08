@@ -16,60 +16,84 @@ namespace mantle {
 
     namespace {
         PipelineStage infer_stage(ImageLayout layout) {
+            PipelineStage result = PipelineStage::Top;
+
             switch (layout) {
-            case ImageLayout::Undefined:
-                return PipelineStage::Top;
-            case ImageLayout::ColorAttachment:
-                return PipelineStage::ColorOutput;
-            case ImageLayout::DepthAttachment:
-                return PipelineStage::EarlyDepth;
-            case ImageLayout::ShaderReadOnly:
-                return PipelineStage::FragmentShader;
-            case ImageLayout::TransferSrc:
-            case ImageLayout::TransferDst:
-                return PipelineStage::Transfer;
-            case ImageLayout::General:
-                return PipelineStage::ComputeShader;
-            case ImageLayout::Present:
-                return PipelineStage::Bottom;
-            default:
-                MANTLE_FATAL(true, "unsupported ImageLayout");
+                case ImageLayout::Undefined: {
+                    result = PipelineStage::Top;
+                } break;
+                case ImageLayout::ColorAttachment: {
+                    result = PipelineStage::ColorOutput;
+                } break;
+                case ImageLayout::DepthAttachment: {
+                    result = PipelineStage::EarlyDepth;
+                } break;
+                case ImageLayout::ShaderReadOnly: {
+                    result = PipelineStage::FragmentShader;
+                } break;
+                case ImageLayout::TransferSrc:
+                case ImageLayout::TransferDst: {
+                    result = PipelineStage::Transfer;
+                } break;
+                case ImageLayout::General: {
+                    result = PipelineStage::ComputeShader;
+                } break;
+                case ImageLayout::Present: {
+                    result = PipelineStage::Bottom;
+                } break;
+                default: {
+                    MANTLE_FATAL(true, "unsupported ImageLayout");
+                } break;
             }
+
+            return result;
         }
 
         AccessType infer_access(ImageLayout layout) {
+            AccessType result = AccessType::None;
+
             switch (layout) {
-            case ImageLayout::Undefined:
-            case ImageLayout::Present:
-                return AccessType::None;
-            case ImageLayout::ColorAttachment:
-                return AccessType::ColorAttachmentWrite;
-            case ImageLayout::DepthAttachment:
-                return AccessType::DepthAttachmentWrite;
-            case ImageLayout::ShaderReadOnly:
-                return AccessType::ShaderRead;
-            case ImageLayout::TransferSrc:
-                return AccessType::TransferRead;
-            case ImageLayout::TransferDst:
-                return AccessType::TransferWrite;
-            case ImageLayout::General:
-                return AccessType::ShaderWrite;
-            default:
-                MANTLE_FATAL(true, "unsupported ImageLayout");
+                case ImageLayout::Undefined:
+                case ImageLayout::Present: {
+                    result = AccessType::None;
+                } break;
+                case ImageLayout::ColorAttachment: {
+                    result = AccessType::ColorAttachmentWrite;
+                } break;
+                case ImageLayout::DepthAttachment: {
+                    result = AccessType::DepthAttachmentWrite;
+                } break;
+                case ImageLayout::ShaderReadOnly: {
+                    result = AccessType::ShaderRead;
+                } break;
+                case ImageLayout::TransferSrc: {
+                    result = AccessType::TransferRead;
+                } break;
+                case ImageLayout::TransferDst: {
+                    result = AccessType::TransferWrite;
+                } break;
+                case ImageLayout::General: {
+                    result = AccessType::ShaderWrite;
+                } break;
+                default: {
+                    MANTLE_FATAL(true, "unsupported ImageLayout");
+                } break;
             }
+
+            return result;
         }
     } // namespace
 
     struct Renderer::Impl final {
-        VulkanBackend backend{};
-        FrameScheduler frame_scheduler{};
-        GPUResourceManager resource_manager{};
-        TransientResources transient_resources{};
-        ImageHandle backbuffer{};
-        FrameContext current_frame{};
+        VulkanBackend      backend {};
+        FrameScheduler     frame_scheduler {};
+        GPUResourceManager resource_manager {};
+        TransientResources transient_resources {};
+        ImageHandle        backbuffer {};
+        FrameContext       current_frame {};
 
-        PersistentResource persistent_resource{};
-        std::pmr::vector<ImageHandle> swapchain_images{};
+        PersistentResource            persistent_resource {};
+        std::pmr::vector<ImageHandle> swapchain_images {};
     };
 
     void Renderer::init(const Window &window, bool vsync, VirtualHeap *heap,
@@ -83,19 +107,15 @@ namespace mantle {
         m_impl = alloc.emplace<Impl>();
 
         m_impl->persistent_resource = PersistentResource(heap);
-        m_impl->swapchain_images =
-            std::pmr::vector<ImageHandle>(&m_impl->persistent_resource);
+        m_impl->swapchain_images = std::pmr::vector<ImageHandle>(&m_impl->persistent_resource);
 
         m_impl->backend.init(window, vsync, heap, scratch_arena);
-        m_impl->frame_scheduler.init(&m_impl->backend,
-                                     &m_impl->resource_manager, 3, heap);
+        m_impl->frame_scheduler.init(&m_impl->backend, &m_impl->resource_manager, 3, heap);
         m_impl->resource_manager.init(&m_impl->backend);
 
-        m_impl->resource_manager.import_swapchain_images(
-            m_impl->swapchain_images);
+        m_impl->resource_manager.import_swapchain_images(m_impl->swapchain_images);
 
-        m_impl->transient_resources.init(&m_impl->persistent_resource,
-                                         &m_impl->resource_manager);
+        m_impl->transient_resources.init(&m_impl->persistent_resource, &m_impl->resource_manager);
 
         m_is_initialized = true;
         m_logger->info("Renderer initialized");
@@ -109,8 +129,7 @@ namespace mantle {
             return;
         }
         m_impl->backend.wait_idle();
-        m_impl->resource_manager.release_swapchain_images(
-            m_impl->swapchain_images);
+        m_impl->resource_manager.release_swapchain_images(m_impl->swapchain_images);
         m_impl->resource_manager.destroy();
         m_impl->frame_scheduler.destroy();
         m_impl->backend.destroy();
@@ -122,18 +141,15 @@ namespace mantle {
     Renderer::Result Renderer::begin_frame() {
         MANTLE_CHECK(m_is_initialized);
 
-        FrameResult result =
-            m_impl->frame_scheduler.begin_frame(m_impl->current_frame);
+        FrameResult result = m_impl->frame_scheduler.begin_frame(m_impl->current_frame);
 
         if (result == FrameResult::NeedsResize) {
             return Result::FrameNeedsResize;
         }
 
-        m_impl->backbuffer =
-            m_impl->swapchain_images[m_impl->current_frame.image_index];
+        m_impl->backbuffer = m_impl->swapchain_images[m_impl->current_frame.image_index];
 
-        auto &backbuffer =
-            m_impl->resource_manager.m_impl->get_image(m_impl->backbuffer);
+        auto &backbuffer = m_impl->resource_manager.m_impl->get_image(m_impl->backbuffer);
         backbuffer.current_layout = ImageLayout::Undefined;
 
         return Result::Ok;
@@ -153,8 +169,7 @@ namespace mantle {
         for (u32 pass_idx = 0; pass_idx < graph.m_passes.size(); pass_idx++) {
             auto &pass = graph.m_passes[pass_idx];
 
-            std::pmr::vector<ImageBarrier> barriers(
-                &frame_scheduler.frame_arena_resource());
+            std::pmr::vector<ImageBarrier> barriers(&frame_scheduler.frame_arena_resource());
 
             for (auto &read : graph.m_image_reads) {
                 if (read.pass_index != pass_idx) {
@@ -169,18 +184,14 @@ namespace mantle {
                 transient_resources.get_image(write.handle);
             }
 
-            auto resolve_layout = [&](FGImageHandle rg_handle,
-                                      ImageLayout required_layout,
-                                      PipelineStage dst_stage,
-                                      AccessType dst_access) {
-                ImageHandle img_handle =
-                    transient_resources.get_image(rg_handle);
-                ImageResource &img =
-                    resource_manager.m_impl->get_image(img_handle);
+            auto resolve_layout = [&](FGImageHandle rg_handle, ImageLayout required_layout,
+                                      PipelineStage dst_stage, AccessType dst_access) {
+                ImageHandle    img_handle = transient_resources.get_image(rg_handle);
+                ImageResource &img = resource_manager.m_impl->get_image(img_handle);
 
                 if (img.current_layout != required_layout) {
                     PipelineStage src_stage = infer_stage(img.current_layout);
-                    AccessType src_access = infer_access(img.current_layout);
+                    AccessType    src_access = infer_access(img.current_layout);
 
                     barriers.push_back({
                         .image = &img,
@@ -196,20 +207,22 @@ namespace mantle {
             };
 
             for (auto &read : graph.m_image_reads) {
-                if (read.pass_index != pass_idx)
+                if (read.pass_index != pass_idx) {
                     continue;
-                ImageLayout layout = read_usage_to_layout(read.usage);
+                }
+                ImageLayout   layout = read_usage_to_layout(read.usage);
                 PipelineStage stage = read_usage_to_stage(read.usage);
-                AccessType access = read_usage_to_access(read.usage);
+                AccessType    access = read_usage_to_access(read.usage);
                 resolve_layout(read.handle, layout, stage, access);
             }
 
             for (auto &write : graph.m_image_writes) {
-                if (write.pass_index != pass_idx)
+                if (write.pass_index != pass_idx) {
                     continue;
-                ImageLayout layout = write_usage_to_layout(write.usage);
+                }
+                ImageLayout   layout = write_usage_to_layout(write.usage);
                 PipelineStage stage = write_usage_to_stage(write.usage);
-                AccessType access = write_usage_to_access(write.usage);
+                AccessType    access = write_usage_to_access(write.usage);
                 resolve_layout(write.handle, layout, stage, access);
             }
 
@@ -233,16 +246,12 @@ namespace mantle {
                 transient_resources.get_buffer(write.handle);
             }
 
-            auto resolve_buffer = [&](FGBufferHandle rg_handle,
-                                      PipelineStage dst_stage,
+            auto resolve_buffer = [&](FGBufferHandle rg_handle, PipelineStage dst_stage,
                                       AccessType dst_access) {
-                BufferHandle buf_handle =
-                    transient_resources.get_buffer(rg_handle);
-                BufferResource &buf =
-                    resource_manager.m_impl->get_buffer(buf_handle);
+                BufferHandle    buf_handle = transient_resources.get_buffer(rg_handle);
+                BufferResource &buf = resource_manager.m_impl->get_buffer(buf_handle);
 
-                if (buf.current_stage != dst_stage ||
-                    buf.current_access != dst_access) {
+                if (buf.current_stage != dst_stage || buf.current_access != dst_access) {
                     buffer_barriers.push_back({
                         .buffer = &buf,
                         .src_stage = buf.current_stage,
@@ -256,18 +265,20 @@ namespace mantle {
             };
 
             for (auto &read : graph.m_buffer_reads) {
-                if (read.pass_index != pass_idx)
+                if (read.pass_index != pass_idx) {
                     continue;
+                }
                 PipelineStage stage = buffer_read_usage_to_stage(read.usage);
-                AccessType access = buffer_read_usage_to_access(read.usage);
+                AccessType    access = buffer_read_usage_to_access(read.usage);
                 resolve_buffer(read.handle, stage, access);
             }
 
             for (auto &write : graph.m_buffer_writes) {
-                if (write.pass_index != pass_idx)
+                if (write.pass_index != pass_idx) {
                     continue;
+                }
                 PipelineStage stage = buffer_write_usage_to_stage(write.usage);
-                AccessType access = buffer_write_usage_to_access(write.usage);
+                AccessType    access = buffer_write_usage_to_access(write.usage);
                 resolve_buffer(write.handle, stage, access);
             }
 
@@ -283,7 +294,7 @@ namespace mantle {
                 .scratch_resource = &frame_scheduler.frame_arena_resource(),
             };
 
-            FGPassContext ctx{};
+            FGPassContext ctx {};
             ctx.init(&ctx_impl);
             pass.execute_fn(pass.execute_data, ctx);
         }
@@ -292,8 +303,7 @@ namespace mantle {
     Renderer::Result Renderer::end_frame() {
         MANTLE_CHECK(m_is_initialized);
 
-        auto &backbuffer_ref =
-            m_impl->resource_manager.m_impl->get_image(m_impl->backbuffer);
+        auto &backbuffer_ref = m_impl->resource_manager.m_impl->get_image(m_impl->backbuffer);
 
         ImageBarrier barrier = {
             .image = &backbuffer_ref,
@@ -307,8 +317,7 @@ namespace mantle {
 
         m_impl->current_frame.cmd->image_barrier(barrier);
 
-        FrameResult result =
-            m_impl->frame_scheduler.end_frame(m_impl->current_frame);
+        FrameResult result = m_impl->frame_scheduler.end_frame(m_impl->current_frame);
 
         m_impl->resource_manager.m_impl->next_frame();
 
@@ -323,16 +332,14 @@ namespace mantle {
         MANTLE_CHECK(m_is_initialized);
         m_impl->backend.wait_idle();
 
-        m_impl->resource_manager.release_swapchain_images(
-            m_impl->swapchain_images);
+        m_impl->resource_manager.release_swapchain_images(m_impl->swapchain_images);
 
         m_impl->backend.rebuild_swapchain(width, height);
 
         m_impl->frame_scheduler.on_swapchain_rebuilt(
             m_impl->backend.get_swapchain_info().image_count);
 
-        m_impl->resource_manager.import_swapchain_images(
-            m_impl->swapchain_images);
+        m_impl->resource_manager.import_swapchain_images(m_impl->swapchain_images);
     }
 
     SwapchainInfo Renderer::get_swapchain_info() {

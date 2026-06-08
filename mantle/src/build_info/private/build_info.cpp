@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "build_info/build_info.h"
 
 #ifndef MANTLE_VERSION
@@ -22,13 +24,11 @@
 
 namespace mantle {
 
-    const char *version_string() {
-        return "Mantle v" MANTLE_VERSION " (" MANTLE_GIT_HASH ")";
-    }
+    const char *version_string() { return "Mantle v" MANTLE_VERSION " (" MANTLE_GIT_HASH ")"; }
 
     const char *build_string() {
-        return "Mantle v" MANTLE_VERSION " (" MANTLE_GIT_HASH ") | "
-            MANTLE_BUILD_TYPE " | " MANTLE_COMPILER " | "
-            "C++23";
+        return "Mantle v" MANTLE_VERSION " (" MANTLE_GIT_HASH ") | " MANTLE_BUILD_TYPE
+               " | " MANTLE_COMPILER " | "
+               "C++23";
     }
-}
+} // namespace mantle

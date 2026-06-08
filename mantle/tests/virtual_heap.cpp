@@ -1,14 +1,18 @@
-#include "core/memory/os_memory.h"
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "core/memory/virtual_heap.h"
-#include "core/types.h"
+
 #include <gtest/gtest.h>
+
+#include "core/memory/os_memory.h"
+#include "core/types.h"
 
 using namespace mantle;
 
 class VirtualHeapTest : public ::testing::Test {
-protected:
-    OSMemory m_os;
-    VirtualHeap m_heap;
+  protected:
+    OSMemory               m_os;
+    VirtualHeap            m_heap;
     static constexpr usize RESERVE_SIZE = 1024 * 1024;
 
     void SetUp() override {
@@ -75,7 +79,7 @@ TEST_F(VirtualHeapTest, take_exact_page_multiple) {
 
 TEST_F(VirtualHeapTest, take_memory_writable) {
     MemoryBlock block = m_heap.take(256);
-    auto *data = static_cast<u8 *>(block.ptr);
+    auto       *data = static_cast<u8 *>(block.ptr);
     for (usize i = 0; i < 256; i++) {
         data[i] = static_cast<u8>(i);
     }

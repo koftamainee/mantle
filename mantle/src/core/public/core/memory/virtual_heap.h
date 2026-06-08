@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
 #include "core/macros.h"
@@ -25,11 +27,11 @@ namespace mantle {
 
       private:
         OSMemory *m_os = nullptr;
-        void *m_base = nullptr;
-        usize m_reserved = 0;
-        usize m_used = 0;
-        usize m_committed = 0;
-        bool m_is_initialized = false;
+        void     *m_base = nullptr;
+        usize     m_reserved = 0;
+        usize     m_used = 0;
+        usize     m_committed = 0;
+        bool      m_is_initialized = false;
     };
 
 } // namespace mantle

@@ -1,4 +1,7 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
 #include "core/memory/arena_allocator.h"
 #include "core/types.h"
 #include "renderer/types.h"
@@ -8,7 +11,9 @@
 #include "vulkan_swapchain.h"
 #include "window/window.h"
 
-namespace spdlog { class logger; }
+namespace spdlog {
+    class logger;
+}
 
 namespace mantle {
     enum class SwapchainResult {
@@ -19,7 +24,7 @@ namespace mantle {
 
     struct AcquiredImage final {
         SwapchainResult result;
-        u32 image_index;
+        u32             image_index;
     };
 
 
@@ -32,31 +37,30 @@ namespace mantle {
         void destroy();
         void wait_idle() const;
 
-        void rebuild_swapchain(u32 width, u32 height);
+        void          rebuild_swapchain(u32 width, u32 height);
         SwapchainInfo get_swapchain_info() const;
 
         std::string_view gpu_name() const;
-        u64 vram_bytes() const;
+        u64              vram_bytes() const;
 
 
       private:
         friend class FrameScheduler;
         friend class GPUResourceManager;
 
-        AcquiredImage acquire_next_image(VkSemaphore image_available) const;
-        SwapchainResult present(u32 image_index,
-                                VkSemaphore render_finished) const;
+        AcquiredImage   acquire_next_image(VkSemaphore image_available) const;
+        SwapchainResult present(u32 image_index, VkSemaphore render_finished) const;
 
         bool m_is_initialized = false;
 
-        VulkanContext m_context{};
-        VulkanDevice m_device{};
-        VulkanSwapchain m_swapchain{};
+        VulkanContext   m_context {};
+        VulkanDevice    m_device {};
+        VulkanSwapchain m_swapchain {};
 
-        VirtualHeap *m_heap = nullptr;
-        ArenaAllocator *m_scratch_arena = nullptr;
-        TlsfAllocator m_tlsf_allocator{};
-        VulkanCPUAllocator m_vk_allocator{};
+        VirtualHeap       *m_heap = nullptr;
+        ArenaAllocator    *m_scratch_arena = nullptr;
+        TlsfAllocator      m_tlsf_allocator {};
+        VulkanCPUAllocator m_vk_allocator {};
 
         bool m_vsync = true;
 

@@ -1,17 +1,17 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "command_recorder.h"
 
+#include <spdlog/fmt/bundled/os.h>
 #include <vulkan/vulkan_core.h>
-#include "resources/gpu_resource_manager_internal.h"
-#include "vulkan/vulkan_utils.h"
+#include <vulkan/vulkan_utils.h>
 
 #include "core/assert.h"
-#include "spdlog/fmt/bundled/os.h"
+#include "resources/gpu_resource_manager_internal.h"
 
 namespace mantle {
 
-    void CommandRecorder::set_command_buffer(VkCommandBuffer cmd) {
-        m_cmd = cmd;
-    }
+    void CommandRecorder::set_command_buffer(VkCommandBuffer cmd) { m_cmd = cmd; }
 
     void CommandRecorder::set_resource_manager(GPUResourceManager *resources) {
         m_resources = resources;
@@ -20,12 +20,11 @@ namespace mantle {
     void CommandRecorder::set_arena(ArenaResource *pmr) { m_pmr = pmr; }
 
     void CommandRecorder::image_barrier(const ImageBarrier &barrier) const {
-        std::array<ImageBarrier, 1> arr{barrier};
+        std::array<ImageBarrier, 1> arr {barrier};
         image_barriers(arr);
     }
 
-    void CommandRecorder::image_barriers(
-        std::span<const ImageBarrier> barriers) const {
+    void CommandRecorder::image_barriers(std::span<const ImageBarrier> barriers) const {
         if (barriers.empty()) {
             return;
         }
@@ -70,12 +69,11 @@ namespace mantle {
     }
 
     void CommandRecorder::buffer_barrier(const BufferBarrier &barrier) const {
-        std::array<BufferBarrier, 1> arr{barrier};
+        std::array<BufferBarrier, 1> arr {barrier};
         buffer_barriers(arr);
     }
 
-    void CommandRecorder::buffer_barriers(
-        std::span<const BufferBarrier> barriers) const {
+    void CommandRecorder::buffer_barriers(std::span<const BufferBarrier> barriers) const {
         if (barriers.empty()) {
             return;
         }
@@ -119,9 +117,8 @@ namespace mantle {
                 .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                 .loadOp = to_vk(color.load),
                 .storeOp = to_vk(color.store),
-                .clearValue =
-                    {.color = {.float32 = {color.clear_r, color.clear_g,
-                                           color.clear_b, color.clear_a}}},
+                .clearValue = {.color = {.float32 = {color.clear_r, color.clear_g, color.clear_b,
+                                                     color.clear_a}}},
             });
         }
 
@@ -134,19 +131,16 @@ namespace mantle {
                 .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
                 .loadOp = to_vk(info.depth->load),
                 .storeOp = to_vk(info.depth->store),
-                .clearValue = {.depthStencil = {.depth =
-                                                    info.depth->clear_value}},
+                .clearValue = {.depthStencil = {.depth = info.depth->clear_value}},
             };
             p_depth_attachment = &depth_attachment;
         }
 
         VkRenderingInfo rendering_info = {
             .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-            .renderArea = {.offset = {0, 0},
-                           .extent = {info.width, info.height}},
+            .renderArea = {.offset = {0, 0}, .extent = {info.width, info.height}},
             .layerCount = 1,
-            .colorAttachmentCount =
-                static_cast<uint32_t>(color_attachments.size()),
+            .colorAttachmentCount = static_cast<uint32_t>(color_attachments.size()),
             .pColorAttachments = color_attachments.data(),
             .pDepthAttachment = p_depth_attachment,
         };
@@ -157,35 +151,27 @@ namespace mantle {
     void CommandRecorder::end_rendering() const { vkCmdEndRendering(m_cmd); }
 
 
-    void CommandRecorder::bind_graphics_pipeline(
-        const GraphicsPipelineResource &pipeline) {
+    void CommandRecorder::bind_graphics_pipeline(const GraphicsPipelineResource &pipeline) {
         m_current_layout = pipeline.layout;
         m_push_constants = pipeline.desc.push_constants;
-        vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          pipeline.pipeline);
+        vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipeline);
 
         VkDescriptorSet bindless_set = m_resources->m_impl->get_bindless_set();
-        vkCmdBindDescriptorSets(m_cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                m_current_layout, 0, 1, &bindless_set, 0,
-                                nullptr);
+        vkCmdBindDescriptorSets(m_cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_current_layout, 0, 1,
+                                &bindless_set, 0, nullptr);
     }
 
-    void
-    CommandRecorder::bind_compute_pipeline(ComputePipelineResource &pipeline) {
+    void CommandRecorder::bind_compute_pipeline(ComputePipelineResource &pipeline) {
         m_current_layout = pipeline.layout;
-        m_push_constants =
-            std::span<PushConstantsRange>(&pipeline.desc.push_constants, 1);
-        vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipeline.pipeline);
+        m_push_constants = std::span<PushConstantsRange>(&pipeline.desc.push_constants, 1);
+        vkCmdBindPipeline(m_cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline.pipeline);
 
         VkDescriptorSet bindless_set = m_resources->m_impl->get_bindless_set();
-        vkCmdBindDescriptorSets(m_cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-                                m_current_layout, 0, 1, &bindless_set, 0,
-                                nullptr);
+        vkCmdBindDescriptorSets(m_cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_current_layout, 0, 1,
+                                &bindless_set, 0, nullptr);
     }
 
-    void CommandRecorder::set_viewport(f32 x, f32 y, f32 width,
-                                       f32 height) const {
+    void CommandRecorder::set_viewport(f32 x, f32 y, f32 width, f32 height) const {
         VkViewport viewport = {
             .x = x,
             .y = y,
@@ -197,8 +183,7 @@ namespace mantle {
         vkCmdSetViewport(m_cmd, 0, 1, &viewport);
     }
 
-    void CommandRecorder::set_scissor(i32 x, i32 y, u32 width,
-                                      u32 height) const {
+    void CommandRecorder::set_scissor(i32 x, i32 y, u32 width, u32 height) const {
         VkRect2D scissor = {
             .offset = {.x = x, .y = y},
             .extent = {.width = width, .height = height},
@@ -207,42 +192,36 @@ namespace mantle {
     }
 
     void CommandRecorder::draw(const DrawInfo &info) const {
-        vkCmdDraw(m_cmd, info.vertex_count, info.instance_count,
-                  info.first_vertex, info.first_instance);
+        vkCmdDraw(m_cmd, info.vertex_count, info.instance_count, info.first_vertex,
+                  info.first_instance);
     }
 
     void CommandRecorder::draw_indexed(const DrawIndexedInfo &info) const {
-        vkCmdDrawIndexed(m_cmd, info.index_count, info.instance_count,
-                         info.first_index, info.vertex_offset,
-                         info.first_instance);
+        vkCmdDrawIndexed(m_cmd, info.index_count, info.instance_count, info.first_index,
+                         info.vertex_offset, info.first_instance);
     }
 
     void CommandRecorder::draw_indirect(const DrawIndirectInfo &info) const {
         MANTLE_CHECK(info.buffer != nullptr);
-        vkCmdDrawIndirect(m_cmd, info.buffer->buffer, info.offset,
-                          info.draw_count, info.stride);
+        vkCmdDrawIndirect(m_cmd, info.buffer->buffer, info.offset, info.draw_count, info.stride);
     }
 
-    void CommandRecorder::draw_indexed_indirect(
-        const DrawIndexedIndirectInfo &info) const {
+    void CommandRecorder::draw_indexed_indirect(const DrawIndexedIndirectInfo &info) const {
         MANTLE_CHECK(info.buffer != nullptr);
-        vkCmdDrawIndexedIndirect(m_cmd, info.buffer->buffer, info.offset,
-                                 info.draw_count, info.stride);
+        vkCmdDrawIndexedIndirect(m_cmd, info.buffer->buffer, info.offset, info.draw_count,
+                                 info.stride);
     }
 
     void CommandRecorder::dispatch(const DispatchInfo &info) const {
         vkCmdDispatch(m_cmd, info.x, info.y, info.z);
     }
 
-    void CommandRecorder::dispatch_indirect(
-        const DispatchIndirectInfo &info) const {
-        vkCmdDispatchIndirect(m_cmd, info.buffer->buffer,
-                              static_cast<VkDeviceSize>(info.offset));
+    void CommandRecorder::dispatch_indirect(const DispatchIndirectInfo &info) const {
+        vkCmdDispatchIndirect(m_cmd, info.buffer->buffer, static_cast<VkDeviceSize>(info.offset));
     }
 
     void CommandRecorder::fill_buffer(const FillBufferInfo &info) const {
-        vkCmdFillBuffer(m_cmd, info.dst->buffer,
-                        static_cast<VkDeviceSize>(info.offset),
+        vkCmdFillBuffer(m_cmd, info.dst->buffer, static_cast<VkDeviceSize>(info.offset),
                         info.size > 0 ? static_cast<VkDeviceSize>(info.size) : VK_WHOLE_SIZE,
                         info.value);
     }
@@ -269,8 +248,7 @@ namespace mantle {
         vkCmdCopyBuffer2(m_cmd, &copy_info);
     }
 
-    void CommandRecorder::copy_buffer_to_image(
-        const BufferImageCopyInfo &info) const {
+    void CommandRecorder::copy_buffer_to_image(const BufferImageCopyInfo &info) const {
         MANTLE_CHECK(info.src != nullptr);
         MANTLE_CHECK(info.dst != nullptr);
         auto image = info.dst;
@@ -279,7 +257,7 @@ namespace mantle {
         u32 width = image->desc.width >> info.mip_level;
         u32 height = image->desc.height >> info.mip_level;
 
-        VkBufferImageCopy2 region{
+        VkBufferImageCopy2 region {
             .sType = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2,
             .pNext = nullptr,
             .bufferOffset = info.buffer_offset,
@@ -296,7 +274,7 @@ namespace mantle {
             .imageExtent = {width, height, 1},
         };
 
-        VkCopyBufferToImageInfo2 copy_info{
+        VkCopyBufferToImageInfo2 copy_info {
             .sType = VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2,
             .pNext = nullptr,
             .srcBuffer = info.src->buffer,
@@ -370,12 +348,12 @@ namespace mantle {
             .sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
             .srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
             .srcOffsets = {{0, 0, 0},
-                           {static_cast<i32>(src->desc.width),
-                            static_cast<i32>(src->desc.height), 1}},
+                           {static_cast<i32>(src->desc.width), static_cast<i32>(src->desc.height),
+                            1}},
             .dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
             .dstOffsets = {{0, 0, 0},
-                           {static_cast<i32>(dst->desc.width),
-                            static_cast<i32>(dst->desc.height), 1}},
+                           {static_cast<i32>(dst->desc.width), static_cast<i32>(dst->desc.height),
+                            1}},
         };
         VkBlitImageInfo2 blit_info = {
             .sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
@@ -390,8 +368,7 @@ namespace mantle {
         vkCmdBlitImage2(m_cmd, &blit_info);
     }
 
-    void CommandRecorder::copy_image_to_buffer(
-        const ImageBufferCopyInfo &info) const {
+    void CommandRecorder::copy_image_to_buffer(const ImageBufferCopyInfo &info) const {
         auto &image = info.src;
         auto &buffer = info.dst;
 
@@ -426,19 +403,16 @@ namespace mantle {
         vkCmdCopyImageToBuffer2(m_cmd, &copy_info);
     }
 
-    void CommandRecorder::clear_color_image(const ImageResource &image, f32 r,
-                                            f32 g, f32 b, f32 a) const {
-        VkClearColorValue clear = {.float32 = {r, g, b, a}};
-        VkImageSubresourceRange range = {VK_IMAGE_ASPECT_COLOR_BIT, 0,
-                                         VK_REMAINING_MIP_LEVELS, 0,
+    void CommandRecorder::clear_color_image(const ImageResource &image, f32 r, f32 g, f32 b,
+                                            f32 a) const {
+        VkClearColorValue       clear = {.float32 = {r, g, b, a}};
+        VkImageSubresourceRange range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0,
                                          VK_REMAINING_ARRAY_LAYERS};
-        vkCmdClearColorImage(m_cmd, image.image,
-                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear, 1,
+        vkCmdClearColorImage(m_cmd, image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear, 1,
                              &range);
     }
 
-    void CommandRecorder::clear_depth_image(const ImageResource &image,
-                                            f32 depth) const {
+    void CommandRecorder::clear_depth_image(const ImageResource &image, f32 depth) const {
         VkClearDepthStencilValue clear = {
             .depth = depth,
             .stencil = 0,
@@ -452,28 +426,23 @@ namespace mantle {
             .layerCount = VK_REMAINING_ARRAY_LAYERS,
         };
 
-        vkCmdClearDepthStencilImage(m_cmd, image.image,
-                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        vkCmdClearDepthStencilImage(m_cmd, image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                     &clear, 1, &range);
     }
 
-    void CommandRecorder::bind_vertex_buffer(const BufferResource &buffer,
-                                             u32 binding, usize offset) const {
+    void CommandRecorder::bind_vertex_buffer(const BufferResource &buffer, u32 binding,
+                                             usize offset) const {
         vkCmdBindVertexBuffers(m_cmd, binding, 1, &buffer.buffer, &offset);
     }
 
-    void CommandRecorder::bind_index_buffer(const BufferResource &buffer,
-                                            usize offset) const {
-        vkCmdBindIndexBuffer(m_cmd, buffer.buffer, offset,
-                             VK_INDEX_TYPE_UINT32);
+    void CommandRecorder::bind_index_buffer(const BufferResource &buffer, usize offset) const {
+        vkCmdBindIndexBuffer(m_cmd, buffer.buffer, offset, VK_INDEX_TYPE_UINT32);
     }
 
-    void CommandRecorder::push_constants(const void *data,
-                                         ShaderStage stage) const {
+    void CommandRecorder::push_constants(const void *data, ShaderStage stage) const {
         for (const auto &pc : m_push_constants) {
             if (pc.stage == stage) {
-                vkCmdPushConstants(m_cmd, m_current_layout, to_vk(stage),
-                                   pc.offset, pc.size, data);
+                vkCmdPushConstants(m_cmd, m_current_layout, to_vk(stage), pc.offset, pc.size, data);
                 return;
             }
         }

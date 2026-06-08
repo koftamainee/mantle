@@ -1,4 +1,7 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "core/memory/persistent_allocator.h"
+
 #include "core/assert.h"
 
 namespace mantle {

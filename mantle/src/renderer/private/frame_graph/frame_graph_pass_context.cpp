@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "frame_graph/frame_graph_pass_context_internal.h"
 
 namespace mantle {
@@ -12,15 +14,13 @@ namespace mantle {
     }
 
     void FGPassContext::begin_rendering(const FGRenderingInfo &info) {
-        ScopeArena scope(m_impl->scratch_arena);
-        std::pmr::vector<ColorAttachment> color_attachments(
-            m_impl->scratch_resource);
+        ScopeArena                        scope(m_impl->scratch_arena);
+        std::pmr::vector<ColorAttachment> color_attachments(m_impl->scratch_resource);
         color_attachments.reserve(info.colors.size());
 
         for (const auto &rg : info.colors) {
 
-            ImageHandle image_handle =
-                m_impl->transient_resources->get_image(rg.image);
+            ImageHandle    image_handle = m_impl->transient_resources->get_image(rg.image);
             ImageResource &image_resource =
                 m_impl->resource_manager->m_impl->get_image(image_handle);
 
@@ -52,8 +52,7 @@ namespace mantle {
 
 
         RenderingInfo internal_info = {
-            .colors =
-                std::span(color_attachments.data(), color_attachments.size()),
+            .colors = std::span(color_attachments.data(), color_attachments.size()),
             .depth = ((info.depth != nullptr) ? &depth : nullptr),
             .width = info.width,
             .height = info.height,
@@ -72,32 +71,27 @@ namespace mantle {
         m_impl->cmd->set_scissor(x, y, width, height);
     }
 
-    void FGPassContext::bind_vertex_buffer(FGBufferHandle buffer,
-                                               u32 binding, usize offset) {
-        BufferHandle buffer_handle =
-            m_impl->transient_resources->get_buffer(buffer);
+    void FGPassContext::bind_vertex_buffer(FGBufferHandle buffer, u32 binding, usize offset) {
+        BufferHandle    buffer_handle = m_impl->transient_resources->get_buffer(buffer);
         BufferResource &buffer_resource =
             m_impl->resource_manager->m_impl->get_buffer(buffer_handle);
 
         m_impl->cmd->bind_vertex_buffer(buffer_resource, binding, offset);
     }
 
-    void FGPassContext::bind_index_buffer(FGBufferHandle buffer,
-                                              usize offset) {
-        BufferHandle buffer_handle =
-    m_impl->transient_resources->get_buffer(buffer);
+    void FGPassContext::bind_index_buffer(FGBufferHandle buffer, usize offset) {
+        BufferHandle    buffer_handle = m_impl->transient_resources->get_buffer(buffer);
         BufferResource &buffer_resource =
             m_impl->resource_manager->m_impl->get_buffer(buffer_handle);
 
         m_impl->cmd->bind_index_buffer(buffer_resource, offset);
     }
 
-    void
-    FGPassContext::copy_image_to_buffer(const FGImageBufferCopyInfo &info) {
-        BufferHandle buf = m_impl->transient_resources->get_buffer(info.dst);
+    void FGPassContext::copy_image_to_buffer(const FGImageBufferCopyInfo &info) {
+        BufferHandle    buf = m_impl->transient_resources->get_buffer(info.dst);
         BufferResource &dst = m_impl->resource_manager->m_impl->get_buffer(buf);
 
-        ImageHandle img =  m_impl->transient_resources->get_image(info.src);
+        ImageHandle    img = m_impl->transient_resources->get_image(info.src);
         ImageResource &src = m_impl->resource_manager->m_impl->get_image(img);
 
         ImageBufferCopyInfo info_internal = {
@@ -111,10 +105,10 @@ namespace mantle {
     }
 
     void FGPassContext::copy_image(const FGImageCopyInfo &info) {
-        ImageHandle dst_handle = m_impl->transient_resources->get_image(info.dst);
+        ImageHandle    dst_handle = m_impl->transient_resources->get_image(info.dst);
         ImageResource &dst = m_impl->resource_manager->m_impl->get_image(dst_handle);
 
-        ImageHandle src_handle = m_impl->transient_resources->get_image(info.src);
+        ImageHandle    src_handle = m_impl->transient_resources->get_image(info.src);
         ImageResource &src = m_impl->resource_manager->m_impl->get_image(src_handle);
 
         ImageCopyInfo info_internal = {
@@ -132,10 +126,10 @@ namespace mantle {
     }
 
     void FGPassContext::blit_image(const FGImageBlitInfo &info) {
-        ImageHandle dst_handle = m_impl->transient_resources->get_image(info.dst);
+        ImageHandle    dst_handle = m_impl->transient_resources->get_image(info.dst);
         ImageResource &dst = m_impl->resource_manager->m_impl->get_image(dst_handle);
 
-        ImageHandle src_handle = m_impl->transient_resources->get_image(info.src);
+        ImageHandle    src_handle = m_impl->transient_resources->get_image(info.src);
         ImageResource &src = m_impl->resource_manager->m_impl->get_image(src_handle);
 
         ImageBlitInfo info_internal = {
@@ -149,51 +143,42 @@ namespace mantle {
         m_impl->cmd->blit_image(info_internal);
     }
 
-    void FGPassContext::clear_color_image(FGImageHandle image, f32 r, f32 g,
-                                              f32 b, f32 a) {
-        ImageHandle handle = m_impl->transient_resources->get_image(image);
+    void FGPassContext::clear_color_image(FGImageHandle image, f32 r, f32 g, f32 b, f32 a) {
+        ImageHandle    handle = m_impl->transient_resources->get_image(image);
         ImageResource &resource = m_impl->resource_manager->m_impl->get_image(handle);
         m_impl->cmd->clear_color_image(resource, r, g, b, a);
     }
 
     void FGPassContext::clear_depth_image(FGImageHandle image, f32 depth) {
-        ImageHandle handle = m_impl->transient_resources->get_image(image);
+        ImageHandle    handle = m_impl->transient_resources->get_image(image);
         ImageResource &resource = m_impl->resource_manager->m_impl->get_image(handle);
         m_impl->cmd->clear_depth_image(resource, depth);
     }
 
-    void FGPassContext::push_constants(const void *data,
-                                           ShaderStage stage) {
+    void FGPassContext::push_constants(const void *data, ShaderStage stage) {
         m_impl->cmd->push_constants(data, stage);
     }
 
-    u32 FGPassContext::get_bindless_index(FGImageHandle handle,
-                                               BindlessImageType type) {
-        ImageHandle image_handle =
-            m_impl->transient_resources->get_image(handle);
-        return m_impl->resource_manager->get_bindless_index(image_handle,
-                                                             type);
+    u32 FGPassContext::get_bindless_index(FGImageHandle handle, BindlessImageType type) {
+        ImageHandle image_handle = m_impl->transient_resources->get_image(handle);
+        return m_impl->resource_manager->get_bindless_index(image_handle, type);
     }
 
     u32 FGPassContext::get_bindless_index(FGBufferHandle handle) {
-        BufferHandle buffer_handle =
-            m_impl->transient_resources->get_buffer(handle);
+        BufferHandle buffer_handle = m_impl->transient_resources->get_buffer(handle);
         return m_impl->resource_manager->get_bindless_index(buffer_handle);
     }
 
     void FGPassContext::init(Impl *impl) { m_impl = impl; }
 
-    void FGPassContext::draw(const FGDrawInfo &info) {
-        m_impl->cmd->draw(info);
-    }
+    void FGPassContext::draw(const FGDrawInfo &info) { m_impl->cmd->draw(info); }
 
     void FGPassContext::draw_indexed(const FGDrawIndexedInfo &info) {
         m_impl->cmd->draw_indexed(info);
     }
 
     void FGPassContext::draw_indirect(const FGDrawIndirectInfo &info) {
-        BufferHandle buffer_handle =
-            m_impl->transient_resources->get_buffer(info.buffer);
+        BufferHandle    buffer_handle = m_impl->transient_resources->get_buffer(info.buffer);
         BufferResource &buffer_resource =
             m_impl->resource_manager->m_impl->get_buffer(buffer_handle);
 
@@ -207,10 +192,8 @@ namespace mantle {
         m_impl->cmd->draw_indirect(info_internal);
     }
 
-    void FGPassContext::draw_indexed_indirect(
-        const FGDrawIndexedIndirectInfo &info) {
-        BufferHandle buffer_handle =
-            m_impl->transient_resources->get_buffer(info.buffer);
+    void FGPassContext::draw_indexed_indirect(const FGDrawIndexedIndirectInfo &info) {
+        BufferHandle    buffer_handle = m_impl->transient_resources->get_buffer(info.buffer);
         BufferResource &buffer_resource =
             m_impl->resource_manager->m_impl->get_buffer(buffer_handle);
 
@@ -224,14 +207,10 @@ namespace mantle {
         m_impl->cmd->draw_indexed_indirect(info_internal);
     }
 
-    void FGPassContext::dispatch(const FGDispatchInfo &info) {
-        m_impl->cmd->dispatch(info);
-    }
+    void FGPassContext::dispatch(const FGDispatchInfo &info) { m_impl->cmd->dispatch(info); }
 
-    void FGPassContext::dispatch_indirect(
-        const FGDispatchIndirectInfo &info) {
-        BufferHandle buffer_handle =
-            m_impl->transient_resources->get_buffer(info.buffer);
+    void FGPassContext::dispatch_indirect(const FGDispatchIndirectInfo &info) {
+        BufferHandle    buffer_handle = m_impl->transient_resources->get_buffer(info.buffer);
         BufferResource &buffer_resource =
             m_impl->resource_manager->m_impl->get_buffer(buffer_handle);
 
@@ -244,10 +223,10 @@ namespace mantle {
     }
 
     void FGPassContext::copy_buffer(const FGBufferCopyInfo &info) {
-        BufferHandle dst_handle = m_impl->transient_resources->get_buffer(info.dst);
+        BufferHandle    dst_handle = m_impl->transient_resources->get_buffer(info.dst);
         BufferResource &dst = m_impl->resource_manager->m_impl->get_buffer(dst_handle);
 
-        BufferHandle src_handle = m_impl->transient_resources->get_buffer(info.src);
+        BufferHandle    src_handle = m_impl->transient_resources->get_buffer(info.src);
         BufferResource &src = m_impl->resource_manager->m_impl->get_buffer(src_handle);
 
         BufferCopyInfo info_internal = {
@@ -262,10 +241,8 @@ namespace mantle {
     }
 
     void FGPassContext::fill_buffer(const FGFillBufferInfo &info) {
-        BufferHandle dst_handle =
-            m_impl->transient_resources->get_buffer(info.dst);
-        BufferResource &dst =
-            m_impl->resource_manager->m_impl->get_buffer(dst_handle);
+        BufferHandle    dst_handle = m_impl->transient_resources->get_buffer(info.dst);
+        BufferResource &dst = m_impl->resource_manager->m_impl->get_buffer(dst_handle);
 
         FillBufferInfo info_internal = {
             .dst = &dst,
@@ -277,12 +254,11 @@ namespace mantle {
         m_impl->cmd->fill_buffer(info_internal);
     }
 
-    void
-    FGPassContext::copy_buffer_to_image(const FGBufferImageCopyInfo &info) {
-        ImageHandle dst_handle = m_impl->transient_resources->get_image(info.dst);
+    void FGPassContext::copy_buffer_to_image(const FGBufferImageCopyInfo &info) {
+        ImageHandle    dst_handle = m_impl->transient_resources->get_image(info.dst);
         ImageResource &dst = m_impl->resource_manager->m_impl->get_image(dst_handle);
 
-        BufferHandle src_handle = m_impl->transient_resources->get_buffer(info.src);
+        BufferHandle    src_handle = m_impl->transient_resources->get_buffer(info.src);
         BufferResource &src = m_impl->resource_manager->m_impl->get_buffer(src_handle);
 
         BufferImageCopyInfo info_internal = {

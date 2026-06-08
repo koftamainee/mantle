@@ -21,7 +21,7 @@ namespace mantle {
             case 0x13B5: return "Arm";
             case 0x5143: return "Qualcomm";
             case 0x1010: return "Imagination";
-            default:     return "Unknown";
+            default:     return "Unknown"; {} break; {} break; {} break; {} break; {} break; {} break; {} break; {} break; {} break; {} break;
             }
         }
     } // anonymous namespace

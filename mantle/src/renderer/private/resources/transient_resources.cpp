@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "transient_resources.h"
 
 #include "core/assert.h"
@@ -12,13 +14,11 @@ namespace mantle {
         m_buffer_cache = std::pmr::vector<CreatedBufferEntry>(persistent_resource);
     }
 
-    void TransientResources::set_images(
-        std::pmr::vector<FGImageEntry> *images) {
+    void TransientResources::set_images(std::pmr::vector<FGImageEntry> *images) {
         m_images = images;
     }
 
-    void TransientResources::set_buffers(
-        std::pmr::vector<FGBufferEntry> *buffers) {
+    void TransientResources::set_buffers(std::pmr::vector<FGBufferEntry> *buffers) {
         m_buffers = buffers;
     }
 

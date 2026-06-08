@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 #include "types.h"
 
@@ -9,25 +11,25 @@
 #define MANTLE_LIKELY(x) (x)
 #endif
 
-#define MANTLE_NO_COPY(type)                                                   \
-    type(const type &) = delete;                                               \
+#define MANTLE_NO_COPY(type)                                                                       \
+    type(const type &) = delete;                                                                   \
     type &operator=(const type &) = delete
 
-#define MANTLE_NO_MOVE(type)                                                   \
-    type(type &&) noexcept = delete;                                           \
+#define MANTLE_NO_MOVE(type)                                                                       \
+    type(type &&) noexcept = delete;                                                               \
     type &operator=(type &&) noexcept = delete
 
-#define MANTLE_NO_COPY_NO_MOVE(type)                                           \
-    MANTLE_NO_COPY(type);                                                      \
+#define MANTLE_NO_COPY_NO_MOVE(type)                                                               \
+    MANTLE_NO_COPY(type);                                                                          \
     MANTLE_NO_MOVE(type)
 
-#define MANTLE_DEFAULT_INIT(type)                                              \
-    type() = default;                                                          \
-    ~type() {                                                                  \
-        if (m_is_initialized) {                                                \
-            destroy();                                                         \
-        }                                                                      \
-    }                                                                          \
+#define MANTLE_DEFAULT_INIT(type)                                                                  \
+    type() = default;                                                                              \
+    ~type() {                                                                                      \
+        if (m_is_initialized) {                                                                    \
+            destroy();                                                                             \
+        }                                                                                          \
+    }                                                                                              \
     MANTLE_NO_COPY_NO_MOVE(type)
 
 #define MANTLE_TODO() MANTLE_FATAL(true, "Implement me")

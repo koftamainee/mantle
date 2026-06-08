@@ -1,9 +1,10 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "ecs/ecs.h"
 
 #include "camera/camera.h"
 #include "camera/components.h"
 #include "core/assert.h"
-
 #include "input/input.h"
 #include "rumbling/rumbling.h"
 
@@ -32,12 +33,8 @@ namespace mantle {
         static_cast<void>(m_world.progress(delta_time)); // xd
     }
 
-    glm::mat4 Ecs::camera_view_proj() const {
-        return m_world.get<Camera>().view_proj;
-    }
+    glm::mat4 Ecs::camera_view_proj() const { return m_world.get<Camera>().view_proj; }
 
-    void Ecs::set_camera_aspect(f32 aspect) {
-        m_world.get_mut<Camera>().aspect = aspect;
-    }
+    void Ecs::set_camera_aspect(f32 aspect) { m_world.get_mut<Camera>().aspect = aspect; }
 
 } // namespace mantle

@@ -1,9 +1,11 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "world/chunk_generation_system.h"
 
 #include <cmath>
+#include <spdlog/spdlog.h>
 
 #include "core/assert.h"
-#include "spdlog/spdlog.h"
 
 namespace mantle {
 
@@ -71,9 +73,12 @@ namespace mantle {
             for (u32 y = 0; y < Chunk::size; y++) {
                 for (u32 x = 0; x < Chunk::size; x++) {
                     glm::vec3 world_pos = {
-                        static_cast<f32>(pos.x * static_cast<i32>(Chunk::size) + static_cast<i32>(x)),
-                        static_cast<f32>(pos.y * static_cast<i32>(Chunk::size) + static_cast<i32>(y)),
-                        static_cast<f32>(pos.z * static_cast<i32>(Chunk::size) + static_cast<i32>(z)),
+                        static_cast<f32>(pos.x * static_cast<i32>(Chunk::size) +
+                                         static_cast<i32>(x)),
+                        static_cast<f32>(pos.y * static_cast<i32>(Chunk::size) +
+                                         static_cast<i32>(y)),
+                        static_cast<f32>(pos.z * static_cast<i32>(Chunk::size) +
+                                         static_cast<i32>(z)),
                     };
 
                     f32 dx = world_pos.x - 16.0f;

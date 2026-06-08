@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
 #include <type_traits>
@@ -10,7 +12,7 @@
 namespace mantle {
 
     class PersistentAllocator final {
-    public:
+      public:
         PersistentAllocator() = default;
         ~PersistentAllocator() = default;
 
@@ -33,7 +35,7 @@ namespace mantle {
             return static_cast<T *>(block.ptr);
         }
 
-    private:
+      private:
         VirtualHeap *m_heap = nullptr;
     };
 

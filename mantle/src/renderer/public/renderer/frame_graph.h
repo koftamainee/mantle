@@ -1,8 +1,10 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
-#include <string_view>
-#include <vector>
 
 #include <renderer/types.h>
+#include <string_view>
+#include <vector>
 
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"
@@ -56,29 +58,25 @@ namespace mantle {
         MANTLE_NO_COPY_NO_MOVE(FrameGraphBuilder);
 
         FGImageHandle create_image(const ImageDesc &desc);
-        FGImageHandle read(FGImageHandle image,
-                           ReadUsage usage = ReadUsage::Sampled);
-        FGImageHandle write(FGImageHandle image,
-                            WriteUsage usage = WriteUsage::ColorAttachment);
+        FGImageHandle read(FGImageHandle image, ReadUsage usage = ReadUsage::Sampled);
+        FGImageHandle write(FGImageHandle image, WriteUsage usage = WriteUsage::ColorAttachment);
 
         FGBufferHandle create_buffer(const BufferDesc &desc);
-        FGBufferHandle read(FGBufferHandle buffer,
-                            BufferReadUsage usage = BufferReadUsage::Vertex);
-        FGBufferHandle
-        write(FGBufferHandle buffer,
-              BufferWriteUsage usage = BufferWriteUsage::Storage);
+        FGBufferHandle read(FGBufferHandle buffer, BufferReadUsage usage = BufferReadUsage::Vertex);
+        FGBufferHandle write(FGBufferHandle   buffer,
+                             BufferWriteUsage usage = BufferWriteUsage::Storage);
 
       private:
         friend class FrameGraph;
 
-        u32 m_pass_index = UINT32_MAX;
-        std::pmr::vector<FGImageReadAccess> *m_image_reads = nullptr;
-        std::pmr::vector<FGImageWriteAccess> *m_image_writes = nullptr;
-        std::pmr::vector<FGImageEntry> *m_images = nullptr;
-        u32 *m_next_image_index = nullptr;
-        std::pmr::vector<FGBufferEntry> *m_buffers = nullptr;
-        u32 *m_next_buffer_index = nullptr;
-        std::pmr::vector<FGBufferReadAccess> *m_buffer_reads = nullptr;
+        u32                                    m_pass_index = UINT32_MAX;
+        std::pmr::vector<FGImageReadAccess>   *m_image_reads = nullptr;
+        std::pmr::vector<FGImageWriteAccess>  *m_image_writes = nullptr;
+        std::pmr::vector<FGImageEntry>        *m_images = nullptr;
+        u32                                   *m_next_image_index = nullptr;
+        std::pmr::vector<FGBufferEntry>       *m_buffers = nullptr;
+        u32                                   *m_next_buffer_index = nullptr;
+        std::pmr::vector<FGBufferReadAccess>  *m_buffer_reads = nullptr;
         std::pmr::vector<FGBufferWriteAccess> *m_buffer_writes = nullptr;
     };
 
@@ -98,8 +96,7 @@ namespace mantle {
         void set_viewport(f32 x, f32 y, f32 width, f32 height);
         void set_scissor(i32 x, i32 y, u32 width, u32 height);
 
-        void bind_vertex_buffer(FGBufferHandle buffer, u32 binding,
-                                usize offset = 0);
+        void bind_vertex_buffer(FGBufferHandle buffer, u32 binding, usize offset = 0);
         void bind_index_buffer(FGBufferHandle buffer, usize offset = 0);
 
         void draw(const FGDrawInfo &info);
@@ -138,10 +135,9 @@ namespace mantle {
     concept CRenderPassData = std::is_default_constructible_v<TData>;
 
     template <typename TData, typename TSetup>
-    concept CRenderPassSetupLambda =
-        requires(TSetup fn, FrameGraphBuilder &builder, TData &data) {
-            { fn(builder, data) } -> std::same_as<void>;
-        };
+    concept CRenderPassSetupLambda = requires(TSetup fn, FrameGraphBuilder &builder, TData &data) {
+        { fn(builder, data) } -> std::same_as<void>;
+    };
 
     template <typename TData, typename TExecute>
     concept CRenderPassExecuteLambda =
@@ -156,24 +152,20 @@ namespace mantle {
         explicit FrameGraph(ArenaAllocator *arena);
 
         template <typename TData, typename TSetup, typename TExecute>
-            requires CRenderPassData<TData> &&
-            CRenderPassSetupLambda<TData, TSetup> &&
-            CRenderPassExecuteLambda<TData, TExecute>
-        const TData &add_pass(std::string_view name, TSetup &&setup,
-                              TExecute &&execute) {
-            static_assert(
-                std::is_trivially_destructible_v<std::decay_t<TExecute>>,
-                "Render pass lambdas must be trivially destructible.");
+            requires CRenderPassData<TData> && CRenderPassSetupLambda<TData, TSetup> &&
+                     CRenderPassExecuteLambda<TData, TExecute>
+        const TData &add_pass(std::string_view name, TSetup &&setup, TExecute &&execute) {
+            static_assert(std::is_trivially_destructible_v<std::decay_t<TExecute>>,
+                          "Render pass lambdas must be trivially destructible.");
             struct Combined {
                 TData data;
                 alignas(16) std::decay_t<TExecute> exec;
             };
 
-            auto *combined = static_cast<Combined *>(
-                m_arena->push(sizeof(Combined), alignof(Combined)));
-            new (&combined->data) TData{};
-            new (&combined->exec)
-                std::decay_t<TExecute>(std::forward<TExecute>(execute));
+            auto *combined =
+                static_cast<Combined *>(m_arena->push(sizeof(Combined), alignof(Combined)));
+            new (&combined->data) TData {};
+            new (&combined->exec) std::decay_t<TExecute>(std::forward<TExecute>(execute));
 
             FrameGraphBuilder builder;
             builder.m_pass_index = static_cast<u32>(m_passes.size());
@@ -200,7 +192,7 @@ namespace mantle {
             return combined->data;
         }
 
-        FGImageHandle import_image(ImageHandle image);
+        FGImageHandle  import_image(ImageHandle image);
         FGBufferHandle import_buffer(BufferHandle buffer);
 
         Blackboard &blackboard() { return m_blackboard; }
@@ -208,26 +200,26 @@ namespace mantle {
       private:
         struct RenderPassNode {
             std::string_view name;
-            void *execute_data = nullptr;
+            void            *execute_data = nullptr;
             void (*execute_fn)(void *data, FGPassContext &ctx) = nullptr;
         };
 
 
-        ArenaAllocator *m_arena = nullptr;
-        ScopeArena m_scope;
-        ArenaResource m_resource{};
-        Blackboard m_blackboard;
+        ArenaAllocator                  *m_arena = nullptr;
+        ScopeArena                       m_scope;
+        ArenaResource                    m_resource {};
+        Blackboard                       m_blackboard;
         std::pmr::vector<RenderPassNode> m_passes;
 
-        std::pmr::vector<FGImageEntry> m_images;
+        std::pmr::vector<FGImageEntry>  m_images;
         std::pmr::vector<FGBufferEntry> m_buffers;
-        u32 m_next_image_index = 0;
-        u32 m_next_buffer_index = 0;
+        u32                             m_next_image_index = 0;
+        u32                             m_next_buffer_index = 0;
 
-        std::pmr::vector<FGImageReadAccess> m_image_reads;
+        std::pmr::vector<FGImageReadAccess>  m_image_reads;
         std::pmr::vector<FGImageWriteAccess> m_image_writes;
 
-        std::pmr::vector<FGBufferReadAccess> m_buffer_reads;
+        std::pmr::vector<FGBufferReadAccess>  m_buffer_reads;
         std::pmr::vector<FGBufferWriteAccess> m_buffer_writes;
     };
 } // namespace mantle

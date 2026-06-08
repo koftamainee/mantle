@@ -1,7 +1,10 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
 #include <vector>
 #include <vulkan/vulkan.h>
+
 #include "core/types.h"
 
 namespace mantle {
@@ -12,15 +15,15 @@ namespace mantle {
         u32 transfer_family = UINT32_MAX;
 
         bool is_complete() const {
-            return graphics_family != UINT32_MAX &&
-                present_family != UINT32_MAX && transfer_family != UINT32_MAX;
+            return graphics_family != UINT32_MAX && present_family != UINT32_MAX &&
+                   transfer_family != UINT32_MAX;
         }
     };
 
     struct SwapchainSupportDetails {
-        VkSurfaceCapabilitiesKHR capabilities;
+        VkSurfaceCapabilitiesKHR             capabilities;
         std::pmr::vector<VkSurfaceFormatKHR> formats;
-        std::pmr::vector<VkPresentModeKHR> present_modes;
+        std::pmr::vector<VkPresentModeKHR>   present_modes;
     };
 
 } // namespace mantle

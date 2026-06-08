@@ -1,8 +1,11 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "world/chunk_rendering_system.h"
-#include "world/chunk_mesh_data.h"
 
 #include <array>
 #include <cstring>
+#include <spdlog/spdlog.h>
+
 #include "core/assert.h"
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"
@@ -14,15 +17,14 @@
 #include "renderer/gpu_resource_manager.h"
 #include "renderer/renderer.h"
 #include "renderer/utils.h"
-#include "spdlog/spdlog.h"
+#include "world/chunk_mesh_data.h"
 
 namespace mantle {
 
     static constexpr f32 VOXEL_SCALE = 0.1f;
     static constexpr f32 CHUNK_WORLD_SIZE = static_cast<f32>(Chunk::size) * VOXEL_SCALE;
 
-    void ChunkRenderingSystem::init(Renderer &renderer,
-                                    ArenaAllocator &scratch_arena,
+    void ChunkRenderingSystem::init(Renderer &renderer, ArenaAllocator &scratch_arena,
                                     u32 max_chunks) {
         MANTLE_CHECK(!m_is_initialized);
 
@@ -34,8 +36,8 @@ namespace mantle {
         m_slots = scratch_arena.push<ChunkMeshSlot>(max_chunks);
         std::memset(m_slots, 0, sizeof(ChunkMeshSlot) * max_chunks);
 
-        ScopeArena scope(&scratch_arena);
-        ArenaResource resource(&scratch_arena);
+        ScopeArena            scope(&scratch_arena);
+        ArenaResource         resource(&scratch_arena);
         std::pmr::vector<u32> spv(&resource);
 
         load_spv("assets/shaders/mesh_render.spv", spv);
@@ -48,7 +50,7 @@ namespace mantle {
         ImageFormat color_format = renderer.get_swapchain_info().surface_format;
 
         ColorBlendAttachment attachment = {};
-        ColorBlendState blend = {};
+        ColorBlendState      blend = {};
         blend.attachments = span(attachment);
 
         DepthStencilState depth_stencil = {
@@ -57,7 +59,7 @@ namespace mantle {
             .depth_compare_op = CompareOp::Less,
         };
 
-        VertexBinding bindings[] = {{0, 16}};
+        VertexBinding   bindings[] = {{0, 16}};
         VertexAttribute attributes[] = {
             {0, 0, VertexFormat::Float3, 0},
             {1, 0, VertexFormat::Uint1, 12},
@@ -105,11 +107,9 @@ namespace mantle {
         }
 
         m_is_initialized = true;
-        m_logger->info(
-            "Chunk rendering system initialized ({} chunks, {} MB total)",
-            max_chunks,
-            (static_cast<u64>(max_chunks) * (m_vertex_stride + m_index_stride)) /
-                (1024 * 1024));
+        m_logger->info("Chunk rendering system initialized ({} chunks, {} MB total)", max_chunks,
+                       (static_cast<u64>(max_chunks) * (m_vertex_stride + m_index_stride)) /
+                           (1024 * 1024));
     }
 
     void ChunkRenderingSystem::destroy() {
@@ -123,11 +123,10 @@ namespace mantle {
         }
     }
 
-    void ChunkRenderingSystem::add_passes(FrameGraph &graph,
-                                          const Blackboard &blackboard) const {
+    void ChunkRenderingSystem::add_passes(FrameGraph &graph, const Blackboard &blackboard) const {
         MANTLE_CHECK(m_is_initialized);
 
-        auto backbuffer = blackboard.get<BbBackbuffer>().handle;
+        auto        backbuffer = blackboard.get<BbBackbuffer>().handle;
         const auto &camera_data = blackboard.get<BbCameraData>();
         const auto &fb_size = blackboard.get<BbFramebufferSize>();
 
@@ -140,9 +139,9 @@ namespace mantle {
         struct RenderPass {
             FGBufferHandle vertex;
             FGBufferHandle index;
-            FGImageHandle color;
-            FGImageHandle depth;
-            glm::mat4 camera_data;
+            FGImageHandle  color;
+            FGImageHandle  depth;
+            glm::mat4      camera_data;
         };
 
         graph.add_pass<RenderPass>(
@@ -156,13 +155,11 @@ namespace mantle {
                 });
                 pass.vertex = builder.read(vertex_fg, BufferReadUsage::Vertex);
                 pass.index = builder.read(index_fg, BufferReadUsage::Index);
-                pass.color =
-                    builder.write(backbuffer, WriteUsage::ColorAttachment);
+                pass.color = builder.write(backbuffer, WriteUsage::ColorAttachment);
                 builder.write(pass.depth, WriteUsage::DepthAttachment);
                 pass.camera_data = camera_data.view_proj;
             },
-            [this, width, height](FGPassContext &ctx,
-                                               const RenderPass &pass) {
+            [this, width, height](FGPassContext &ctx, const RenderPass &pass) {
                 Frustum frustum;
                 frustum.extract(pass.camera_data);
 
@@ -173,7 +170,7 @@ namespace mantle {
                         .store = AttachmentStore::Store,
                     },
                 }};
-                FGDepthAttachment depth_att = {
+                FGDepthAttachment                depth_att = {
                     .image = pass.depth,
                     .load = AttachmentLoad::Clear,
                     .store = AttachmentStore::DontCare,
@@ -185,22 +182,22 @@ namespace mantle {
                     .width = width,
                     .height = height,
                 });
-                ctx.set_viewport(0, 0, static_cast<f32>(width),
-                                 static_cast<f32>(height));
+                ctx.set_viewport(0, 0, static_cast<f32>(width), static_cast<f32>(height));
                 ctx.set_scissor(0, 0, width, height);
                 ctx.bind_pipeline(m_mesh_pipeline);
                 ctx.push_constants(&pass.camera_data, ShaderStage::Vertex);
 
                 for (u32 i = 0; i < m_max_chunks; i++) {
                     const auto &slot = m_slots[i];
-                    if (slot.quad_count == 0)
+                    if (slot.quad_count == 0) {
                         continue;
+                    }
 
-                    glm::vec3 base =
-                        glm::vec3(static_cast<f32>(slot.position_x), static_cast<f32>(slot.position_y),
-                                  static_cast<f32>(slot.position_z)) *
-                        CHUNK_WORLD_SIZE;
-                    AABB aabb{base, base + CHUNK_WORLD_SIZE};
+                    glm::vec3 base = glm::vec3(static_cast<f32>(slot.position_x),
+                                               static_cast<f32>(slot.position_y),
+                                               static_cast<f32>(slot.position_z)) *
+                                     CHUNK_WORLD_SIZE;
+                    AABB      aabb {base, base + CHUNK_WORLD_SIZE};
                     if (!frustum.intersects(aabb)) {
                         continue;
                     }

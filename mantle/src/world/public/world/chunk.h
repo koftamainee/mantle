@@ -1,4 +1,7 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
 #include "core/types.h"
 
 namespace mantle {
@@ -9,6 +12,6 @@ namespace mantle {
         static constexpr u32 volume = size * size * size;
 
         Voxel voxels[volume];
-        u8 light[volume] = {};
+        u8    light[volume] = {};
     };
-}
+} // namespace mantle

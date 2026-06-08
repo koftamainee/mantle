@@ -1,13 +1,17 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
 #include <span>
 #include <vulkan/vulkan.h>
+
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"
 #include "core/types.h"
 #include "renderer/gpu_resource_manager.h"
 #include "renderer/types.h"
-#include "types.h"
 #include "resources/resources.h"
+#include "types.h"
 
 namespace mantle {
     class CommandRecorder final {
@@ -60,12 +64,12 @@ namespace mantle {
         void push_constants(const void *data, ShaderStage stage) const;
 
       private:
-        VkCommandBuffer m_cmd = VK_NULL_HANDLE;
+        VkCommandBuffer     m_cmd = VK_NULL_HANDLE;
         GPUResourceManager *m_resources = nullptr;
 
         ArenaResource *m_pmr = nullptr;
 
-        VkPipelineLayout m_current_layout = VK_NULL_HANDLE;
+        VkPipelineLayout                    m_current_layout = VK_NULL_HANDLE;
         std::span<const PushConstantsRange> m_push_constants;
     };
 } // namespace mantle

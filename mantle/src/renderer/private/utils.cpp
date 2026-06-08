@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "renderer/utils.h"
 
 #include <fstream>
@@ -16,4 +18,4 @@ namespace mantle {
         out.resize(size / 4);
         file.read(reinterpret_cast<char *>(out.data()), size);
     }
-}
+} // namespace mantle

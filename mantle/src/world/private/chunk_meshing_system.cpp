@@ -1,8 +1,9 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "world/chunk_meshing_system.h"
-#include "world/chunk_rendering_system.h"
-#include "world/chunk_storage_system.h"
 
 #include <cstring>
+#include <spdlog/spdlog.h>
 #include <vector>
 
 #include "bgm.h"
@@ -11,7 +12,8 @@
 #include "core/memory/scope_arena.h"
 #include "renderer/gpu_resource_manager.h"
 #include "renderer/renderer.h"
-#include "spdlog/spdlog.h"
+#include "world/chunk_rendering_system.h"
+#include "world/chunk_storage_system.h"
 
 namespace mantle {
 
@@ -22,31 +24,28 @@ namespace mantle {
         m_logger->info("Chunk meshing system initialized");
     }
 
-    void ChunkMeshingSystem::destroy() {
-        m_is_initialized = false;
-    }
+    void ChunkMeshingSystem::destroy() { m_is_initialized = false; }
 
     namespace {
 
         struct MeshTaskData {
             const ChunkStorageSystem *storage;
-            u32 idx;
-            MeshVertex *vertex_out;
-            u32 *index_out;
-            u32 max_quads;
-            u32 quad_count;
+            u32                       idx;
+            MeshVertex               *vertex_out;
+            u32                      *index_out;
+            u32                       max_quads;
+            u32                       quad_count;
         };
 
         void mesh_work(ArenaAllocator &scratch, void *data) {
-            auto *d = static_cast<MeshTaskData *>(data);
+            auto        *d = static_cast<MeshTaskData *>(data);
             const Chunk &chunk = d->storage->get_chunk(d->idx);
-            glm::ivec3 pos = d->storage->get_position(d->idx);
+            glm::ivec3   pos = d->storage->get_position(d->idx);
 
             const Chunk *neighbors[6];
             get_neighbors(*d->storage, pos, neighbors);
 
-            ChunkMeshData mesh =
-                bgm::mesh_chunk(chunk, neighbors, pos, scratch);
+            ChunkMeshData mesh = bgm::mesh_chunk(chunk, neighbors, pos, scratch);
 
             u32 q = mesh.quad_count;
             if (q > d->max_quads) {
@@ -64,21 +63,20 @@ namespace mantle {
 
     } // namespace
 
-    void ChunkMeshingSystem::upload_dirty(Renderer &renderer,
-                                          ChunkStorageSystem &storage,
-                                          ArenaAllocator &scratch,
-                                          WorkerPool *pool,
+    void ChunkMeshingSystem::upload_dirty(Renderer &renderer, ChunkStorageSystem &storage,
+                                          ArenaAllocator &scratch, WorkerPool *pool,
                                           ChunkRenderingSystem &rendering) const {
         MANTLE_CHECK(m_is_initialized);
 
-        if (!storage.any_dirty())
+        if (!storage.any_dirty()) {
             return;
+        }
 
-        auto &rm = renderer.resource_manager();
+        auto       &rm = renderer.resource_manager();
         const auto &dirty = storage.dirty_indices();
 
-        BufferHandle vertex_buffer = rendering.vertex_buffer();
-        BufferHandle index_buffer = rendering.index_buffer();
+        BufferHandle   vertex_buffer = rendering.vertex_buffer();
+        BufferHandle   index_buffer = rendering.index_buffer();
         ChunkMeshSlot *slots = rendering.slots();
 
         if (pool) {
@@ -87,8 +85,9 @@ namespace mantle {
 
             u32 count = 0;
             for (u32 i : dirty) {
-                if (storage.is_dirty(i))
+                if (storage.is_dirty(i)) {
                     count++;
+                }
             }
 
             usize vert_stride = MAX_QUADS_PER_CHUNK * 4 * sizeof(MeshVertex);
@@ -98,15 +97,15 @@ namespace mantle {
 
             u32 slot = 0;
             for (u32 i : dirty) {
-                if (!storage.is_dirty(i))
+                if (!storage.is_dirty(i)) {
                     continue;
+                }
                 tasks.push_back({
                     .storage = &storage,
                     .idx = i,
-                    .vertex_out = static_cast<MeshVertex *>(vert_block) +
-                        slot * MAX_QUADS_PER_CHUNK * 4,
-                    .index_out =
-                        static_cast<u32 *>(idx_block) + slot * MAX_QUADS_PER_CHUNK * 6,
+                    .vertex_out =
+                        static_cast<MeshVertex *>(vert_block) + slot * MAX_QUADS_PER_CHUNK * 4,
+                    .index_out = static_cast<u32 *>(idx_block) + slot * MAX_QUADS_PER_CHUNK * 6,
                     .max_quads = MAX_QUADS_PER_CHUNK,
                     .quad_count = 0,
                 });
@@ -116,9 +115,9 @@ namespace mantle {
             pool->wait();
 
             for (auto &t : tasks) {
-                u32 q = t.quad_count;
+                u32        q = t.quad_count;
                 glm::ivec3 pos = t.storage->get_position(t.idx);
-                auto &mesh_slot = slots[t.idx];
+                auto      &mesh_slot = slots[t.idx];
                 mesh_slot.position_x = pos.x;
                 mesh_slot.position_y = pos.y;
                 mesh_slot.position_z = pos.z;
@@ -143,18 +142,16 @@ namespace mantle {
                 }
 
                 const Chunk &chunk = storage.get_chunk(i);
-                glm::ivec3 pos = storage.get_position(i);
+                glm::ivec3   pos = storage.get_position(i);
 
                 const Chunk *neighbors[6];
                 get_neighbors(storage, pos, neighbors);
 
-                ChunkMeshData mesh =
-                    bgm::mesh_chunk(chunk, neighbors, pos, scratch);
+                ChunkMeshData mesh = bgm::mesh_chunk(chunk, neighbors, pos, scratch);
 
                 u32 q = mesh.quad_count;
                 if (q > MAX_QUADS_PER_CHUNK) {
-                    m_logger->warn("Chunk mesh truncated: {} → {} quads", q,
-                                 MAX_QUADS_PER_CHUNK);
+                    m_logger->warn("Chunk mesh truncated: {} → {} quads", q, MAX_QUADS_PER_CHUNK);
                     q = MAX_QUADS_PER_CHUNK;
                 }
 
@@ -166,10 +163,8 @@ namespace mantle {
 
                 if (q > 0) {
                     rm.update_buffer(vertex_buffer, mesh.vertices,
-                                     (usize)q * 4 * sizeof(MeshVertex),
-                                     slot.vertex_offset);
-                    rm.update_buffer(index_buffer, mesh.indices,
-                                     (usize)q * 6 * sizeof(u32),
+                                     (usize)q * 4 * sizeof(MeshVertex), slot.vertex_offset);
+                    rm.update_buffer(index_buffer, mesh.indices, (usize)q * 6 * sizeof(u32),
                                      slot.index_offset);
                 }
 

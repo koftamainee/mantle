@@ -1,8 +1,12 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
-#include "aabb.h"
-#include "glm/glm.hpp"
-#include "plane.h"
+
 #include <array>
+#include <glm/glm.hpp>
+
+#include "aabb.h"
+#include "plane.h"
 
 namespace mantle {
     struct Frustum final {
@@ -19,6 +23,6 @@ namespace mantle {
             Near,
             Far,
         };
-        std::array<Plane, 6> m_planes{};
+        std::array<Plane, 6> m_planes {};
     };
 } // namespace mantle

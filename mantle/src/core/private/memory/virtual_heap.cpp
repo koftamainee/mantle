@@ -1,6 +1,9 @@
-#include <cstddef>
+// Copyright (c) 2026 Mantle. All rights reserved.
 
 #include "core/memory/virtual_heap.h"
+
+#include <cstddef>
+
 #include "core/assert.h"
 
 namespace mantle {
@@ -39,14 +42,14 @@ namespace mantle {
         MANTLE_CHECK(size > 0);
 
         constexpr usize alignment = alignof(std::max_align_t);
-        usize aligned_used = (m_used + alignment - 1) & ~(alignment - 1);
+        usize           aligned_used = (m_used + alignment - 1) & ~(alignment - 1);
 
         MANTLE_FATAL(aligned_used + size > m_reserved, "Out of memory");
 
         void *ptr = static_cast<u8 *>(m_base) + aligned_used;
 
         const usize page = m_os->page_size();
-        usize commit_end = (aligned_used + size + page - 1) & ~(page - 1);
+        usize       commit_end = (aligned_used + size + page - 1) & ~(page - 1);
 
         if (commit_end > m_committed) {
             void *commit_ptr = static_cast<u8 *>(m_base) + m_committed;

@@ -1,8 +1,9 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
 #include <vector>
 #include <vulkan/vulkan_core.h>
-
 
 #include "command_recorder.h"
 #include "core/memory/arena_allocator.h"
@@ -10,7 +11,9 @@
 #include "core/memory/virtual_heap.h"
 #include "core/types.h"
 
-namespace spdlog { class logger; }
+namespace spdlog {
+    class logger;
+}
 
 namespace mantle {
 
@@ -24,8 +27,8 @@ namespace mantle {
 
     struct FrameContext final {
         CommandRecorder *cmd;
-        u32 image_index;
-        u32 frame_index;
+        u32              image_index;
+        u32              frame_index;
     };
 
     class FrameScheduler final {
@@ -42,29 +45,29 @@ namespace mantle {
         void on_swapchain_rebuilt(u32 new_image_count) const;
 
         ArenaAllocator &frame_arena() { return m_frame_arena; }
-        ArenaResource &frame_arena_resource() { return m_pmr; }
+        ArenaResource  &frame_arena_resource() { return m_pmr; }
 
       private:
         struct FrameData {
-            VkFence fence;
-            VkSemaphore image_available;
+            VkFence         fence;
+            VkSemaphore     image_available;
             VkCommandBuffer cmd;
         };
 
         VkSemaphore *m_render_finished = nullptr;
 
-        bool m_is_initialized = false;
+        bool           m_is_initialized = false;
         VulkanBackend *m_backend = nullptr;
 
-        ArenaAllocator m_frame_arena{};
-        ArenaResource m_pmr{};
+        ArenaAllocator m_frame_arena {};
+        ArenaResource  m_pmr {};
 
         u32 m_frames_in_flight = 0;
         u32 m_swapchain_image_count = 0;
         u32 m_current_frame = 0;
 
-        VkCommandPool m_command_pool{};
-        FrameData *m_frames = nullptr;
+        VkCommandPool   m_command_pool {};
+        FrameData      *m_frames = nullptr;
         CommandRecorder m_recorder;
 
         spdlog::logger *m_logger = nullptr;

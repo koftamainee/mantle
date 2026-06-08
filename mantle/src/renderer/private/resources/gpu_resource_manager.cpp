@@ -1,24 +1,26 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "renderer/gpu_resource_manager.h"
+
+#include <vulkan/vkassert.h>
+#include <vulkan/vulkan_backend.h>
+#include <vulkan/vulkan_utils.h>
 
 #include "core/assert.h"
 #include "core/memory/persistent_allocator.h"
 #include "gpu_resource_manager_internal.h"
-#include "vulkan/vkassert.h"
-#include "vulkan/vulkan_backend.h"
-#include "vulkan/vulkan_utils.h"
 
 namespace mantle {
-    ShaderHandle
-    GPUResourceManager::create_shader(std::span<const u32> spir_v) {
+    ShaderHandle GPUResourceManager::create_shader(std::span<const u32> spir_v) {
         VkShaderModuleCreateInfo info = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = spir_v.size_bytes(),
             .pCode = spir_v.data(),
         };
         VkShaderModule shader_module = VK_NULL_HANDLE;
-        MANTLE_VK_VERIFY(vkCreateShaderModule(
-            m_impl->backend->m_device.get_device(), &info,
-            m_impl->backend->m_vk_allocator.vk_allocator(), &shader_module));
+        MANTLE_VK_VERIFY(vkCreateShaderModule(m_impl->backend->m_device.get_device(), &info,
+                                              m_impl->backend->m_vk_allocator.vk_allocator(),
+                                              &shader_module));
 
         u32 index = 0;
         u32 generation = 0;
@@ -43,8 +45,7 @@ namespace mantle {
         };
     }
 
-    void GPUResourceManager::destroy_shader(ShaderHandle handle,
-                                            bool immediate) {
+    void GPUResourceManager::destroy_shader(ShaderHandle handle, bool immediate) {
         MANTLE_CHECK(m_is_initialized);
         MANTLE_CHECK(handle.index < m_impl->shaders.size());
 
@@ -56,9 +57,8 @@ namespace mantle {
 
         auto del = [shader_module = shader.resource.shader, this]() {
             if (shader_module != VK_NULL_HANDLE) {
-                vkDestroyShaderModule(
-                    m_impl->backend->m_device.get_device(), shader_module,
-                    m_impl->backend->m_vk_allocator.vk_allocator());
+                vkDestroyShaderModule(m_impl->backend->m_device.get_device(), shader_module,
+                                      m_impl->backend->m_vk_allocator.vk_allocator());
             }
         };
         shader.resource.shader = VK_NULL_HANDLE;
@@ -74,38 +74,34 @@ namespace mantle {
 
         template <typename T>
             requires std::is_trivially_copyable_v<std::remove_cv_t<T>>
-        std::span<const std::remove_cv_t<T>>
-        deep_copy_span(std::span<T> src, PersistentResource &resource) {
+        std::span<const std::remove_cv_t<T>> deep_copy_span(std::span<T>        src,
+                                                            PersistentResource &resource) {
             using U = std::remove_cv_t<T>;
             if (src.empty()) {
                 return {};
             }
-            U *dst = static_cast<U *>(resource.allocate(
-                src.size() * sizeof(U), alignof(U)));
+            U *dst = static_cast<U *>(resource.allocate(src.size() * sizeof(U), alignof(U)));
             memcpy(dst, src.data(), src.size() * sizeof(U));
             return {dst, src.size()};
         }
 
-        std::string_view
-        deep_copy_string(std::string_view src, PersistentResource &resource) {
+        std::string_view deep_copy_string(std::string_view src, PersistentResource &resource) {
             if (src.empty()) {
                 return {};
             }
-            char *dst = static_cast<char *>(
-                resource.allocate(src.size() + 1, 1));
+            char *dst = static_cast<char *>(resource.allocate(src.size() + 1, 1));
             memcpy(dst, src.data(), src.size());
             dst[src.size()] = '\0';
             return {dst, src.size()};
         }
 
-        std::span<const ShaderModule>
-        deep_copy_shader_modules(std::span<const ShaderModule> src,
-                                 PersistentResource &resource) {
+        std::span<const ShaderModule> deep_copy_shader_modules(std::span<const ShaderModule> src,
+                                                               PersistentResource &resource) {
             if (src.empty()) {
                 return {};
             }
-            auto *dst = static_cast<ShaderModule *>(resource.allocate(
-                src.size() * sizeof(ShaderModule), alignof(ShaderModule)));
+            auto *dst = static_cast<ShaderModule *>(
+                resource.allocate(src.size() * sizeof(ShaderModule), alignof(ShaderModule)));
             for (usize i = 0; i < src.size(); i++) {
                 dst[i] = src[i];
                 dst[i].entry_point = deep_copy_string(src[i].entry_point, resource);
@@ -115,46 +111,43 @@ namespace mantle {
 
     } // namespace
 
-    GraphicsPipelineHandle GPUResourceManager::create_graphics_pipeline(
-        const GraphicsPipelineDesc &desc) {
+    GraphicsPipelineHandle
+    GPUResourceManager::create_graphics_pipeline(const GraphicsPipelineDesc &desc) {
         MANTLE_CHECK(m_is_initialized);
 
-        std::array<VkPipelineShaderStageCreateInfo, 5> stages{};
-        u32 stage_count = 0;
-        u32 stage_mask = 0;
+        std::array<VkPipelineShaderStageCreateInfo, 5> stages {};
+        u32                                            stage_count = 0;
+        u32                                            stage_mask = 0;
 
         for (const auto &module : desc.shaders) {
             u32 stage_bit = static_cast<u32>(module.stage);
             MANTLE_CHECKF(!(stage_mask & (1u << stage_bit)),
-                   "Duplicate shader stage in graphics pipeline: each stage "
-                   "must appear at most once");
+                          "Duplicate shader stage in graphics pipeline: each stage "
+                          "must appear at most once");
             stage_mask |= (1u << stage_bit);
 
             stages[stage_count++] = {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                .stage =
-                    static_cast<VkShaderStageFlagBits>(to_vk(module.stage)),
+                .stage = static_cast<VkShaderStageFlagBits>(to_vk(module.stage)),
                 .module = m_impl->get_shader(module.shader).shader,
                 .pName = module.entry_point.data(),
             };
         }
-        MANTLE_CHECKF((stage_mask & (1u << static_cast<u32>(ShaderStage::Vertex))) !=
-                   0,
-               "Graphics pipeline must have a vertex shader");
-        MANTLE_CHECKF((stage_mask & (1u << static_cast<u32>(ShaderStage::Fragment))) !=
-                   0,
-               "Graphics pipeline must have a fragment shader");
+        MANTLE_CHECKF((stage_mask & (1u << static_cast<u32>(ShaderStage::Vertex))) != 0,
+                      "Graphics pipeline must have a vertex shader");
+        MANTLE_CHECKF((stage_mask & (1u << static_cast<u32>(ShaderStage::Fragment))) != 0,
+                      "Graphics pipeline must have a fragment shader");
 
-        std::array<VkVertexInputBindingDescription, 16> vk_bindings{};
-        std::array<VkVertexInputAttributeDescription, 32> vk_attributes{};
+        std::array<VkVertexInputBindingDescription, 16>   vk_bindings {};
+        std::array<VkVertexInputAttributeDescription, 32> vk_attributes {};
 
         for (usize i = 0; i < desc.vertex_input.bindings.size(); i++) {
             const auto &b = desc.vertex_input.bindings[i];
             vk_bindings[i] = {
                 .binding = b.binding,
                 .stride = b.stride,
-                .inputRate = b.per_instance ? VK_VERTEX_INPUT_RATE_INSTANCE
-                                            : VK_VERTEX_INPUT_RATE_VERTEX,
+                .inputRate =
+                    b.per_instance ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX,
             };
         }
         for (usize i = 0; i < desc.vertex_input.attributes.size(); i++) {
@@ -169,8 +162,7 @@ namespace mantle {
 
         VkPipelineVertexInputStateCreateInfo vertex_input_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount =
-                static_cast<u32>(desc.vertex_input.bindings.size()),
+            .vertexBindingDescriptionCount = static_cast<u32>(desc.vertex_input.bindings.size()),
             .pVertexBindingDescriptions = vk_bindings.data(),
             .vertexAttributeDescriptionCount =
                 static_cast<u32>(desc.vertex_input.attributes.size()),
@@ -178,11 +170,9 @@ namespace mantle {
         };
 
         VkPipelineInputAssemblyStateCreateInfo input_assembly_info = {
-            .sType =
-                VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
             .topology = to_vk(desc.input_assembly.topology),
-            .primitiveRestartEnable =
-                desc.input_assembly.primitive_restart_enable,
+            .primitiveRestartEnable = desc.input_assembly.primitive_restart_enable,
         };
 
         VkPipelineTessellationStateCreateInfo tessellation_info = {
@@ -190,9 +180,8 @@ namespace mantle {
             .patchControlPoints = desc.tessellation.patch_control_points,
         };
         VkPipelineTessellationStateCreateInfo *p_tessellation = nullptr;
-        if (stage_mask &
-            ((1u << static_cast<u32>(ShaderStage::TessellationControl)) |
-             (1u << static_cast<u32>(ShaderStage::TessellationEvaluation)))) {
+        if (stage_mask & ((1u << static_cast<u32>(ShaderStage::TessellationControl)) |
+                          (1u << static_cast<u32>(ShaderStage::TessellationEvaluation)))) {
             p_tessellation = &tessellation_info;
         }
 
@@ -205,14 +194,12 @@ namespace mantle {
         VkPipelineRasterizationStateCreateInfo rasterization_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = desc.rasterization.depth_clamp_enable,
-            .rasterizerDiscardEnable =
-                desc.rasterization.rasterizer_discard_enable,
+            .rasterizerDiscardEnable = desc.rasterization.rasterizer_discard_enable,
             .polygonMode = to_vk(desc.rasterization.polygon_mode),
             .cullMode = to_vk(desc.rasterization.cull_mode),
             .frontFace = to_vk(desc.rasterization.front_face),
             .depthBiasEnable = desc.rasterization.depth_bias_enable,
-            .depthBiasConstantFactor =
-                desc.rasterization.depth_bias_constant_factor,
+            .depthBiasConstantFactor = desc.rasterization.depth_bias_constant_factor,
             .depthBiasClamp = desc.rasterization.depth_bias_clamp,
             .depthBiasSlopeFactor = desc.rasterization.depth_bias_slope_factor,
             .lineWidth = 1.0f,
@@ -220,8 +207,7 @@ namespace mantle {
 
         VkPipelineMultisampleStateCreateInfo multisample_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-            .rasterizationSamples =
-                to_vk(desc.multisample.rasterization_samples),
+            .rasterizationSamples = to_vk(desc.multisample.rasterization_samples),
             .sampleShadingEnable = desc.multisample.sample_shading_enable,
             .minSampleShading = desc.multisample.min_sample_shading,
             .alphaToCoverageEnable = desc.multisample.alpha_to_coverage_enable,
@@ -233,15 +219,13 @@ namespace mantle {
             .depthTestEnable = desc.depth_stencil.depth_test_enable,
             .depthWriteEnable = desc.depth_stencil.depth_write_enable,
             .depthCompareOp = to_vk(desc.depth_stencil.depth_compare_op),
-            .depthBoundsTestEnable =
-                desc.depth_stencil.depth_bounds_test_enable,
+            .depthBoundsTestEnable = desc.depth_stencil.depth_bounds_test_enable,
             .stencilTestEnable = desc.depth_stencil.stencil_test_enable,
             .front =
                 {
                     .failOp = to_vk(desc.depth_stencil.front.fail_op),
                     .passOp = to_vk(desc.depth_stencil.front.pass_op),
-                    .depthFailOp =
-                        to_vk(desc.depth_stencil.front.depth_fail_op),
+                    .depthFailOp = to_vk(desc.depth_stencil.front.depth_fail_op),
                     .compareOp = to_vk(desc.depth_stencil.front.compare_op),
                     .compareMask = desc.depth_stencil.front.compare_mask,
                     .writeMask = desc.depth_stencil.front.write_mask,
@@ -261,7 +245,7 @@ namespace mantle {
             .maxDepthBounds = desc.depth_stencil.max_depth_bounds,
         };
 
-        std::array<VkPipelineColorBlendAttachmentState, 8> vk_attachments{};
+        std::array<VkPipelineColorBlendAttachmentState, 8> vk_attachments {};
         for (usize i = 0; i < desc.color_blend.attachments.size(); i++) {
             const auto &a = desc.color_blend.attachments[i];
             vk_attachments[i] = {
@@ -280,8 +264,7 @@ namespace mantle {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
             .logicOpEnable = desc.color_blend.logic_op_enable,
             .logicOp = to_vk(desc.color_blend.logic_op),
-            .attachmentCount =
-                static_cast<u32>(desc.color_blend.attachments.size()),
+            .attachmentCount = static_cast<u32>(desc.color_blend.attachments.size()),
             .pAttachments = vk_attachments.data(),
             .blendConstants =
                 {
@@ -302,9 +285,8 @@ namespace mantle {
             .pDynamicStates = dynamic_states.data(),
         };
 
-        std::array<VkPushConstantRange, 8> vk_push_constants{};
-        MANTLE_CHECKF(desc.push_constants.size() <= 8,
-               "Invalid push constants ranges");
+        std::array<VkPushConstantRange, 8> vk_push_constants {};
+        MANTLE_CHECKF(desc.push_constants.size() <= 8, "Invalid push constants ranges");
         for (usize i = 0; i < desc.push_constants.size(); i++) {
             vk_push_constants[i] = {
                 .stageFlags = to_vk(desc.push_constants[i].stage),
@@ -317,17 +299,16 @@ namespace mantle {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = 1,
             .pSetLayouts = &m_impl->m_bindless_layout,
-            .pushConstantRangeCount =
-                static_cast<u32>(desc.push_constants.size()),
+            .pushConstantRangeCount = static_cast<u32>(desc.push_constants.size()),
             .pPushConstantRanges = vk_push_constants.data(),
         };
 
         VkPipelineLayout layout = VK_NULL_HANDLE;
-        MANTLE_VK_VERIFY(vkCreatePipelineLayout(
-            m_impl->backend->m_device.get_device(), &layout_info,
-            m_impl->backend->m_vk_allocator.vk_allocator(), &layout));
+        MANTLE_VK_VERIFY(
+            vkCreatePipelineLayout(m_impl->backend->m_device.get_device(), &layout_info,
+                                   m_impl->backend->m_vk_allocator.vk_allocator(), &layout));
 
-        std::array<VkFormat, 8> vk_color_formats{};
+        std::array<VkFormat, 8> vk_color_formats {};
         for (usize i = 0; i < desc.color_formats.size(); i++) {
             vk_color_formats[i] = to_vk(desc.color_formats[i]);
         }
@@ -359,16 +340,18 @@ namespace mantle {
 
         VkPipeline pipeline = VK_NULL_HANDLE;
         MANTLE_VK_VERIFY(vkCreateGraphicsPipelines(
-            m_impl->backend->m_device.get_device(), VK_NULL_HANDLE, 1,
-            &pipeline_info, m_impl->backend->m_vk_allocator.vk_allocator(),
-            &pipeline));
+            m_impl->backend->m_device.get_device(), VK_NULL_HANDLE, 1, &pipeline_info,
+            m_impl->backend->m_vk_allocator.vk_allocator(), &pipeline));
 
         GraphicsPipelineDesc stored_desc = desc;
         stored_desc.shaders = deep_copy_shader_modules(desc.shaders, m_impl->resource);
-        stored_desc.vertex_input.bindings = deep_copy_span(desc.vertex_input.bindings, m_impl->resource);
-        stored_desc.vertex_input.attributes = deep_copy_span(desc.vertex_input.attributes, m_impl->resource);
+        stored_desc.vertex_input.bindings =
+            deep_copy_span(desc.vertex_input.bindings, m_impl->resource);
+        stored_desc.vertex_input.attributes =
+            deep_copy_span(desc.vertex_input.attributes, m_impl->resource);
         stored_desc.color_formats = deep_copy_span(desc.color_formats, m_impl->resource);
-        stored_desc.color_blend.attachments = deep_copy_span(desc.color_blend.attachments, m_impl->resource);
+        stored_desc.color_blend.attachments =
+            deep_copy_span(desc.color_blend.attachments, m_impl->resource);
         stored_desc.push_constants = deep_copy_span(desc.push_constants, m_impl->resource);
 
         u32 index = 0;
@@ -387,8 +370,7 @@ namespace mantle {
             index = m_impl->graphics_pipelines.size();
             generation = 0;
             m_impl->graphics_pipelines.push_back(
-                {{.pipeline = pipeline, .layout = layout, .desc = stored_desc},
-                 generation});
+                {{.pipeline = pipeline, .layout = layout, .desc = stored_desc}, generation});
         }
 
         return {
@@ -398,8 +380,8 @@ namespace mantle {
     }
 
 
-    ComputePipelineHandle GPUResourceManager::create_compute_pipeline(
-        const ComputePipelineDesc &desc) {
+    ComputePipelineHandle
+    GPUResourceManager::create_compute_pipeline(const ComputePipelineDesc &desc) {
         MANTLE_CHECK(m_is_initialized);
 
         MANTLE_CHECK(desc.push_constants.stage == ShaderStage::Compute);
@@ -416,14 +398,13 @@ namespace mantle {
             .setLayoutCount = 1,
             .pSetLayouts = &m_impl->m_bindless_layout,
             .pushConstantRangeCount = desc.push_constants.size > 0 ? 1u : 0u,
-            .pPushConstantRanges =
-                desc.push_constants.size > 0 ? &push_constant_range : nullptr,
+            .pPushConstantRanges = desc.push_constants.size > 0 ? &push_constant_range : nullptr,
         };
 
         VkPipelineLayout layout = VK_NULL_HANDLE;
-        MANTLE_VK_VERIFY(vkCreatePipelineLayout(
-            m_impl->backend->m_device.get_device(), &layout_info,
-            m_impl->backend->m_vk_allocator.vk_allocator(), &layout));
+        MANTLE_VK_VERIFY(
+            vkCreatePipelineLayout(m_impl->backend->m_device.get_device(), &layout_info,
+                                   m_impl->backend->m_vk_allocator.vk_allocator(), &layout));
 
         auto &shader = m_impl->get_shader(desc.shader.shader);
 
@@ -442,9 +423,8 @@ namespace mantle {
 
         VkPipeline pipeline = VK_NULL_HANDLE;
         MANTLE_VK_VERIFY(vkCreateComputePipelines(
-            m_impl->backend->m_device.get_device(), VK_NULL_HANDLE, 1,
-            &pipeline_info, m_impl->backend->m_vk_allocator.vk_allocator(),
-            &pipeline));
+            m_impl->backend->m_device.get_device(), VK_NULL_HANDLE, 1, &pipeline_info,
+            m_impl->backend->m_vk_allocator.vk_allocator(), &pipeline));
 
 
         ComputePipelineDesc stored_desc = {};
@@ -469,8 +449,7 @@ namespace mantle {
             index = m_impl->compute_pipelines.size();
             generation = 0;
             m_impl->compute_pipelines.push_back(
-                {{.pipeline = pipeline, .layout = layout, .desc = stored_desc},
-                 generation});
+                {{.pipeline = pipeline, .layout = layout, .desc = stored_desc}, generation});
         }
 
         return {
@@ -479,30 +458,26 @@ namespace mantle {
         };
     }
 
-    void
-    GPUResourceManager::destroy_graphics_pipeline(GraphicsPipelineHandle handle,
-                                                  bool immediate) {
+    void GPUResourceManager::destroy_graphics_pipeline(GraphicsPipelineHandle handle,
+                                                       bool                   immediate) {
         MANTLE_CHECK(m_is_initialized);
         MANTLE_CHECK(handle.index < m_impl->graphics_pipelines.size());
 
         auto &pipeline = m_impl->graphics_pipelines[handle.index];
-        MANTLE_FATAL(handle.generation != pipeline.generation,
-              "Invalid graphics pipeline handle");
+        MANTLE_FATAL(handle.generation != pipeline.generation, "Invalid graphics pipeline handle");
 
         pipeline.generation++;
         m_impl->graphics_pipelines_free_list.push_back(handle.index);
 
-        auto del = [vk_pipeline = pipeline.resource.pipeline,
-                    vk_layout = pipeline.resource.layout, this]() {
+        auto del = [vk_pipeline = pipeline.resource.pipeline, vk_layout = pipeline.resource.layout,
+                    this]() {
             if (vk_pipeline != VK_NULL_HANDLE) {
-                vkDestroyPipeline(
-                    m_impl->backend->m_device.get_device(), vk_pipeline,
-                    m_impl->backend->m_vk_allocator.vk_allocator());
+                vkDestroyPipeline(m_impl->backend->m_device.get_device(), vk_pipeline,
+                                  m_impl->backend->m_vk_allocator.vk_allocator());
             }
             if (vk_layout != VK_NULL_HANDLE) {
-                vkDestroyPipelineLayout(
-                    m_impl->backend->m_device.get_device(), vk_layout,
-                    m_impl->backend->m_vk_allocator.vk_allocator());
+                vkDestroyPipelineLayout(m_impl->backend->m_device.get_device(), vk_layout,
+                                        m_impl->backend->m_vk_allocator.vk_allocator());
             }
         };
         pipeline.resource.pipeline = VK_NULL_HANDLE;
@@ -516,30 +491,26 @@ namespace mantle {
     }
 
 
-    void
-    GPUResourceManager::destroy_compute_pipeline(ComputePipelineHandle handle,
-                                                 bool immediate) {
+    void GPUResourceManager::destroy_compute_pipeline(ComputePipelineHandle handle,
+                                                      bool                  immediate) {
         MANTLE_CHECK(m_is_initialized);
         MANTLE_CHECK(handle.index < m_impl->compute_pipelines.size());
 
         auto &pipeline = m_impl->compute_pipelines[handle.index];
-        MANTLE_FATAL(handle.generation != pipeline.generation,
-              "Invalid compute pipeline handle");
+        MANTLE_FATAL(handle.generation != pipeline.generation, "Invalid compute pipeline handle");
 
         pipeline.generation++;
         m_impl->compute_pipelines_free_list.push_back(handle.index);
 
-        auto del = [vk_pipeline = pipeline.resource.pipeline,
-                    vk_layout = pipeline.resource.layout, this]() {
+        auto del = [vk_pipeline = pipeline.resource.pipeline, vk_layout = pipeline.resource.layout,
+                    this]() {
             if (vk_pipeline != VK_NULL_HANDLE) {
-                vkDestroyPipeline(
-                    m_impl->backend->m_device.get_device(), vk_pipeline,
-                    m_impl->backend->m_vk_allocator.vk_allocator());
+                vkDestroyPipeline(m_impl->backend->m_device.get_device(), vk_pipeline,
+                                  m_impl->backend->m_vk_allocator.vk_allocator());
             }
             if (vk_layout != VK_NULL_HANDLE) {
-                vkDestroyPipelineLayout(
-                    m_impl->backend->m_device.get_device(), vk_layout,
-                    m_impl->backend->m_vk_allocator.vk_allocator());
+                vkDestroyPipelineLayout(m_impl->backend->m_device.get_device(), vk_layout,
+                                        m_impl->backend->m_vk_allocator.vk_allocator());
             }
         };
         pipeline.resource.pipeline = VK_NULL_HANDLE;
@@ -552,25 +523,22 @@ namespace mantle {
         }
     }
 
-    BufferHandle GPUResourceManager::create_buffer(const BufferDesc &desc,
-                                                   bool map) {
+    BufferHandle GPUResourceManager::create_buffer(const BufferDesc &desc, bool map) {
         MANTLE_CHECK(m_is_initialized);
-        VkBuffer buffer;
+        VkBuffer      buffer;
         VmaAllocation allocation;
-        void *memory = nullptr;
+        void         *memory = nullptr;
 
         MANTLE_CHECKF(!(map && desc.memory == MemoryType::Gpu),
-               "Gpu only buffer can not be used for mapping");
+                      "Gpu only buffer can not be used for mapping");
 
 
         if (map) {
-            m_impl->gpu_allocator.create_buffer(desc.size, to_vk(desc.usage),
-                                                to_vma(desc.memory), &buffer,
-                                                &allocation, &memory);
+            m_impl->gpu_allocator.create_buffer(desc.size, to_vk(desc.usage), to_vma(desc.memory),
+                                                &buffer, &allocation, &memory);
         } else {
-            m_impl->gpu_allocator.create_buffer(desc.size, to_vk(desc.usage),
-                                                to_vma(desc.memory), &buffer,
-                                                &allocation);
+            m_impl->gpu_allocator.create_buffer(desc.size, to_vk(desc.usage), to_vma(desc.memory),
+                                                &buffer, &allocation);
         }
 
         u32 index = 0;
@@ -590,11 +558,9 @@ namespace mantle {
         } else {
             index = m_impl->buffers.size();
             generation = 0;
-            m_impl->buffers.push_back({{.buffer = buffer,
-                                        .allocation = allocation,
-                                        .mapped = memory,
-                                        .desc = desc},
-                                       generation});
+            m_impl->buffers.push_back(
+                {{.buffer = buffer, .allocation = allocation, .mapped = memory, .desc = desc},
+                 generation});
         }
 
         return {
@@ -603,8 +569,7 @@ namespace mantle {
         };
     }
 
-    void GPUResourceManager::update_buffer(BufferHandle handle,
-                                           const void *data, usize size,
+    void GPUResourceManager::update_buffer(BufferHandle handle, const void *data, usize size,
                                            usize offset) {
         MANTLE_CHECK(m_is_initialized);
         MANTLE_CHECK(handle.index < m_impl->buffers.size());
@@ -612,26 +577,25 @@ namespace mantle {
         auto &buffer = m_impl->buffers[handle.index];
         MANTLE_FATAL(handle.generation != buffer.generation, "Invalid buffer handle");
         MANTLE_CHECKF(buffer.resource.mapped != nullptr,
-               "Attempting to write in device local memory buffer");
+                      "Attempting to write in device local memory buffer");
 
         memcpy(static_cast<u8 *>(buffer.resource.mapped) + offset, data, size);
     }
 
-    void GPUResourceManager::read_buffer(BufferHandle handle, void *data,
-                                         usize size, usize offset) {
+    void GPUResourceManager::read_buffer(BufferHandle handle, void *data, usize size,
+                                         usize offset) {
         MANTLE_CHECK(m_is_initialized);
         MANTLE_CHECK(handle.index < m_impl->buffers.size());
 
         auto &buffer = m_impl->buffers[handle.index];
         MANTLE_FATAL(handle.generation != buffer.generation, "Invalid buffer handle");
         MANTLE_CHECKF(buffer.resource.mapped != nullptr,
-               "Attempting to read from device local memory buffer");
+                      "Attempting to read from device local memory buffer");
 
         memcpy(data, static_cast<u8 *>(buffer.resource.mapped) + offset, size);
     }
 
-    void GPUResourceManager::destroy_buffer(BufferHandle handle,
-                                            bool immediate) {
+    void GPUResourceManager::destroy_buffer(BufferHandle handle, bool immediate) {
         MANTLE_CHECK(m_is_initialized);
         MANTLE_CHECK(handle.index < m_impl->buffers.size());
 
@@ -641,8 +605,7 @@ namespace mantle {
         buffer.generation++;
         m_impl->buffers_free_list.push_back(handle.index);
 
-        auto del = [buf = buffer.resource.buffer,
-                    alloc = buffer.resource.allocation,
+        auto del = [buf = buffer.resource.buffer, alloc = buffer.resource.allocation,
                     idx = buffer.resource.bindless_index, this]() {
             if (buf != VK_NULL_HANDLE) {
                 m_impl->gpu_allocator.destroy_buffer(buf, alloc);
@@ -668,9 +631,9 @@ namespace mantle {
         MANTLE_CHECK(desc.mip_levels > 0);
         MANTLE_CHECK(desc.array_layers > 0);
         MANTLE_CHECKF(!(desc.depth > 1 && desc.array_layers > 1),
-               "3D array textures are not supported");
+                      "3D array textures are not supported");
 
-        VkImage image;
+        VkImage       image;
         VmaAllocation allocation;
 
         const u32 depth = desc.depth > 0 ? desc.depth : 1;
@@ -680,7 +643,7 @@ namespace mantle {
             .imageType = (depth > 1) ? VK_IMAGE_TYPE_3D : VK_IMAGE_TYPE_2D,
             .format = to_vk(desc.format),
             .extent =
-                VkExtent3D{
+                VkExtent3D {
                     .width = desc.width,
                     .height = desc.height,
                     .depth = depth,
@@ -696,16 +659,16 @@ namespace mantle {
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
 
-        m_impl->gpu_allocator.create_image(
-            image_create_info, VMA_MEMORY_USAGE_GPU_ONLY, &image, &allocation);
+        m_impl->gpu_allocator.create_image(image_create_info, VMA_MEMORY_USAGE_GPU_ONLY, &image,
+                                           &allocation);
 
 
         VkImageViewCreateInfo view_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image,
-            .viewType = desc.depth > 1  ? VK_IMAGE_VIEW_TYPE_3D
-                : desc.array_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY
-                                        : VK_IMAGE_VIEW_TYPE_2D,
+            .viewType = desc.depth > 1          ? VK_IMAGE_VIEW_TYPE_3D
+                        : desc.array_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY
+                                                : VK_IMAGE_VIEW_TYPE_2D,
             .format = to_vk(desc.format),
             .components =
                 {
@@ -726,9 +689,9 @@ namespace mantle {
 
         VkImageView view = VK_NULL_HANDLE;
         if (desc.create_view) {
-            MANTLE_VK_VERIFY(vkCreateImageView(
-                m_impl->backend->m_device.get_device(), &view_create_info,
-                m_impl->backend->m_vk_allocator.vk_allocator(), &view));
+            MANTLE_VK_VERIFY(
+                vkCreateImageView(m_impl->backend->m_device.get_device(), &view_create_info,
+                                  m_impl->backend->m_vk_allocator.vk_allocator(), &view));
         }
         u32 index = 0;
         u32 generation = 0;
@@ -747,11 +710,9 @@ namespace mantle {
         } else {
             index = m_impl->images.size();
             generation = 0;
-            m_impl->images.push_back({{.image = image,
-                                       .allocation = allocation,
-                                       .view = view,
-                                       .desc = desc},
-                                      generation});
+            m_impl->images.push_back(
+                {{.image = image, .allocation = allocation, .view = view, .desc = desc},
+                 generation});
         }
 
         return {
@@ -770,24 +731,21 @@ namespace mantle {
         image.generation++;
         m_impl->images_free_list.push_back(handle.index);
 
-        auto del =
-            [img = image.resource.image, alloc = image.resource.allocation,
-             view = image.resource.view,
-             sampler_idx = image.resource.bindless_sample_index,
-             storage_idx = image.resource.bindless_storage_index, this]() {
-                if (alloc != VK_NULL_HANDLE) { // Case for swapchain images
-                    vkDestroyImageView(
-                        m_impl->backend->m_device.get_device(), view,
-                        m_impl->backend->m_vk_allocator.vk_allocator());
-                    m_impl->gpu_allocator.destroy_image(img, alloc);
-                }
-                if (sampler_idx != UINT32_MAX) {
-                    m_impl->free_sampler_index(sampler_idx);
-                }
-                if (storage_idx != UINT32_MAX) {
-                    m_impl->free_storage_image_index(storage_idx);
-                }
-            };
+        auto del = [img = image.resource.image, alloc = image.resource.allocation,
+                    view = image.resource.view, sampler_idx = image.resource.bindless_sample_index,
+                    storage_idx = image.resource.bindless_storage_index, this]() {
+            if (alloc != VK_NULL_HANDLE) { // Case for swapchain images
+                vkDestroyImageView(m_impl->backend->m_device.get_device(), view,
+                                   m_impl->backend->m_vk_allocator.vk_allocator());
+                m_impl->gpu_allocator.destroy_image(img, alloc);
+            }
+            if (sampler_idx != UINT32_MAX) {
+                m_impl->free_sampler_index(sampler_idx);
+            }
+            if (storage_idx != UINT32_MAX) {
+                m_impl->free_storage_image_index(storage_idx);
+            }
+        };
         image.resource.image = VK_NULL_HANDLE;
         image.resource.view = VK_NULL_HANDLE;
         image.resource.allocation = VK_NULL_HANDLE;
@@ -822,9 +780,9 @@ namespace mantle {
         };
 
         VkSampler sampler;
-        MANTLE_VK_VERIFY(vkCreateSampler(
-            m_impl->backend->m_device.get_device(), &sampler_create_info,
-            m_impl->backend->m_vk_allocator.vk_allocator(), &sampler));
+        MANTLE_VK_VERIFY(vkCreateSampler(m_impl->backend->m_device.get_device(),
+                                         &sampler_create_info,
+                                         m_impl->backend->m_vk_allocator.vk_allocator(), &sampler));
 
         u32 index = 0;
         u32 generation = 0;
@@ -841,8 +799,7 @@ namespace mantle {
         } else {
             index = m_impl->samplers.size();
             generation = 0;
-            m_impl->samplers.push_back(
-                {{.sampler = sampler, .desc = desc}, generation});
+            m_impl->samplers.push_back({{.sampler = sampler, .desc = desc}, generation});
         }
 
         return {
@@ -851,24 +808,20 @@ namespace mantle {
         };
     }
 
-    void GPUResourceManager::destroy_sampler(SamplerHandle handle,
-                                             bool immediate) {
+    void GPUResourceManager::destroy_sampler(SamplerHandle handle, bool immediate) {
         MANTLE_CHECK(m_is_initialized);
         MANTLE_CHECK(handle.index < m_impl->samplers.size());
 
         auto &sampler = m_impl->samplers[handle.index];
-        MANTLE_FATAL(handle.generation != sampler.generation,
-              "Invalid sampler handle");
+        MANTLE_FATAL(handle.generation != sampler.generation, "Invalid sampler handle");
 
         sampler.generation++;
         m_impl->samplers_free_list.push_back(handle.index);
 
-        auto del = [s = sampler.resource.sampler,
-                    idx = sampler.resource.bindless_index, this]() {
+        auto del = [s = sampler.resource.sampler, idx = sampler.resource.bindless_index, this]() {
             if (s != VK_NULL_HANDLE) {
-                vkDestroySampler(
-                    m_impl->backend->m_device.get_device(), s,
-                    m_impl->backend->m_vk_allocator.vk_allocator());
+                vkDestroySampler(m_impl->backend->m_device.get_device(), s,
+                                 m_impl->backend->m_vk_allocator.vk_allocator());
             }
             if (idx != UINT32_MAX) {
                 m_impl->free_sampler_index(idx);
@@ -882,31 +835,24 @@ namespace mantle {
             m_impl->deletion_queues[m_impl->current_frame].push_fn(del);
         }
     }
-    u32 GPUResourceManager::get_bindless_index(ImageHandle handle,
-                                               BindlessImageType type) {
+    u32 GPUResourceManager::get_bindless_index(ImageHandle handle, BindlessImageType type) {
         MANTLE_CHECK(m_is_initialized);
         auto &image = m_impl->get_image(handle);
-        if (type == BindlessImageType::Sampled &&
-            image.bindless_sample_index != UINT32_MAX) {
+        if (type == BindlessImageType::Sampled && image.bindless_sample_index != UINT32_MAX) {
             return image.bindless_sample_index;
         }
-        if (type == BindlessImageType::Storage &&
-            image.bindless_storage_index != UINT32_MAX) {
+        if (type == BindlessImageType::Storage && image.bindless_storage_index != UINT32_MAX) {
             return image.bindless_storage_index;
         }
 
         if (type == BindlessImageType::Sampled) {
-            MANTLE_CHECKF(image.desc.usage & ImageUsage::Sampled,
-                   "Image must have Sampled usage");
-            image.bindless_sample_index =
-                m_impl->allocate_sampled_image_index(image);
+            MANTLE_CHECKF(image.desc.usage & ImageUsage::Sampled, "Image must have Sampled usage");
+            image.bindless_sample_index = m_impl->allocate_sampled_image_index(image);
             return image.bindless_sample_index;
         }
         if (type == BindlessImageType::Storage) {
-            MANTLE_CHECKF(image.desc.usage & ImageUsage::Storage,
-                   "Image must have Storage usage");
-            image.bindless_storage_index =
-                m_impl->allocate_storage_image_index(image);
+            MANTLE_CHECKF(image.desc.usage & ImageUsage::Storage, "Image must have Storage usage");
+            image.bindless_storage_index = m_impl->allocate_storage_image_index(image);
             return image.bindless_storage_index;
         }
 
@@ -914,20 +860,17 @@ namespace mantle {
     }
 
 
-    void GPUResourceManager::import_swapchain_images(
-        std::pmr::vector<ImageHandle> &out_images) {
+    void GPUResourceManager::import_swapchain_images(std::pmr::vector<ImageHandle> &out_images) {
         MANTLE_CHECK(m_is_initialized);
 
-        const auto &swapchain_images =
-            m_impl->backend->m_swapchain.get_images();
-        VkFormat format =
-            m_impl->backend->m_swapchain.get_surface_format().format;
-        const u32 count = static_cast<u32>(swapchain_images.size());
+        const auto &swapchain_images = m_impl->backend->m_swapchain.get_images();
+        VkFormat    format = m_impl->backend->m_swapchain.get_surface_format().format;
+        const u32   count = static_cast<u32>(swapchain_images.size());
 
         out_images.resize(count);
 
         for (usize i = 0; i < count; i++) {
-            VkImage image = swapchain_images[i].image;
+            VkImage     image = swapchain_images[i].image;
             VkImageView view = swapchain_images[i].view;
 
             u32 index;
@@ -968,19 +911,16 @@ namespace mantle {
         }
     }
 
-    void GPUResourceManager::release_swapchain_images(
-        std::pmr::vector<ImageHandle> &images) {
+    void GPUResourceManager::release_swapchain_images(std::pmr::vector<ImageHandle> &images) {
         for (auto &image : images) {
             destroy_image(image);
         }
-        images
-            .clear(); // removes images, but capacity remains, so no memory leak
+        images.clear(); // removes images, but capacity remains, so no memory leak
     }
 
     void GPUResourceManager::init_bindless() {
-        VkDevice vk_device = m_impl->backend->m_device.get_device();
-        VkAllocationCallbacks *vk_callbacks =
-            m_impl->backend->m_vk_allocator.vk_allocator();
+        VkDevice               vk_device = m_impl->backend->m_device.get_device();
+        VkAllocationCallbacks *vk_callbacks = m_impl->backend->m_vk_allocator.vk_allocator();
 
         VkDescriptorPoolSize pool_sizes[] = {
             {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, max_sampled_images},
@@ -997,34 +937,29 @@ namespace mantle {
             .pPoolSizes = pool_sizes,
         };
 
-        MANTLE_VK_VERIFY(vkCreateDescriptorPool(vk_device, &pool_info, vk_callbacks,
-                                         &m_impl->m_bindless_pool));
+        MANTLE_VK_VERIFY(
+            vkCreateDescriptorPool(vk_device, &pool_info, vk_callbacks, &m_impl->m_bindless_pool));
 
         VkDescriptorSetLayoutBinding bindings[] = {
-            {sampled_image_binding, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
-             max_sampled_images, VK_SHADER_STAGE_ALL, nullptr},
-            {storage_image_binding, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-             max_storage_images, VK_SHADER_STAGE_ALL, nullptr},
-            {storage_buffer_binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-             max_storage_buffers, VK_SHADER_STAGE_ALL, nullptr},
-            {sampler_binding, VK_DESCRIPTOR_TYPE_SAMPLER, max_samplers,
+            {sampled_image_binding, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, max_sampled_images,
              VK_SHADER_STAGE_ALL, nullptr},
+            {storage_image_binding, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, max_storage_images,
+             VK_SHADER_STAGE_ALL, nullptr},
+            {storage_buffer_binding, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, max_storage_buffers,
+             VK_SHADER_STAGE_ALL, nullptr},
+            {sampler_binding, VK_DESCRIPTOR_TYPE_SAMPLER, max_samplers, VK_SHADER_STAGE_ALL,
+             nullptr},
         };
 
         VkDescriptorBindingFlags binding_flags[] = {
-            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
-                VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
-            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
-                VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
-            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
-                VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
-            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
-                VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
+            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
+            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
+            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
+            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
         };
 
         VkDescriptorSetLayoutBindingFlagsCreateInfo flags_info = {
-            .sType =
-                VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
             .bindingCount = static_cast<u32>(std::size(binding_flags)),
             .pBindingFlags = binding_flags,
         };
@@ -1037,8 +972,8 @@ namespace mantle {
             .pBindings = bindings,
         };
 
-        MANTLE_VK_VERIFY(vkCreateDescriptorSetLayout(
-            vk_device, &layout_info, vk_callbacks, &m_impl->m_bindless_layout));
+        MANTLE_VK_VERIFY(vkCreateDescriptorSetLayout(vk_device, &layout_info, vk_callbacks,
+                                                     &m_impl->m_bindless_layout));
 
         VkDescriptorSetAllocateInfo alloc_info = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -1047,19 +982,15 @@ namespace mantle {
             .pSetLayouts = &m_impl->m_bindless_layout,
         };
 
-        MANTLE_VK_VERIFY(vkAllocateDescriptorSets(vk_device, &alloc_info,
-                                           &m_impl->m_bindless));
+        MANTLE_VK_VERIFY(vkAllocateDescriptorSets(vk_device, &alloc_info, &m_impl->m_bindless));
     }
 
     void GPUResourceManager::destroy_bindless() {
-        VkDevice vk_device = m_impl->backend->m_device.get_device();
-        VkAllocationCallbacks *vk_callbacks =
-            m_impl->backend->m_vk_allocator.vk_allocator();
+        VkDevice               vk_device = m_impl->backend->m_device.get_device();
+        VkAllocationCallbacks *vk_callbacks = m_impl->backend->m_vk_allocator.vk_allocator();
 
-        vkDestroyDescriptorSetLayout(vk_device, m_impl->m_bindless_layout,
-                                     vk_callbacks);
-        vkDestroyDescriptorPool(vk_device, m_impl->m_bindless_pool,
-                                vk_callbacks);
+        vkDestroyDescriptorSetLayout(vk_device, m_impl->m_bindless_layout, vk_callbacks);
+        vkDestroyDescriptorPool(vk_device, m_impl->m_bindless_pool, vk_callbacks);
 
         m_impl->m_bindless_layout = VK_NULL_HANDLE;
         m_impl->m_bindless_pool = VK_NULL_HANDLE;
@@ -1077,36 +1008,29 @@ namespace mantle {
         m_impl->backend = backend;
         m_impl->resource = PersistentResource(m_impl->backend->m_heap);
 
-        m_impl->buffers =
-            std::pmr::vector<Slot<BufferResource>>(&m_impl->resource);
+        m_impl->buffers = std::pmr::vector<Slot<BufferResource>>(&m_impl->resource);
         m_impl->buffers_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
-        m_impl->images =
-            std::pmr::vector<Slot<ImageResource>>(&m_impl->resource);
+        m_impl->images = std::pmr::vector<Slot<ImageResource>>(&m_impl->resource);
         m_impl->images_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
-        m_impl->samplers =
-            std::pmr::vector<Slot<SamplerResource>>(&m_impl->resource);
+        m_impl->samplers = std::pmr::vector<Slot<SamplerResource>>(&m_impl->resource);
         m_impl->samplers_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
-        m_impl->shaders =
-            std::pmr::vector<Slot<ShaderResource>>(&m_impl->resource);
+        m_impl->shaders = std::pmr::vector<Slot<ShaderResource>>(&m_impl->resource);
         m_impl->shaders_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
         m_impl->graphics_pipelines =
             std::pmr::vector<Slot<GraphicsPipelineResource>>(&m_impl->resource);
-        m_impl->graphics_pipelines_free_list =
-            std::pmr::vector<u32>(&m_impl->resource);
+        m_impl->graphics_pipelines_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
         m_impl->compute_pipelines =
             std::pmr::vector<Slot<ComputePipelineResource>>(&m_impl->resource);
-        m_impl->compute_pipelines_free_list =
-            std::pmr::vector<u32>(&m_impl->resource);
+        m_impl->compute_pipelines_free_list = std::pmr::vector<u32>(&m_impl->resource);
 
         m_impl->gpu_allocator.init(
-            m_impl->backend->m_device.get_physical_device(),
-            backend->m_device.get_device(), backend->m_context.get_instance(),
-            backend->m_vk_allocator.vk_allocator());
+            m_impl->backend->m_device.get_physical_device(), backend->m_device.get_device(),
+            backend->m_context.get_instance(), backend->m_vk_allocator.vk_allocator());
 
         for (auto &queue : m_impl->deletion_queues) {
             queue.init(m_impl->backend->m_heap);
@@ -1114,14 +1038,10 @@ namespace mantle {
 
         init_bindless();
 
-        m_impl->sampled_images_free_list_bindless =
-            std::pmr::vector<u32>(&m_impl->resource);
-        m_impl->storage_images_free_list_bindless =
-            std::pmr::vector<u32>(&m_impl->resource);
-        m_impl->buffers_free_list_bindless =
-            std::pmr::vector<u32>(&m_impl->resource);
-        m_impl->samplers_free_list_bindless =
-            std::pmr::vector<u32>(&m_impl->resource);
+        m_impl->sampled_images_free_list_bindless = std::pmr::vector<u32>(&m_impl->resource);
+        m_impl->storage_images_free_list_bindless = std::pmr::vector<u32>(&m_impl->resource);
+        m_impl->buffers_free_list_bindless = std::pmr::vector<u32>(&m_impl->resource);
+        m_impl->samplers_free_list_bindless = std::pmr::vector<u32>(&m_impl->resource);
 
         m_is_initialized = true;
         m_logger->info("GPU resource manager initialized");
@@ -1136,18 +1056,14 @@ namespace mantle {
             }
 
             for (u32 i = 0; i < m_impl->compute_pipelines.size(); ++i) {
-                if (m_impl->compute_pipelines[i].resource.pipeline !=
-                    VK_NULL_HANDLE) {
-                    destroy_compute_pipeline(
-                        {i, m_impl->compute_pipelines[i].generation}, true);
+                if (m_impl->compute_pipelines[i].resource.pipeline != VK_NULL_HANDLE) {
+                    destroy_compute_pipeline({i, m_impl->compute_pipelines[i].generation}, true);
                 }
             }
 
             for (u32 i = 0; i < m_impl->graphics_pipelines.size(); ++i) {
-                if (m_impl->graphics_pipelines[i].resource.pipeline !=
-                    VK_NULL_HANDLE) {
-                    destroy_graphics_pipeline(
-                        {i, m_impl->graphics_pipelines[i].generation}, true);
+                if (m_impl->graphics_pipelines[i].resource.pipeline != VK_NULL_HANDLE) {
+                    destroy_graphics_pipeline({i, m_impl->graphics_pipelines[i].generation}, true);
                 }
             }
 
@@ -1192,8 +1108,7 @@ namespace mantle {
             return buffer.bindless_index;
         }
 
-        MANTLE_CHECKF(buffer.desc.usage & BufferUsage::Storage,
-               "buffer must have storage usage");
+        MANTLE_CHECKF(buffer.desc.usage & BufferUsage::Storage, "buffer must have storage usage");
         buffer.bindless_index = m_impl->allocate_buffer_index(buffer);
         return buffer.bindless_index;
     }
@@ -1209,8 +1124,7 @@ namespace mantle {
         return sampler.bindless_index;
     }
 
-    void GPUResourceManager::free_image_index(ImageHandle handle,
-                                              BindlessImageType type) {
+    void GPUResourceManager::free_image_index(ImageHandle handle, BindlessImageType type) {
         MANTLE_CHECK(m_is_initialized);
         auto &image = m_impl->get_image(handle);
         if (type == BindlessImageType::Sampled) {
@@ -1244,8 +1158,7 @@ namespace mantle {
         MANTLE_CHECK(handle.index < images.size());
         auto &image = images[handle.index];
 
-        MANTLE_FATAL(image.generation != handle.generation,
-              "Attempting to get invalid buffer");
+        MANTLE_FATAL(image.generation != handle.generation, "Attempting to get invalid buffer");
 
 
         return image.resource;
@@ -1255,19 +1168,16 @@ namespace mantle {
         MANTLE_CHECK(handle.index < buffers.size());
         auto &buffer = buffers[handle.index];
 
-        MANTLE_FATAL(buffer.generation != handle.generation,
-              "Attempting to get invalid buffer");
+        MANTLE_FATAL(buffer.generation != handle.generation, "Attempting to get invalid buffer");
 
 
         return buffer.resource;
     }
-    SamplerResource &
-    GPUResourceManager::Impl::get_sampler(SamplerHandle handle) {
+    SamplerResource &GPUResourceManager::Impl::get_sampler(SamplerHandle handle) {
         MANTLE_CHECK(handle.index < samplers.size());
         auto &sampler = samplers[handle.index];
 
-        MANTLE_FATAL(sampler.generation != handle.generation,
-              "Attempting to get invalid sampler");
+        MANTLE_FATAL(sampler.generation != handle.generation, "Attempting to get invalid sampler");
 
 
         return sampler.resource;
@@ -1283,8 +1193,8 @@ namespace mantle {
         return shader.resource;
     }
 
-    GraphicsPipelineResource &GPUResourceManager::Impl::get_graphics_pipeline(
-        GraphicsPipelineHandle handle) {
+    GraphicsPipelineResource &
+    GPUResourceManager::Impl::get_graphics_pipeline(GraphicsPipelineHandle handle) {
         MANTLE_CHECK(handle.index < graphics_pipelines.size());
         auto &pipeline = graphics_pipelines[handle.index];
         if (pipeline.generation != handle.generation) {
@@ -1294,30 +1204,27 @@ namespace mantle {
         return pipeline.resource;
     }
 
-    ComputePipelineResource &GPUResourceManager::Impl::get_compute_pipeline(
-        ComputePipelineHandle handle) {
+    ComputePipelineResource &
+    GPUResourceManager::Impl::get_compute_pipeline(ComputePipelineHandle handle) {
         MANTLE_CHECK(handle.index < compute_pipelines.size());
         auto &pipeline = compute_pipelines[handle.index];
 
         MANTLE_FATAL(pipeline.generation != handle.generation,
-              "Attempting to get invalid compute pipeline");
+                     "Attempting to get invalid compute pipeline");
 
         return pipeline.resource;
     }
 
-    VkDescriptorSet GPUResourceManager::Impl::get_bindless_set() const {
-        return m_bindless;
-    }
+    VkDescriptorSet GPUResourceManager::Impl::get_bindless_set() const { return m_bindless; }
 
-    u32 GPUResourceManager::Impl::allocate_storage_image_index(
-        ImageResource &image) {
+    u32 GPUResourceManager::Impl::allocate_storage_image_index(ImageResource &image) {
         u32 index;
         if (!storage_images_free_list_bindless.empty()) {
             index = storage_images_free_list_bindless.back();
             storage_images_free_list_bindless.pop_back();
         } else {
             MANTLE_CHECKF(storage_images_count_bindless < max_storage_images,
-                   "Exceeded max storage image bindless count");
+                          "Exceeded max storage image bindless count");
             index = storage_images_count_bindless++;
         }
 
@@ -1338,20 +1245,18 @@ namespace mantle {
             .pImageInfo = &image_info,
         };
 
-        vkUpdateDescriptorSets(backend->m_device.get_device(), 1, &write, 0,
-                               nullptr);
+        vkUpdateDescriptorSets(backend->m_device.get_device(), 1, &write, 0, nullptr);
         return index;
     }
 
-    u32 GPUResourceManager::Impl::allocate_sampled_image_index(
-        ImageResource &image) {
+    u32 GPUResourceManager::Impl::allocate_sampled_image_index(ImageResource &image) {
         u32 index;
         if (!sampled_images_free_list_bindless.empty()) {
             index = sampled_images_free_list_bindless.back();
             sampled_images_free_list_bindless.pop_back();
         } else {
             MANTLE_CHECKF(sampled_images_count_bindless < max_sampled_images,
-                   "Exceeded max sampled image bindless count");
+                          "Exceeded max sampled image bindless count");
             index = sampled_images_count_bindless++;
         }
 
@@ -1372,20 +1277,18 @@ namespace mantle {
             .pImageInfo = &image_info,
         };
 
-        vkUpdateDescriptorSets(backend->m_device.get_device(), 1, &write, 0,
-                               nullptr);
+        vkUpdateDescriptorSets(backend->m_device.get_device(), 1, &write, 0, nullptr);
         return index;
     }
 
-    u32
-    GPUResourceManager::Impl::allocate_buffer_index(BufferResource &buffer) {
+    u32 GPUResourceManager::Impl::allocate_buffer_index(BufferResource &buffer) {
         u32 index;
         if (!buffers_free_list_bindless.empty()) {
             index = buffers_free_list_bindless.back();
             buffers_free_list_bindless.pop_back();
         } else {
             MANTLE_CHECKF(buffers_count_bindless < max_storage_buffers,
-                   "Exceeded max storage buffers bindless count");
+                          "Exceeded max storage buffers bindless count");
             index = buffers_count_bindless++;
         }
 
@@ -1395,29 +1298,26 @@ namespace mantle {
             .range = buffer.desc.size,
         };
 
-        VkWriteDescriptorSet write = {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = m_bindless,
-            .dstBinding = storage_buffer_binding,
-            .dstArrayElement = index,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .pBufferInfo = &buffer_info};
+        VkWriteDescriptorSet write = {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                      .dstSet = m_bindless,
+                                      .dstBinding = storage_buffer_binding,
+                                      .dstArrayElement = index,
+                                      .descriptorCount = 1,
+                                      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                                      .pBufferInfo = &buffer_info};
 
-        vkUpdateDescriptorSets(backend->m_device.get_device(), 1, &write, 0,
-                               nullptr);
+        vkUpdateDescriptorSets(backend->m_device.get_device(), 1, &write, 0, nullptr);
         return index;
     }
 
-    u32
-    GPUResourceManager::Impl::allocate_sampler_index(SamplerResource &sampler) {
+    u32 GPUResourceManager::Impl::allocate_sampler_index(SamplerResource &sampler) {
         u32 index;
         if (!samplers_free_list_bindless.empty()) {
             index = samplers_free_list_bindless.back();
             samplers_free_list_bindless.pop_back();
         } else {
             MANTLE_CHECKF(samplers_count_bindless < max_samplers,
-                   "Exceeded max samplers bindless count");
+                          "Exceeded max samplers bindless count");
             index = samplers_count_bindless++;
         }
 
@@ -1438,8 +1338,7 @@ namespace mantle {
         };
 
 
-        vkUpdateDescriptorSets(backend->m_device.get_device(), 1, &write, 0,
-                               nullptr);
+        vkUpdateDescriptorSets(backend->m_device.get_device(), 1, &write, 0, nullptr);
         return index;
     }
 

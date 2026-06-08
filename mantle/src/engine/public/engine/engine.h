@@ -1,17 +1,21 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
-#include "renderer/renderer.h"
-#include "window/window.h"
 
 #include "core/concurrency/worker_pool.h"
 #include "core/memory/arena_allocator.h"
 #include "core/memory/virtual_heap.h"
 #include "ecs/ecs.h"
+#include "renderer/renderer.h"
+#include "window/window.h"
 #include "world/chunk_generation_system.h"
 #include "world/chunk_meshing_system.h"
 #include "world/chunk_rendering_system.h"
 #include "world/chunk_storage_system.h"
 
-namespace spdlog { class logger; }
+namespace spdlog {
+    class logger;
+}
 
 namespace mantle {
     class Engine final {
@@ -27,14 +31,14 @@ namespace mantle {
         void render();
 
       private:
-        bool m_is_initialized = false;
-        Window m_window{};
-        Ecs m_ecs{};
-        Renderer m_renderer{};
-        ChunkGenerationSystem m_chunk_generation_system{};
+        bool                  m_is_initialized = false;
+        Window                m_window {};
+        Ecs                   m_ecs {};
+        Renderer              m_renderer {};
+        ChunkGenerationSystem m_chunk_generation_system {};
 
-        OSMemory m_os_memory;
-        VirtualHeap m_heap;
+        OSMemory       m_os_memory;
+        VirtualHeap    m_heap;
         ArenaAllocator m_scratch_arena;
 
         WorkerPool m_worker_pool;
@@ -42,9 +46,9 @@ namespace mantle {
         ArenaAllocator m_rendering_arena;
         ArenaAllocator m_meshing_arena;
 
-        ChunkMeshingSystem m_chunk_meshing_system{};
-        ChunkRenderingSystem m_chunk_rendering_system{};
-        ChunkStorageSystem m_chunk_storage_system{};
+        ChunkMeshingSystem   m_chunk_meshing_system {};
+        ChunkRenderingSystem m_chunk_rendering_system {};
+        ChunkStorageSystem   m_chunk_storage_system {};
 
         u64 m_last_time = 0;
         f32 m_fps_timer = 0.0f;

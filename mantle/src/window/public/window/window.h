@@ -1,12 +1,13 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
 
+#include <SDL3/SDL.h>
 #include <array>
 #include <bitset>
 #include <functional>
 #include <span>
 #include <string>
-
-#include <SDL3/SDL.h>
 
 #include "core/macros.h"
 #include "core/memory/virtual_heap.h"
@@ -26,8 +27,8 @@ namespace mantle {
             };
 
             std::string_view title = "Mantle";
-            Size size = {0, 0};
-            bool fullscreen = true;
+            Size             size = {0, 0};
+            bool             fullscreen = true;
         };
         struct MousePosition final {
             f32 x;
@@ -253,12 +254,12 @@ namespace mantle {
             Type type;
             union {
                 struct {
-                    Key key;
+                    Key  key;
                     bool pressed;
                 } key;
                 struct {
                     MouseButton button;
-                    bool pressed;
+                    bool        pressed;
                 } mouse_button;
                 struct {
                     f32 xrel, yrel;
@@ -268,11 +269,11 @@ namespace mantle {
                 } mouse_wheel;
                 struct {
                     ControllerButton button;
-                    bool pressed;
+                    bool             pressed;
                 } controller_button;
                 struct {
                     ControllerAxis axis;
-                    f32 value;
+                    f32            value;
                 } controller_axis;
             };
         };
@@ -302,24 +303,23 @@ namespace mantle {
 
         bool is_controller_connected() const;
         bool is_controller_button_pressed(ControllerButton button) const;
-        f32 get_controller_axis(ControllerAxis axis) const;
+        f32  get_controller_axis(ControllerAxis axis) const;
 
-        void set_controller_rumble(u16 low_frequency, u16 high_frequency,
-                                   u32 duration_ms);
+        void set_controller_rumble(u16 low_frequency, u16 high_frequency, u32 duration_ms);
         void stop_controller_rumble();
 
-        u32 get_width() const;
-        u32 get_height() const;
-        Properties::Size get_size() const;
-        Properties::Size get_framebuffer_size() const;
-        SDL_Window *get_native_window() const;
-        u64 get_time_ns() const;
-        u64 get_time_ms() const;
-        bool is_fullscreen() const;
-        f32 get_refresh_rate() const;
+        u32                       get_width() const;
+        u32                       get_height() const;
+        Properties::Size          get_size() const;
+        Properties::Size          get_framebuffer_size() const;
+        SDL_Window               *get_native_window() const;
+        u64                       get_time_ns() const;
+        u64                       get_time_ms() const;
+        bool                      is_fullscreen() const;
+        f32                       get_refresh_rate() const;
         std::span<const RawEvent> get_frame_events() const;
-        MouseDelta get_mouse_delta() const;
-        MouseDelta get_mouse_wheel() const;
+        MouseDelta                get_mouse_delta() const;
+        MouseDelta                get_mouse_wheel() const;
 
         void set_resize_callback(std::function<void(u32, u32)> callback);
 
@@ -331,35 +331,35 @@ namespace mantle {
         bool m_is_initialized = false;
         bool m_should_close = false;
 
-        SDL_Window *m_native_window = nullptr;
+        SDL_Window  *m_native_window = nullptr;
         SDL_Gamepad *m_controller = nullptr;
 
         std::bitset<static_cast<usize>(Key::Count)> m_pressed_keys;
         std::bitset<static_cast<usize>(Key::Count)> m_pressed_keys_prev;
 
-        std::array<bool, MOUSE_BUTTON_COUNT> m_pressed_mb{};
-        std::array<bool, MOUSE_BUTTON_COUNT> m_pressed_mb_prev{};
+        std::array<bool, MOUSE_BUTTON_COUNT> m_pressed_mb {};
+        std::array<bool, MOUSE_BUTTON_COUNT> m_pressed_mb_prev {};
 
-        std::array<bool, CONTROLLER_BUTTON_COUNT> m_pressed_cb{};
-        std::array<bool, CONTROLLER_BUTTON_COUNT> m_pressed_cb_prev{};
+        std::array<bool, CONTROLLER_BUTTON_COUNT> m_pressed_cb {};
+        std::array<bool, CONTROLLER_BUTTON_COUNT> m_pressed_cb_prev {};
 
-        std::array<f32, CONTROLLER_AXIS_COUNT> m_controller_axes{};
+        std::array<f32, CONTROLLER_AXIS_COUNT> m_controller_axes {};
 
-        static constexpr usize MAX_EVENTS_PER_FRAME = 128;
-        std::array<RawEvent, MAX_EVENTS_PER_FRAME> m_frame_events{};
-        u32 m_frame_event_count = 0;
+        static constexpr usize                     MAX_EVENTS_PER_FRAME = 128;
+        std::array<RawEvent, MAX_EVENTS_PER_FRAME> m_frame_events {};
+        u32                                        m_frame_event_count = 0;
 
-        MouseDelta m_mouse_delta{};
-        MouseDelta m_mouse_wheel{};
+        MouseDelta m_mouse_delta {};
+        MouseDelta m_mouse_wheel {};
 
         bool m_keyboard_active = false;
         bool m_mouse_active = false;
         bool m_controller_active = false;
 
-        std::function<void(u32, u32)> m_resize_callback{};
+        std::function<void(u32, u32)> m_resize_callback {};
 
         bool m_fullscreen = false;
-        f32 m_refresh_rate = 0.0f;
+        f32  m_refresh_rate = 0.0f;
 
         spdlog::logger *m_logger = nullptr;
     };
