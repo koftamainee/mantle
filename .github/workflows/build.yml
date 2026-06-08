@@ -2,8 +2,6 @@ name: CI
 
 on:
   push:
-  pull_request:
-    branches: [master]
 
 env:
   VULKAN_VER: 1.4.304.0
@@ -13,37 +11,88 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ci:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system deps (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc g++ ninja-build \
+            libwayland-dev wayland-protocols libxkbcommon-dev \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxss-dev libxtst-dev \
+            mesa-common-dev libgl-dev
+
+      - name: Cache Vulkan SDK (Linux)
+        id: cache-vulkan-linux
+        uses: actions/cache@v4
+        with:
+          path: .vulkansdk
+          key: vulkan-sdk-${{ env.VULKAN_VER }}-linux
+
+      - name: Install Vulkan SDK (Linux)
+        if: steps.cache-vulkan-linux.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .vulkansdk
+          wget -qO- https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VER }}/linux/vulkansdk-linux-x86_64-${{ env.VULKAN_VER }}.tar.xz \
+            | tar -xJ -C .vulkansdk
+
+      - name: Set Vulkan env (Linux)
+        run: |
+          SDK="${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64"
+          echo "VULKAN_SDK=${SDK}" >> "${GITHUB_ENV}"
+          echo "${SDK}/bin" >> "${GITHUB_PATH}"
+          echo "LD_LIBRARY_PATH=${SDK}/lib:${LD_LIBRARY_PATH}" >> "${GITHUB_ENV}"
+
+      - name: Configure for format
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_C_COMPILER=gcc \
+            -DCMAKE_CXX_COMPILER=g++ \
+            -DMANTLE_ENABLE_FORMAT=ON
+
+      - name: Run format
+        run: cmake --build build --target mantle-format
+
+      - name: Commit formatting changes
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "auto-format [skip ci]"
+            git push
+          fi
+
+  build:
+    needs: format
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            configure_debug: >
-              cmake -B build -G Ninja
-              -DCMAKE_BUILD_TYPE=Debug
-              -DCMAKE_C_COMPILER=gcc
-              -DCMAKE_CXX_COMPILER=g++
-            configure_release: >
+            configure: >
               cmake -B build -G Ninja
               -DCMAKE_BUILD_TYPE=RelWithDebInfo
               -DCMAKE_C_COMPILER=gcc
               -DCMAKE_CXX_COMPILER=g++
+              -DMANTLE_ENABLE_FORMAT=OFF
             ctest: ctest --test-dir build --output-on-failure
             artifact: mantle-relwithdebinfo-linux-x64
-
           - os: windows-latest
-            configure_debug: >
-              cmake -B build -G Ninja
-              -DCMAKE_BUILD_TYPE=Debug
-              -DCMAKE_C_COMPILER=cl
-              -DCMAKE_CXX_COMPILER=cl
-            configure_release: >
+            configure: >
               cmake -B build -G Ninja
               -DCMAKE_BUILD_TYPE=RelWithDebInfo
               -DCMAKE_C_COMPILER=cl
               -DCMAKE_CXX_COMPILER=cl
+              -DMANTLE_ENABLE_FORMAT=OFF
             ctest: ctest --test-dir build --output-on-failure
             artifact: mantle-relwithdebinfo-windows-x64
 
@@ -52,7 +101,6 @@ jobs:
         with:
           submodules: recursive
 
-      # ---- Linux deps ----
       - name: Install system deps (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -63,7 +111,6 @@ jobs:
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxss-dev libxtst-dev \
             mesa-common-dev libgl-dev
 
-      # ---- Linux Vulkan SDK ----
       - name: Cache Vulkan SDK (Linux)
         if: runner.os == 'Linux'
         id: cache-vulkan-linux
@@ -87,7 +134,6 @@ jobs:
           echo "${SDK}/bin" >> "${GITHUB_PATH}"
           echo "LD_LIBRARY_PATH=${SDK}/lib:${LD_LIBRARY_PATH}" >> "${GITHUB_ENV}"
 
-      # ---- Windows Vulkan SDK ----
       - name: Cache Vulkan SDK installer (Windows)
         if: runner.os == 'Windows'
         id: cache-vulkan-win
@@ -139,24 +185,16 @@ jobs:
           echo "VULKAN_SDK=C:\VulkanSDK\${{ env.VULKAN_VER }}" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "C:\VulkanSDK\${{ env.VULKAN_VER }}\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-      - name: Format
-        if: github.event_name != 'pull_request'
-        run: cmake --build build --target mantle-format 2>&1 || true
-
-      # ---- Build phase (master push or PR to master) ----
-      - name: Configure (release)
-        if: github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
-        run: ${{ matrix.configure_release }} -DMANTLE_ENABLE_FORMAT=OFF
+      - name: Configure
+        shell: bash
+        run: ${{ matrix.configure }}
 
       - name: Build
-        if: github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
         run: cmake --build build
 
       - name: Test
-        if: github.ref == 'refs/heads/master' || github.event_name == 'pull_request'
         run: ${{ matrix.ctest }}
 
-      # ---- Package (master push only) ----
       - name: Stage package (Linux)
         if: runner.os == 'Linux' && github.ref == 'refs/heads/master'
         run: |
@@ -189,16 +227,3 @@ jobs:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.artifact }}
           if-no-files-found: error
-
-      # ---- Auto-commit (push only, not PR) ----
-      - name: Auto-commit format changes
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            git config user.name "Mantle Bot"
-            git config user.email "bot@mantle.dev"
-            git add -A
-            git diff --cached --quiet || git commit -m "auto-format [skip ci]"
-            git push
-          fi
