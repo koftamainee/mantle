@@ -14,68 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  format:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install system deps (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            gcc g++ ninja-build \
-            libwayland-dev wayland-protocols libxkbcommon-dev \
-            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxss-dev libxtst-dev \
-            mesa-common-dev libgl-dev
-
-      - name: Cache Vulkan SDK (Linux)
-        id: cache-vulkan-linux
-        uses: actions/cache@v4
-        with:
-          path: .vulkansdk
-          key: vulkan-sdk-${{ env.VULKAN_VER }}-linux
-
-      - name: Install Vulkan SDK (Linux)
-        if: steps.cache-vulkan-linux.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p .vulkansdk
-          wget -qO- https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VER }}/linux/vulkansdk-linux-x86_64-${{ env.VULKAN_VER }}.tar.xz \
-            | tar -xJ -C .vulkansdk
-
-      - name: Set Vulkan env (Linux)
-        run: |
-          SDK="${GITHUB_WORKSPACE}/.vulkansdk/${{ env.VULKAN_VER }}/x86_64"
-          echo "VULKAN_SDK=${SDK}" >> "${GITHUB_ENV}"
-          echo "${SDK}/bin" >> "${GITHUB_PATH}"
-          echo "LD_LIBRARY_PATH=${SDK}/lib:${LD_LIBRARY_PATH}" >> "${GITHUB_ENV}"
-
-      - name: Configure for format
-        run: |
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_C_COMPILER=gcc \
-            -DCMAKE_CXX_COMPILER=g++ \
-            -DMANTLE_ENABLE_FORMAT=ON
-
-      - name: Run format
-        run: cmake --build build --target mantle-format
-
-      - name: Commit formatting changes
-        shell: bash
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            git add .
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Format code [skip ci]"
-            git push
-          fi
-
-  build:
-    needs: format
+  ci:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -94,8 +33,6 @@ jobs:
             configure: >
               cmake -B build -G Ninja
               -DCMAKE_BUILD_TYPE=RelWithDebInfo
-              -DCMAKE_C_COMPILER=cl
-              -DCMAKE_CXX_COMPILER=cl
               -DMANTLE_ENABLE_FORMAT=OFF
             ctest: ctest --test-dir build --output-on-failure
             artifact: mantle-relwithdebinfo-windows-x64
@@ -104,6 +41,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install system deps (Linux)
         if: runner.os == 'Linux'
@@ -189,35 +127,64 @@ jobs:
           echo "VULKAN_SDK=C:\VulkanSDK\${{ env.VULKAN_VER }}" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "C:\VulkanSDK\${{ env.VULKAN_VER }}\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
+      - name: Configure for format (Linux only)
+        if: runner.os == 'Linux' && !contains(github.event.head_commit.message, '[disable-format]')
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_C_COMPILER=gcc \
+            -DCMAKE_CXX_COMPILER=g++ \
+            -DMANTLE_ENABLE_FORMAT=ON
+
+      - name: Run format (Linux only)
+        if: runner.os == 'Linux' && !contains(github.event.head_commit.message, '[disable-format]')
+        run: cmake --build build --target mantle-format
+
+      - name: Commit formatting changes (Linux only)
+        if: runner.os == 'Linux' && !contains(github.event.head_commit.message, '[disable-format]')
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Format code [disable-format]"
+            git push
+            echo "SKIP_BUILD=true" >> $GITHUB_ENV
+          fi
+
       - name: Configure
+        if: env.SKIP_BUILD != 'true'
         shell: bash
         run: ${{ matrix.configure }}
 
       - name: Build
+        if: env.SKIP_BUILD != 'true'
         run: cmake --build build
 
       - name: Test
+        if: env.SKIP_BUILD != 'true'
         run: ${{ matrix.ctest }}
 
       - name: Stage package (Linux)
-        if: runner.os == 'Linux' && github.ref == 'refs/heads/master'
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/master' && env.SKIP_BUILD != 'true'
         run: |
           mkdir -p ${{ matrix.artifact }}
           cp -r build/target/* ${{ matrix.artifact }}/
 
       - name: Stage package (Windows)
-        if: runner.os == 'Windows' && github.ref == 'refs/heads/master'
+        if: runner.os == 'Windows' && github.ref == 'refs/heads/master' && env.SKIP_BUILD != 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path ${{ matrix.artifact }}
           Copy-Item -Path build\target\* -Destination ${{ matrix.artifact }}\ -Recurse
 
       - name: Stage devinfo
-        if: runner.os == 'Linux' && github.ref == 'refs/heads/master'
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/master' && env.SKIP_BUILD != 'true'
         run: cp build/devinfo/error_codes.json error_codes.json
 
       - name: Upload devinfo
-        if: runner.os == 'Linux' && github.ref == 'refs/heads/master'
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/master' && env.SKIP_BUILD != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: mantle-devinfo
@@ -225,7 +192,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload package
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && env.SKIP_BUILD != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
