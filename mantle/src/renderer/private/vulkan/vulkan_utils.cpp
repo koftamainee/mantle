@@ -1,5 +1,6 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "../vulkan/vulkan_utils.h"
-#include "types.h"
 
 #include <fstream>
 #include <vma/vk_mem_alloc.h>
@@ -7,6 +8,7 @@
 
 #include "core/assert.h"
 #include "renderer/types.h"
+#include "types.h"
 
 namespace mantle {
 
@@ -106,22 +108,26 @@ namespace mantle {
 
         VkImageUsageFlags flags = 0;
 
-        auto has = [&](ImageUsage bit) {
-            return (u & static_cast<U>(bit)) != 0;
-        };
+        auto has = [&](ImageUsage bit) { return (u & static_cast<U>(bit)) != 0; };
 
-        if (has(ImageUsage::Sampled))
+        if (has(ImageUsage::Sampled)) {
             flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
-        if (has(ImageUsage::Storage))
+        }
+        if (has(ImageUsage::Storage)) {
             flags |= VK_IMAGE_USAGE_STORAGE_BIT;
-        if (has(ImageUsage::Color))
+        }
+        if (has(ImageUsage::Color)) {
             flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        if (has(ImageUsage::Depth))
+        }
+        if (has(ImageUsage::Depth)) {
             flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-        if (has(ImageUsage::TransferSrc))
+        }
+        if (has(ImageUsage::TransferSrc)) {
             flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-        if (has(ImageUsage::TransferDst))
+        }
+        if (has(ImageUsage::TransferDst)) {
             flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        }
 
         return flags;
     }
@@ -156,25 +162,29 @@ namespace mantle {
 
         VkBufferUsageFlags flags = 0;
 
-        auto has = [&](BufferUsage bit) {
-            return (u & static_cast<U>(bit)) != 0;
-        };
+        auto has = [&](BufferUsage bit) { return (u & static_cast<U>(bit)) != 0; };
 
-        if (has(BufferUsage::Vertex))
+        if (has(BufferUsage::Vertex)) {
             flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        if (has(BufferUsage::Index))
+        }
+        if (has(BufferUsage::Index)) {
             flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-        if (has(BufferUsage::Uniform))
+        }
+        if (has(BufferUsage::Uniform)) {
             flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-        if (has(BufferUsage::Storage))
+        }
+        if (has(BufferUsage::Storage)) {
             flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-        if (has(BufferUsage::Indirect))
+        }
+        if (has(BufferUsage::Indirect)) {
             flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-        if (has(BufferUsage::Transfer))
-            flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-        if (has(BufferUsage::Indirect))
+        }
+        if (has(BufferUsage::Transfer)) {
+            flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        }
+        if (has(BufferUsage::Indirect)) {
             flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+        }
 
         return flags;
     }
@@ -335,38 +345,50 @@ namespace mantle {
 
         VkPipelineStageFlags2 flags = 0;
 
-        auto has = [&](PipelineStage bit) {
-            return (u & static_cast<U>(bit)) != 0;
-        };
+        auto has = [&](PipelineStage bit) { return (u & static_cast<U>(bit)) != 0; };
 
-        if (has(PipelineStage::None))
+        if (has(PipelineStage::None)) {
             flags |= VK_PIPELINE_STAGE_2_NONE;
-        if (has(PipelineStage::Top))
+        }
+        if (has(PipelineStage::Top)) {
             flags |= VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
-        if (has(PipelineStage::Bottom))
+        }
+        if (has(PipelineStage::Bottom)) {
             flags |= VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT;
-        if (has(PipelineStage::AllCommands))
+        }
+        if (has(PipelineStage::AllCommands)) {
             flags |= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
-        if (has(PipelineStage::ComputeShader))
+        }
+        if (has(PipelineStage::ComputeShader)) {
             flags |= VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-        if (has(PipelineStage::VertexShader))
+        }
+        if (has(PipelineStage::VertexShader)) {
             flags |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
-        if (has(PipelineStage::FragmentShader))
+        }
+        if (has(PipelineStage::FragmentShader)) {
             flags |= VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
-        if (has(PipelineStage::ColorOutput))
+        }
+        if (has(PipelineStage::ColorOutput)) {
             flags |= VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-        if (has(PipelineStage::EarlyDepth))
+        }
+        if (has(PipelineStage::EarlyDepth)) {
             flags |= VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT;
-        if (has(PipelineStage::LateDepth))
+        }
+        if (has(PipelineStage::LateDepth)) {
             flags |= VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT;
-        if (has(PipelineStage::Transfer))
+        }
+        if (has(PipelineStage::Transfer)) {
             flags |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
-        if (has(PipelineStage::VertexInput))
+        }
+        if (has(PipelineStage::VertexInput)) {
             flags |= VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;
-        if (has(PipelineStage::DrawIndirect))
+        }
+        if (has(PipelineStage::DrawIndirect)) {
             flags |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
-        if (has(PipelineStage::Host))
+        }
+        if (has(PipelineStage::Host)) {
             flags |= VK_PIPELINE_STAGE_2_HOST_BIT;
+        }
 
         return flags;
     }
@@ -780,27 +802,31 @@ namespace mantle {
         using U = std::underlying_type_t<ColorWriteMask>;
         U u = static_cast<U>(mask);
 
-        if (mask == ColorWriteMask::None)
+        if (mask == ColorWriteMask::None) {
             return 0;
+        }
 
-        if (mask == ColorWriteMask::RGBA)
-            return VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        if (mask == ColorWriteMask::RGBA) {
+            return VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+                   VK_COLOR_COMPONENT_A_BIT;
+        }
 
         VkColorComponentFlags flags = 0;
 
-        auto has = [&](ColorWriteMask bit) {
-            return (u & static_cast<U>(bit)) != 0;
-        };
+        auto has = [&](ColorWriteMask bit) { return (u & static_cast<U>(bit)) != 0; };
 
-        if (has(ColorWriteMask::R))
+        if (has(ColorWriteMask::R)) {
             flags |= VK_COLOR_COMPONENT_R_BIT;
-        if (has(ColorWriteMask::G))
+        }
+        if (has(ColorWriteMask::G)) {
             flags |= VK_COLOR_COMPONENT_G_BIT;
-        if (has(ColorWriteMask::B))
+        }
+        if (has(ColorWriteMask::B)) {
             flags |= VK_COLOR_COMPONENT_B_BIT;
-        if (has(ColorWriteMask::A))
+        }
+        if (has(ColorWriteMask::A)) {
             flags |= VK_COLOR_COMPONENT_A_BIT;
+        }
 
         return flags;
     }

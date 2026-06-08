@@ -1,5 +1,12 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "renderer/renderer.h"
+
 #include <spdlog/spdlog.h>
+#include <vulkan/command_recorder.h>
+#include <vulkan/frame_scheduler.h>
+#include <vulkan/vulkan_backend.h>
+
 #include "core/memory/persistent_allocator.h"
 #include "core/memory/pmr/persistent_resource.h"
 #include "frame_graph/frame_graph_pass_context_internal.h"
@@ -8,9 +15,6 @@
 #include "resources/gpu_resource_manager_internal.h"
 #include "resources/transient_resources.h"
 #include "types.h"
-#include "vulkan/command_recorder.h"
-#include "vulkan/frame_scheduler.h"
-#include "vulkan/vulkan_backend.h"
 
 namespace mantle {
 

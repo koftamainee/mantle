@@ -1,12 +1,13 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "vulkan/vulkan_context.h"
 
 #include <core/assert.h>
-#include "vkassert.h"
-
 #include <spdlog/spdlog.h>
 
 #include "core/memory/pmr/arena_resource.h"
 #include "core/memory/scope_arena.h"
+#include "vkassert.h"
 
 namespace {
 
