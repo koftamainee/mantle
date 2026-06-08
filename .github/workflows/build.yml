@@ -169,16 +169,14 @@ jobs:
 
       - name: Stage devinfo (Linux, once)
         if: runner.os == 'Linux' && matrix.build_type == 'RelWithDebInfo'
-        run: |
-          mkdir -p devinfo
-          cp build/devinfo/error_codes.json devinfo/
+        run: cp build/devinfo/error_codes.json error_codes.json
 
       - name: Upload devinfo
         if: runner.os == 'Linux' && matrix.build_type == 'RelWithDebInfo'
         uses: actions/upload-artifact@v4
         with:
           name: mantle-devinfo
-          path: devinfo
+          path: error_codes.json
           if-no-files-found: error
 
       - name: Upload package

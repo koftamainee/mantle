@@ -181,16 +181,14 @@ jobs:
 
       - name: Stage devinfo (Linux)
         if: runner.os == 'Linux'
-        run: |
-          mkdir -p devinfo
-          cp build/devinfo/error_codes.json devinfo/
+        run: cp build/devinfo/error_codes.json error_codes.json
 
       - name: Upload devinfo
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: mantle-devinfo
-          path: devinfo
+          path: error_codes.json
           if-no-files-found: error
 
       - name: Upload game package
@@ -274,7 +272,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: mantle-devinfo
-          path: mantle-devinfo
+          path: .
 
       - name: Bundle Linux
         run: (cd mantle-linux-x64 && zip -r ../mantle-linux-x64.zip .)
@@ -291,7 +289,7 @@ jobs:
           files: |
             mantle-linux-x64.zip
             mantle-windows-x64.zip
-            mantle-devinfo/error_codes.json
+            error_codes.json
           fail_on_unmatched_files: false
           draft: false
           prerelease: false
