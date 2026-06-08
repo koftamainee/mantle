@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "bgm.h"
 
 #include <algorithm>
@@ -16,26 +18,26 @@ namespace mantle::bgm {
 
         u32 voxel_index(u32 axis, u32 a, u32 u, u32 v) noexcept {
             switch (axis) {
-            case 0: {
-                return a + u * 32 + v * 1024;
-            }
-            case 1: {
-                return u + a * 32 + v * 1024;
-            }
-            default: {
-                return u + v * 32 + a * 1024;
-            }
+                case 0: {
+                    return a + u * 32 + v * 1024;
+                }
+                case 1: {
+                    return u + a * 32 + v * 1024;
+                }
+                default: {
+                    return u + v * 32 + a * 1024;
+                }
             }
         }
 
-        u16 sample_voxel(const Chunk &chunk, const Chunk *neighbors[6],
-                         u32 axis, i32 a, u32 u, u32 v) noexcept {
+        u16 sample_voxel(const Chunk &chunk, const Chunk *neighbors[6], u32 axis, i32 a, u32 u,
+                         u32 v) noexcept {
             if (a >= 0 && a < static_cast<i32>(CHUNK_SIZE)) {
                 auto idx = voxel_index(axis, static_cast<u32>(a), u, v);
                 return chunk.voxels[idx];
             }
 
-            u32 nb_idx = (axis * 2) + (a < 0 ? 0u : 1u);
+            u32          nb_idx = (axis * 2) + (a < 0 ? 0u : 1u);
             const Chunk *nb = neighbors[nb_idx];
             if (!nb) {
                 return 0;
@@ -45,115 +47,131 @@ namespace mantle::bgm {
             return nb->voxels[voxel_index(axis, na, u, v)];
         }
 
-        u8 sample_light_safe(const Chunk &chunk, const Chunk *neighbors[6],
-                              u32 axis, i32 a, i32 u, i32 v) noexcept {
+        u8 sample_light_safe(const Chunk &chunk, const Chunk *neighbors[6], u32 axis, i32 a, i32 u,
+                             i32 v) noexcept {
             bool a_oob = a < 0 || a >= static_cast<i32>(CHUNK_SIZE);
             bool u_oob = u < 0 || u >= static_cast<i32>(CHUNK_SIZE);
             bool v_oob = v < 0 || v >= static_cast<i32>(CHUNK_SIZE);
 
             u32 oob_count = (a_oob ? 1u : 0u) + (u_oob ? 1u : 0u) + (v_oob ? 1u : 0u);
-            if (oob_count > 1) return 0;
+            if (oob_count > 1) {
+                return 0;
+            }
 
             if (a_oob) {
-                u32 nb_idx = axis * 2 + (a < 0 ? 0u : 1u);
+                u32          nb_idx = axis * 2 + (a < 0 ? 0u : 1u);
                 const Chunk *nb = neighbors[nb_idx];
-                if (!nb) return 0;
+                if (!nb) {
+                    return 0;
+                }
                 u32 na = (a < 0) ? CHUNK_SIZE - 1 : 0;
-                return nb->light[voxel_index(axis, na,
-                                  static_cast<u32>(u), static_cast<u32>(v))];
+                return nb->light[voxel_index(axis, na, static_cast<u32>(u), static_cast<u32>(v))];
             }
 
             if (u_oob) {
                 u32 nb_idx;
-                if (axis == 0) nb_idx = 2;
-                else nb_idx = 0;
+                if (axis == 0) {
+                    nb_idx = 2;
+                } else {
+                    nb_idx = 0;
+                }
                 nb_idx += (u < 0 ? 0u : 1u);
                 const Chunk *nb = neighbors[nb_idx];
-                if (!nb) return 0;
+                if (!nb) {
+                    return 0;
+                }
                 u32 nu = (u < 0) ? CHUNK_SIZE - 1 : 0;
-                return nb->light[voxel_index(axis, static_cast<u32>(a), nu,
-                                  static_cast<u32>(v))];
+                return nb->light[voxel_index(axis, static_cast<u32>(a), nu, static_cast<u32>(v))];
             }
 
             if (v_oob) {
                 u32 nb_idx;
-                if (axis <= 1) nb_idx = 4;
-                else nb_idx = 2;
+                if (axis <= 1) {
+                    nb_idx = 4;
+                } else {
+                    nb_idx = 2;
+                }
                 nb_idx += (v < 0 ? 0u : 1u);
                 const Chunk *nb = neighbors[nb_idx];
-                if (!nb) return 0;
+                if (!nb) {
+                    return 0;
+                }
                 u32 nv = (v < 0) ? CHUNK_SIZE - 1 : 0;
-                return nb->light[voxel_index(axis, static_cast<u32>(a),
-                                  static_cast<u32>(u), nv)];
+                return nb->light[voxel_index(axis, static_cast<u32>(a), static_cast<u32>(u), nv)];
             }
 
-            return chunk.light[voxel_index(axis, static_cast<u32>(a),
-                               static_cast<u32>(u), static_cast<u32>(v))];
+            return chunk.light[voxel_index(axis, static_cast<u32>(a), static_cast<u32>(u),
+                                           static_cast<u32>(v))];
         }
 
-        u16 sample_voxel_safe(const Chunk &chunk, const Chunk *neighbors[6],
-                              u32 axis, i32 a, i32 u, i32 v) noexcept {
+        u16 sample_voxel_safe(const Chunk &chunk, const Chunk *neighbors[6], u32 axis, i32 a, i32 u,
+                              i32 v) noexcept {
             bool a_oob = a < 0 || a >= static_cast<i32>(CHUNK_SIZE);
             bool u_oob = u < 0 || u >= static_cast<i32>(CHUNK_SIZE);
             bool v_oob = v < 0 || v >= static_cast<i32>(CHUNK_SIZE);
 
             u32 oob_count = (a_oob ? 1u : 0u) + (u_oob ? 1u : 0u) + (v_oob ? 1u : 0u);
-            if (oob_count > 1) return 0;
+            if (oob_count > 1) {
+                return 0;
+            }
 
             if (a_oob) {
-                return sample_voxel(chunk, neighbors, axis, a,
-                                    static_cast<u32>(u), static_cast<u32>(v));
+                return sample_voxel(chunk, neighbors, axis, a, static_cast<u32>(u),
+                                    static_cast<u32>(v));
             }
 
             if (u_oob) {
                 u32 nb_idx;
-                if (axis == 0) nb_idx = 2;  // u=Y
-                else nb_idx = 0;             // u=X
+                if (axis == 0) {
+                    nb_idx = 2; // u=Y
+                } else {
+                    nb_idx = 0; // u=X
+                }
                 nb_idx += (u < 0 ? 0u : 1u);
 
                 const Chunk *nb = neighbors[nb_idx];
-                if (!nb) return 0;
+                if (!nb) {
+                    return 0;
+                }
 
                 u32 nu = (u < 0) ? CHUNK_SIZE - 1 : 0;
-                return nb->voxels[voxel_index(axis, static_cast<u32>(a), nu,
-                                              static_cast<u32>(v))];
+                return nb->voxels[voxel_index(axis, static_cast<u32>(a), nu, static_cast<u32>(v))];
             }
 
             if (v_oob) {
                 u32 nb_idx;
-                if (axis <= 1) nb_idx = 4;  // v=Z
-                else nb_idx = 2;             // v=Y
+                if (axis <= 1) {
+                    nb_idx = 4; // v=Z
+                } else {
+                    nb_idx = 2; // v=Y
+                }
                 nb_idx += (v < 0 ? 0u : 1u);
 
                 const Chunk *nb = neighbors[nb_idx];
-                if (!nb) return 0;
+                if (!nb) {
+                    return 0;
+                }
 
                 u32 nv = (v < 0) ? CHUNK_SIZE - 1 : 0;
-                return nb->voxels[voxel_index(axis, static_cast<u32>(a),
-                                              static_cast<u32>(u), nv)];
+                return nb->voxels[voxel_index(axis, static_cast<u32>(a), static_cast<u32>(u), nv)];
             }
 
-            return chunk.voxels[voxel_index(axis, static_cast<u32>(a),
-                                            static_cast<u32>(u), static_cast<u32>(v))];
+            return chunk.voxels[voxel_index(axis, static_cast<u32>(a), static_cast<u32>(u),
+                                            static_cast<u32>(v))];
         }
 
-        u32 vertex_ao(const Chunk &chunk, const Chunk *neighbors[6],
-                      u32 axis, u32 positive, i32 a,
+        u32 vertex_ao(const Chunk &chunk, const Chunk *neighbors[6], u32 axis, u32 positive, i32 a,
                       i32 u_c, i32 v_c) noexcept {
             i32 na = positive ? a + 1 : a;
 
-            u16 diag = sample_voxel_safe(chunk, neighbors, axis, na,
-                                         u_c - 1, v_c - 1);
-            u16 side_u = sample_voxel_safe(chunk, neighbors, axis, na,
-                                           u_c, v_c - 1);
-            u16 side_v = sample_voxel_safe(chunk, neighbors, axis, na,
-                                           u_c - 1, v_c);
+            u16 diag = sample_voxel_safe(chunk, neighbors, axis, na, u_c - 1, v_c - 1);
+            u16 side_u = sample_voxel_safe(chunk, neighbors, axis, na, u_c, v_c - 1);
+            u16 side_v = sample_voxel_safe(chunk, neighbors, axis, na, u_c - 1, v_c);
 
             return (diag != 0 ? 1u : 0u) + (side_u != 0 ? 1u : 0u) + (side_v != 0 ? 1u : 0u);
         }
 
-        void build_solid_masks(const Chunk &chunk, u32 axis,
-                                      FaceMask solid[CHUNK_SIZE]) noexcept {
+        void build_solid_masks(const Chunk &chunk, u32 axis, FaceMask solid[CHUNK_SIZE]) noexcept {
             for (u32 a = 0; a < CHUNK_SIZE; a++) {
                 for (u32 v = 0; v < CHUNK_SIZE; v++) {
                     u32 bits = 0;
@@ -168,8 +186,7 @@ namespace mantle::bgm {
         }
 
         void build_face_masks(const Chunk *neighbors[], u32 axis, u32 positive,
-                              const FaceMask solid[],
-                              FaceMask face[]) noexcept {
+                              const FaceMask solid[], FaceMask face[]) noexcept {
             for (u32 a = 0; a < CHUNK_SIZE; a++) {
                 i32 nb_a = static_cast<i32>(positive ? a + 1 : a - 1);
 
@@ -183,9 +200,9 @@ namespace mantle::bgm {
                         for (u32 v = 0; v < CHUNK_SIZE; v++) {
                             u32 r = 0;
                             for (u32 u = 0; u < CHUNK_SIZE; u++) {
-                                if (nb->voxels[voxel_index(axis, na, u, v)] !=
-                                    0)
+                                if (nb->voxels[voxel_index(axis, na, u, v)] != 0) {
                                     r |= (1u << u);
+                                }
                             }
                             neighbor_mask.rows[v] = r;
                         }
@@ -198,26 +215,23 @@ namespace mantle::bgm {
             }
         }
 
-        glm::vec3 to_world_offset(u32 axis, f32 a, f32 u,
-                                         f32 v) noexcept {
+        glm::vec3 to_world_offset(u32 axis, f32 a, f32 u, f32 v) noexcept {
             switch (axis) {
-            case 0: {
-                return {a, u, v};
-            }
-            case 1: {
-                return {u, a, v};
-            }
-            default: {
-                return {u, v, a};
-            }
+                case 0: {
+                    return {a, u, v};
+                }
+                case 1: {
+                    return {u, a, v};
+                }
+                default: {
+                    return {u, v, a};
+                }
             }
         }
 
-        void emit_quad(ChunkMeshData &out, glm::vec3 chunk_world_origin,
-                              u32 axis, u32 positive, u32 a, u32 u0, u32 v0,
-                              u32 width, u32 height, u16 material,
-                              const Chunk &chunk,
-                              const Chunk *neighbors[6]) noexcept {
+        void emit_quad(ChunkMeshData &out, glm::vec3 chunk_world_origin, u32 axis, u32 positive,
+                       u32 a, u32 u0, u32 v0, u32 width, u32 height, u16 material,
+                       const Chunk &chunk, const Chunk *neighbors[6]) noexcept {
             u32 face_index = axis * 2 + positive;
             i32 ai = static_cast<i32>(a);
             i32 u0i = static_cast<i32>(u0);
@@ -229,18 +243,15 @@ namespace mantle::bgm {
             i32 v_c[4] = {v0i, v0i, v0i + hi, v0i + hi};
 
             u32 ao[4];
-            u8 light_val[4] = {};
+            u8  light_val[4] = {};
             i32 light_plane = positive ? ai + 1 : ai - 1;
             for (u32 i = 0; i < 4; i++) {
-                ao[i] = vertex_ao(chunk, neighbors, axis, positive, ai,
-                                  u_c[i], v_c[i]);
+                ao[i] = vertex_ao(chunk, neighbors, axis, positive, ai, u_c[i], v_c[i]);
 
-                u8 l1 = sample_light_safe(chunk, neighbors, axis,
-                                          light_plane, u_c[i] - 1, v_c[i] - 1);
-                u8 l2 = sample_light_safe(chunk, neighbors, axis,
-                                          light_plane, u_c[i], v_c[i] - 1);
-                u8 l3 = sample_light_safe(chunk, neighbors, axis,
-                                          light_plane, u_c[i] - 1, v_c[i]);
+                u8 l1 =
+                    sample_light_safe(chunk, neighbors, axis, light_plane, u_c[i] - 1, v_c[i] - 1);
+                u8 l2 = sample_light_safe(chunk, neighbors, axis, light_plane, u_c[i], v_c[i] - 1);
+                u8 l3 = sample_light_safe(chunk, neighbors, axis, light_plane, u_c[i] - 1, v_c[i]);
                 light_val[i] = std::max(l1, std::max(l2, l3));
             }
 
@@ -255,27 +266,31 @@ namespace mantle::bgm {
 
             glm::vec3 corners[4];
             if (ccw) {
-                corners[0] = to_world_offset(axis, depth, static_cast<f32>(u0), static_cast<f32>(v0));
-                corners[1] = to_world_offset(axis, depth, static_cast<f32>(u0) + W, static_cast<f32>(v0));
-                corners[2] =
-                    to_world_offset(axis, depth, static_cast<f32>(u0) + W, static_cast<f32>(v0) + H);
-                corners[3] = to_world_offset(axis, depth, static_cast<f32>(u0), static_cast<f32>(v0) + H);
+                corners[0] =
+                    to_world_offset(axis, depth, static_cast<f32>(u0), static_cast<f32>(v0));
+                corners[1] =
+                    to_world_offset(axis, depth, static_cast<f32>(u0) + W, static_cast<f32>(v0));
+                corners[2] = to_world_offset(axis, depth, static_cast<f32>(u0) + W,
+                                             static_cast<f32>(v0) + H);
+                corners[3] =
+                    to_world_offset(axis, depth, static_cast<f32>(u0), static_cast<f32>(v0) + H);
             } else {
-                corners[0] = to_world_offset(axis, depth, static_cast<f32>(u0), static_cast<f32>(v0));
-                corners[1] = to_world_offset(axis, depth, static_cast<f32>(u0), static_cast<f32>(v0) + H);
-                corners[2] =
-                    to_world_offset(axis, depth, static_cast<f32>(u0) + W, static_cast<f32>(v0) + H);
-                corners[3] = to_world_offset(axis, depth, static_cast<f32>(u0) + W, static_cast<f32>(v0));
+                corners[0] =
+                    to_world_offset(axis, depth, static_cast<f32>(u0), static_cast<f32>(v0));
+                corners[1] =
+                    to_world_offset(axis, depth, static_cast<f32>(u0), static_cast<f32>(v0) + H);
+                corners[2] = to_world_offset(axis, depth, static_cast<f32>(u0) + W,
+                                             static_cast<f32>(v0) + H);
+                corners[3] =
+                    to_world_offset(axis, depth, static_cast<f32>(u0) + W, static_cast<f32>(v0));
             }
 
             u32 base_vertex = out.quad_count * 4;
             for (u32 i = 0; i < 4; i++) {
                 glm::vec3 world = chunk_world_origin + corners[i] * VOXEL_SCALE;
-                u32 packed = face_index | (ao[i] << 3u) |
-                             (static_cast<u32>(light_val[i]) << 5u) |
+                u32 packed = face_index | (ao[i] << 3u) | (static_cast<u32>(light_val[i]) << 5u) |
                              (static_cast<u32>(material) << 9u);
-                out.vertices[base_vertex + i] = {world.x, world.y, world.z,
-                                                 packed};
+                out.vertices[base_vertex + i] = {world.x, world.y, world.z, packed};
             }
 
             u32 *idx = out.indices + out.quad_count * 6;
@@ -289,11 +304,9 @@ namespace mantle::bgm {
             out.quad_count++;
         }
 
-        void greedy_merge_slice(FaceMask &mask, ChunkMeshData &out,
-                                       glm::vec3 chunk_world_origin,
-                                       const Chunk &chunk,
-                                       const Chunk *neighbors[6], u32 axis,
-                                       u32 positive, u32 depth) noexcept {
+        void greedy_merge_slice(FaceMask &mask, ChunkMeshData &out, glm::vec3 chunk_world_origin,
+                                const Chunk &chunk, const Chunk *neighbors[6], u32 axis,
+                                u32 positive, u32 depth) noexcept {
             for (u32 v = 0; v < CHUNK_SIZE; v++) {
                 u32 bits = mask.rows[v];
                 while (bits != 0) {
@@ -302,12 +315,10 @@ namespace mantle::bgm {
                     u32 width = static_cast<u32>(std::countr_zero(~shift));
 
                     i32 na = static_cast<i32>(depth);
-                    u16 base_mat = sample_voxel(chunk, neighbors, axis, na,
-                                                u0, v);
+                    u16 base_mat = sample_voxel(chunk, neighbors, axis, na, u0, v);
 
                     for (u32 u = u0 + 1; u < u0 + width; u++) {
-                        u16 m = sample_voxel(chunk, neighbors, axis, na,
-                                             u, v);
+                        u16 m = sample_voxel(chunk, neighbors, axis, na, u, v);
                         if (m != base_mat) {
                             width = u - u0;
                             break;
@@ -316,18 +327,18 @@ namespace mantle::bgm {
                     u32 strip = static_cast<u32>(((1ull << width) - 1ull) << u0);
 
                     u32 height = 1;
-                    while (v + height < CHUNK_SIZE &&
-                           (mask.rows[v + height] & strip) == strip) {
+                    while (v + height < CHUNK_SIZE && (mask.rows[v + height] & strip) == strip) {
                         bool same = true;
                         for (u32 u = u0; u < u0 + width; u++) {
-                            u16 m = sample_voxel(chunk, neighbors, axis, na,
-                                                 u, v + height);
+                            u16 m = sample_voxel(chunk, neighbors, axis, na, u, v + height);
                             if (m != base_mat) {
                                 same = false;
                                 break;
                             }
                         }
-                        if (!same) break;
+                        if (!same) {
+                            break;
+                        }
                         mask.rows[v + height] &= ~strip;
                         height++;
                     }
@@ -335,18 +346,17 @@ namespace mantle::bgm {
                     bits &= ~strip;
                     mask.rows[v] = bits;
 
-                    u16 material = base_mat != 0 ? base_mat
-                                                 : static_cast<u16>(1);
-                    emit_quad(out, chunk_world_origin, axis, positive, depth,
-                              u0, v, width, height, material, chunk, neighbors);
+                    u16 material = base_mat != 0 ? base_mat : static_cast<u16>(1);
+                    emit_quad(out, chunk_world_origin, axis, positive, depth, u0, v, width, height,
+                              material, chunk, neighbors);
                 }
             }
         }
 
     } // anonymous namespace
 
-    ChunkMeshData mesh_chunk(const Chunk &chunk, const Chunk *neighbors[6],
-                             glm::ivec3 chunk_pos, ArenaAllocator &scratch) {
+    ChunkMeshData mesh_chunk(const Chunk &chunk, const Chunk *neighbors[6], glm::ivec3 chunk_pos,
+                             ArenaAllocator &scratch) {
         constexpr u32 MAX_QUADS = 8192;
 
         ChunkMeshData out;
@@ -367,10 +377,11 @@ namespace mantle::bgm {
                 build_face_masks(neighbors, axis, positive, solid, face);
 
                 for (u32 a = 0; a < CHUNK_SIZE; a++) {
-                    if (face[a].empty())
+                    if (face[a].empty()) {
                         continue;
-                    greedy_merge_slice(face[a], out, chunk_world_origin, chunk,
-                                       neighbors, axis, positive, a);
+                    }
+                    greedy_merge_slice(face[a], out, chunk_world_origin, chunk, neighbors, axis,
+                                       positive, a);
                 }
             }
         }

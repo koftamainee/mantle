@@ -171,10 +171,10 @@ namespace mantle {
                     },
                 }};
                 FGDepthAttachment                depth_att = {
-                    .image = pass.depth,
-                    .load = AttachmentLoad::Clear,
-                    .store = AttachmentStore::DontCare,
-                    .clear_value = 1.0f,
+                                   .image = pass.depth,
+                                   .load = AttachmentLoad::Clear,
+                                   .store = AttachmentStore::DontCare,
+                                   .clear_value = 1.0f,
                 };
                 ctx.begin_rendering({
                     .colors = colors,
@@ -197,7 +197,7 @@ namespace mantle {
                                                static_cast<f32>(slot.position_y),
                                                static_cast<f32>(slot.position_z)) *
                                      CHUNK_WORLD_SIZE;
-                    AABB      aabb {base, base + CHUNK_WORLD_SIZE};
+                    AABB aabb {base, base + CHUNK_WORLD_SIZE};
                     if (!frustum.intersects(aabb)) {
                         continue;
                     }
