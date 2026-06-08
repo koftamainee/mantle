@@ -1,8 +1,5 @@
-// Copyright (c) 2026 Mantle. All rights reserved.
-
-#include "core/logger.h"
-#include "core/types.h"
 #include "engine/engine.h"
+#include "core/logger.h"
 
 int main() {
     mantle::init_logger();
