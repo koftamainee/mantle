@@ -14,7 +14,6 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-
 def project_filename(path: str) -> str:
     idx = path.find("mantle")
     return path[idx:] if idx >= 0 else path
@@ -184,7 +183,7 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    print(f"Generated {len(entries)} error codes → {output_path}")
+    print(f"Generated {len(entries)} error codes -> {output_path}")
 
 
 if __name__ == "__main__":

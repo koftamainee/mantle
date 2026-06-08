@@ -44,7 +44,6 @@ namespace mantle {
             if (p[0] == 'm' && p[1] == 'a' && p[2] == 'n' &&
                 p[3] == 't' && p[4] == 'l' && p[5] == 'e') {
                 found = p;
-                break;
             }
         }
         return found ? found : path;
