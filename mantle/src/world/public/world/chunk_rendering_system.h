@@ -15,10 +15,7 @@ namespace mantle {
 
     class ChunkRenderingSystem final {
       public:
-        ChunkRenderingSystem() = default;
-        ~ChunkRenderingSystem();
-
-        MANTLE_NO_COPY_NO_MOVE(ChunkRenderingSystem);
+        MANTLE_DEFAULT_INIT(ChunkRenderingSystem);
 
         void init(Renderer &renderer, ArenaAllocator &scratch_arena,
                   u32 max_chunks);

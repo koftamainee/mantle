@@ -15,9 +15,7 @@ namespace mantle {
 
     class GPUResourceManager final {
       public:
-        ~GPUResourceManager();
-
-        MANTLE_NO_COPY_NO_MOVE(GPUResourceManager);
+        MANTLE_DEFAULT_INIT(GPUResourceManager);
 
         ShaderHandle create_shader(std::span<const u32> spir_v);
         void destroy_shader(ShaderHandle handle, bool immediate = false);
@@ -73,7 +71,7 @@ namespace mantle {
         void init_bindless();
         void destroy_bindless();
 
-        GPUResourceManager() = default;
+
 
         void init(VulkanBackend *backend);
         void destroy();

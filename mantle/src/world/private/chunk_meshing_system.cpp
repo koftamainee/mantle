@@ -15,8 +15,6 @@
 
 namespace mantle {
 
-    ChunkMeshingSystem::~ChunkMeshingSystem() { destroy(); }
-
     void ChunkMeshingSystem::init() {
         MANTLE_CHECK(!m_is_initialized);
         m_logger = spdlog::get("world").get();

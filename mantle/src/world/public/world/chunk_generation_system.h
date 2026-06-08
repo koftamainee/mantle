@@ -18,10 +18,7 @@ namespace mantle {
 
     class ChunkGenerationSystem final {
     public:
-        ChunkGenerationSystem() = default;
-        ~ChunkGenerationSystem();
-
-        MANTLE_NO_COPY_NO_MOVE(ChunkGenerationSystem);
+        MANTLE_DEFAULT_INIT(ChunkGenerationSystem);
 
         void init(u32 seed);
         void destroy();

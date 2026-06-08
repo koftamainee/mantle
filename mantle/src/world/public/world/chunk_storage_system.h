@@ -23,10 +23,7 @@ namespace mantle {
 
     class ChunkStorageSystem final {
       public:
-        ChunkStorageSystem() = default;
-        ~ChunkStorageSystem();
-
-        MANTLE_NO_COPY_NO_MOVE(ChunkStorageSystem);
+        MANTLE_DEFAULT_INIT(ChunkStorageSystem);
 
         void init(u32 capacity, VirtualHeap *heap);
         void destroy();

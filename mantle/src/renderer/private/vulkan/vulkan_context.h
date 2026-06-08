@@ -16,10 +16,7 @@ namespace spdlog { class logger; }
 namespace mantle {
     class VulkanContext final {
       public:
-        VulkanContext() = default;
-        ~VulkanContext();
-
-        MANTLE_NO_COPY_NO_MOVE(VulkanContext);
+        MANTLE_DEFAULT_INIT(VulkanContext);
 
         void init(SDL_Window *window, ArenaAllocator *scratch_arena,
                   VkAllocationCallbacks *vk_callbacks);

@@ -22,10 +22,7 @@ namespace mantle {
       public:
         static constexpr u32 MAX_QUADS_PER_CHUNK = 8192;
 
-        ChunkMeshingSystem() = default;
-        ~ChunkMeshingSystem();
-
-        MANTLE_NO_COPY_NO_MOVE(ChunkMeshingSystem);
+        MANTLE_DEFAULT_INIT(ChunkMeshingSystem);
 
         void init();
         void upload_dirty(Renderer &renderer, ChunkStorageSystem &storage,

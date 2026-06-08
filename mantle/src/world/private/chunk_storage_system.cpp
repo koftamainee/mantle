@@ -5,8 +5,6 @@
 #include "core/memory/virtual_heap.h"
 
 namespace mantle {
-    ChunkStorageSystem::~ChunkStorageSystem() { destroy(); }
-
     void ChunkStorageSystem::init(u32 capacity, VirtualHeap *heap) {
         MANTLE_CHECK(!m_is_initialized);
         MANTLE_CHECK(capacity > 0);

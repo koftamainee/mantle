@@ -19,10 +19,7 @@ namespace spdlog { class logger; }
 namespace mantle {
     class VulkanDevice final {
     public:
-        VulkanDevice() = default;
-        ~VulkanDevice();
-
-        MANTLE_NO_COPY_NO_MOVE(VulkanDevice);
+        MANTLE_DEFAULT_INIT(VulkanDevice);
 
         void init(VkInstance instance, VkSurfaceKHR surface,
                   VkAllocationCallbacks *vk_callbacks, VirtualHeap *heap, ArenaAllocator *scratch_arena);

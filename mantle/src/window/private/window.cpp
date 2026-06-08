@@ -6,8 +6,6 @@
 #include <core/assert.h>
 
 namespace mantle {
-    Window::~Window() { destroy(); }
-
     void Window::init(const Properties &properties, VirtualHeap *heap) {
         MANTLE_CHECK(!m_is_initialized);
 

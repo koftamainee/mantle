@@ -7,8 +7,6 @@
 #include "core/assert.h"
 
 namespace mantle {
-    VulkanGPUAllocator::~VulkanGPUAllocator() { destroy(); }
-
     void VulkanGPUAllocator::init(VkPhysicalDevice physical_device,
                                   VkDevice device, VkInstance instance,
                                   VkAllocationCallbacks *vk_callbacks) {

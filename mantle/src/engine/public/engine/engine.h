@@ -16,10 +16,7 @@ namespace spdlog { class logger; }
 namespace mantle {
     class Engine final {
       public:
-        Engine() = default;
-        ~Engine();
-
-        MANTLE_NO_COPY_NO_MOVE(Engine);
+        MANTLE_DEFAULT_INIT(Engine);
 
         void init();
         void run();
@@ -49,7 +46,7 @@ namespace mantle {
         ChunkRenderingSystem m_chunk_rendering_system{};
         ChunkStorageSystem m_chunk_storage_system{};
 
-        f32 m_last_time = 0.0f;
+        u64 m_last_time = 0;
         f32 m_fps_timer = 0.0f;
         u32 m_fps_frame_count = 0;
         f32 m_fps_frametime_accum = 0.0f;

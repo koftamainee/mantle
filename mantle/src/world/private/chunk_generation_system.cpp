@@ -7,8 +7,6 @@
 
 namespace mantle {
 
-    ChunkGenerationSystem::~ChunkGenerationSystem() { destroy(); }
-
     void ChunkGenerationSystem::init(u32 seed) {
         MANTLE_CHECK(!m_is_initialized);
         m_logger = spdlog::get("world").get();

@@ -8,12 +8,6 @@
 #include "rumbling/rumbling.h"
 
 namespace mantle {
-    Ecs::~Ecs() {
-        if (m_is_initialized) {
-            destroy();
-        }
-    }
-
     void Ecs::init(Window &window, f32 camera_aspect) {
         MANTLE_CHECK(!m_is_initialized);
         m_logger = spdlog::get("ecs").get();

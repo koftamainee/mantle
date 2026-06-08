@@ -8,9 +8,9 @@ namespace mantle {
         m_arena(arena), m_scope(arena), m_resource(arena),
         m_blackboard(&m_resource), m_passes(&m_resource),
         m_images(&m_resource), m_buffers(&m_resource),
+        m_next_image_index(0), m_next_buffer_index(0),
         m_image_reads(&m_resource), m_image_writes(&m_resource),
-        m_buffer_reads(&m_resource), m_buffer_writes(&m_resource),
-        m_next_image_index(0), m_next_buffer_index(0) {
+        m_buffer_reads(&m_resource), m_buffer_writes(&m_resource) {
         MANTLE_CHECK(arena != nullptr);
     }
 
@@ -20,7 +20,7 @@ namespace mantle {
         handle.generation = 1;
 
         if (handle.index >= m_images.size()) {
-            m_images.resize(handle.index + 1);
+            m_images.resize((handle.index + 1) * 2);
         }
         m_images[handle.index] = FGImageEntry{.imported_handle = image};
 
@@ -33,7 +33,7 @@ namespace mantle {
         handle.generation = 1;
 
         if (handle.index >= m_buffers.size()) {
-            m_buffers.resize(handle.index + 1);
+            m_buffers.resize((handle.index + 1) * 2);
         }
         m_buffers[handle.index] = FGBufferEntry{.imported_handle = buffer};
 

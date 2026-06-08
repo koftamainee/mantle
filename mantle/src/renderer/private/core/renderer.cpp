@@ -72,8 +72,6 @@ namespace mantle {
         std::pmr::vector<ImageHandle> swapchain_images{};
     };
 
-    Renderer::~Renderer() { destroy(); }
-
     void Renderer::init(const Window &window, bool vsync, VirtualHeap *heap,
                         ArenaAllocator *scratch_arena) {
         MANTLE_CHECK(!m_is_initialized);

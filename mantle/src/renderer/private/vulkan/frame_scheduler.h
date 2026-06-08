@@ -30,10 +30,7 @@ namespace mantle {
 
     class FrameScheduler final {
       public:
-        FrameScheduler() = default;
-        ~FrameScheduler();
-
-        MANTLE_NO_COPY_NO_MOVE(FrameScheduler);
+        MANTLE_DEFAULT_INIT(FrameScheduler);
 
         void init(VulkanBackend *backend, GPUResourceManager *resource_manager,
                   u32 frames_in_flight, VirtualHeap *heap);

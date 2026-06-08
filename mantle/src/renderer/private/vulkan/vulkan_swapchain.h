@@ -20,10 +20,7 @@ namespace mantle {
 
     class VulkanSwapchain final {
       public:
-        VulkanSwapchain() = default;
-        ~VulkanSwapchain();
-
-        MANTLE_NO_COPY_NO_MOVE(VulkanSwapchain);
+        MANTLE_DEFAULT_INIT(VulkanSwapchain);
 
         struct Image {
             VkImage image;

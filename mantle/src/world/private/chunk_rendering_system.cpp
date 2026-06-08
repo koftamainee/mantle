@@ -21,8 +21,6 @@ namespace mantle {
     static constexpr f32 VOXEL_SCALE = 0.1f;
     static constexpr f32 CHUNK_WORLD_SIZE = static_cast<f32>(Chunk::size) * VOXEL_SCALE;
 
-    ChunkRenderingSystem::~ChunkRenderingSystem() { destroy(); }
-
     void ChunkRenderingSystem::init(Renderer &renderer,
                                     ArenaAllocator &scratch_arena,
                                     u32 max_chunks) {

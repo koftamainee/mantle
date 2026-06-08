@@ -179,6 +179,20 @@ jobs:
           New-Item -ItemType Directory -Force -Path "${{ matrix.artifact }}"
           Copy-Item -Path build\target\* -Destination "${{ matrix.artifact }}\" -Recurse
 
+      - name: Stage devinfo (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p devinfo
+          cp build/devinfo/error_codes.json devinfo/
+
+      - name: Upload devinfo
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mantle-devinfo
+          path: devinfo
+          if-no-files-found: error
+
       - name: Upload game package
         uses: actions/upload-artifact@v4
         with:
@@ -257,6 +271,11 @@ jobs:
           name: mantle-windows-x64
           path: mantle-windows-x64
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: mantle-devinfo
+          path: mantle-devinfo
+
       - name: Bundle Linux
         run: (cd mantle-linux-x64 && zip -r ../mantle-linux-x64.zip .)
 
@@ -272,6 +291,7 @@ jobs:
           files: |
             mantle-linux-x64.zip
             mantle-windows-x64.zip
+            mantle-devinfo/error_codes.json
           fail_on_unmatched_files: false
           draft: false
           prerelease: false

@@ -6,7 +6,9 @@
 #include "gpu_resource_manager.h"
 #include "renderer/types.h"
 
-namespace spdlog { class logger; }
+namespace spdlog {
+    class logger;
+}
 
 namespace mantle {
 
@@ -19,10 +21,7 @@ namespace mantle {
             FrameNeedsResize,
         };
 
-        Renderer() = default;
-        ~Renderer();
-
-        MANTLE_NO_COPY_NO_MOVE(Renderer);
+        MANTLE_DEFAULT_INIT(Renderer);
 
         void init(const Window &window, bool vsync, VirtualHeap *heap,
                   ArenaAllocator *scratch_arena);

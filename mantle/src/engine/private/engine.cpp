@@ -42,8 +42,6 @@ namespace mantle {
 
     } // namespace
 
-    Engine::~Engine() { destroy(); }
-
     void Engine::init() {
         MANTLE_CHECK(!m_is_initialized);
 
@@ -192,8 +190,8 @@ namespace mantle {
     void Engine::run() {
         m_fps_timer = static_cast<f32>(m_window.get_time_ns());
         while (!m_window.should_close()) {
-            auto current_time = static_cast<f32>(m_window.get_time_ns());
-            f32 delta_time = (current_time - m_last_time) / 1e9f;
+            u64 current_time = m_window.get_time_ns();
+            f32 delta_time = static_cast<f32>(current_time - m_last_time) / 1e9f;
             m_last_time = current_time;
 
             m_fps_frame_count++;
@@ -252,6 +250,9 @@ namespace mantle {
     }
 
     void Engine::render() {
+        m_rendering_arena.reset();
+        m_meshing_arena.reset();
+
         u64 t0 = m_window.get_time_ns();
         Renderer::Result result = m_renderer.begin_frame();
         u64 t1 = m_window.get_time_ns();
@@ -264,7 +265,7 @@ namespace mantle {
             return;
         }
 
-        m_meshing_arena.reset();
+
         m_chunk_meshing_system.upload_dirty(m_renderer, m_chunk_storage_system,
                                             m_meshing_arena, &m_worker_pool,
                                             m_chunk_rendering_system);

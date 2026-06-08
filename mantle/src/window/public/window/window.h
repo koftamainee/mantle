@@ -278,10 +278,7 @@ namespace mantle {
         };
 
       public:
-        Window() = default;
-        ~Window();
-
-        MANTLE_NO_COPY_NO_MOVE(Window);
+        MANTLE_DEFAULT_INIT(Window);
 
         void init(const Properties &properties, VirtualHeap *heap);
         void destroy();

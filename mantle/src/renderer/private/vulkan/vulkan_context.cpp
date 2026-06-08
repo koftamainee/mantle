@@ -60,8 +60,6 @@ namespace {
 
 namespace mantle {
 
-    VulkanContext::~VulkanContext() { destroy(); }
-
     void VulkanContext::init(SDL_Window *window, ArenaAllocator *scratch_arena,
                              VkAllocationCallbacks *vk_callbacks) {
         MANTLE_CHECK(!m_is_initialized);

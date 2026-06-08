@@ -11,10 +11,7 @@ namespace spdlog { class logger; }
 namespace mantle {
     class VulkanGPUAllocator final {
       public:
-        VulkanGPUAllocator() = default;
-        ~VulkanGPUAllocator();
-
-        MANTLE_NO_COPY_NO_MOVE(VulkanGPUAllocator);
+        MANTLE_DEFAULT_INIT(VulkanGPUAllocator);
 
         void init(VkPhysicalDevice physical_device, VkDevice device,
                   VkInstance instance, VkAllocationCallbacks *vk_callbacks);

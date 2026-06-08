@@ -11,10 +11,7 @@ namespace mantle {
 
     class Ecs final {
     public:
-        Ecs() = default;
-        ~Ecs();
-
-        MANTLE_NO_COPY_NO_MOVE(Ecs);
+    MANTLE_DEFAULT_INIT(Ecs);
 
         void init(Window &window, f32 camera_aspect);
         void destroy();

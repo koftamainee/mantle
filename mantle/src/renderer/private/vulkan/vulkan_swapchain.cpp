@@ -13,8 +13,6 @@
 
 namespace mantle {
 
-    VulkanSwapchain::~VulkanSwapchain() { destroy(); }
-
     void VulkanSwapchain::init(VkDevice device, VkSurfaceKHR surface,
                                const SwapchainSupportDetails &support_details,
                                const QueueFamilyIndices &indices, u32 width,

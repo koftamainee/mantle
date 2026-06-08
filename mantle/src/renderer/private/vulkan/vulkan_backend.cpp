@@ -9,8 +9,6 @@
 
 namespace mantle {
 
-    VulkanBackend::~VulkanBackend() { destroy(); }
-
     void VulkanBackend::init(const Window &window, bool vsync,
                              VirtualHeap *heap, ArenaAllocator *scratch_arena) {
         MANTLE_CHECK(!m_is_initialized);

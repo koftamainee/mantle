@@ -8,8 +8,6 @@
 #include "vulkan/vulkan_utils.h"
 
 namespace mantle {
-    GPUResourceManager::~GPUResourceManager() { destroy(); }
-
     ShaderHandle
     GPUResourceManager::create_shader(std::span<const u32> spir_v) {
         VkShaderModuleCreateInfo info = {

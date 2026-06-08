@@ -8,8 +8,6 @@
 #include "vulkan_utils.h"
 
 namespace mantle {
-    FrameScheduler::~FrameScheduler() { destroy(); }
-
     void FrameScheduler::init(VulkanBackend *backend,
                               GPUResourceManager *resource_manager,
                               u32 frames_in_flight, VirtualHeap *heap) {

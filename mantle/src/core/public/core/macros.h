@@ -1,4 +1,5 @@
 #pragma once
+#include "types.h"
 
 #if defined(__GNUC__) || defined(__clang__)
 #define MANTLE_UNLIKELY(x) (__builtin_expect(!!(x), 0))
@@ -20,4 +21,13 @@
     MANTLE_NO_COPY(type);                                                      \
     MANTLE_NO_MOVE(type)
 
-#define MANTLE_TODO() fatal(true, "Implement me")
+#define MANTLE_DEFAULT_INIT(type)                                              \
+    type() = default;                                                          \
+    ~type() {                                                                  \
+        if (m_is_initialized) {                                                \
+            destroy();                                                         \
+        }                                                                      \
+    }                                                                          \
+    MANTLE_NO_COPY_NO_MOVE(type)
+
+#define MANTLE_TODO() MANTLE_FATAL(true, "Implement me")

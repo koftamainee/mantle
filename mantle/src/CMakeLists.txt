@@ -12,6 +12,8 @@ add_subdirectory(lua)
 
 mantle_executable(NAME mantle MAIN main.cpp DEPS engine)
 
+add_error_codes(mantle)
+
 set(SHADERS_DIR "${CMAKE_SOURCE_DIR}/mantle/assets/shaders")
 
 mantle_shader(mantle

@@ -26,8 +26,6 @@ namespace mantle {
         }
     } // anonymous namespace
 
-    VulkanDevice::~VulkanDevice() { destroy(); }
-
     void VulkanDevice::init(VkInstance instance, VkSurfaceKHR surface,
                             VkAllocationCallbacks *vk_callbacks,
                             VirtualHeap *heap, ArenaAllocator *scratch_arena) {

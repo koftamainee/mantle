@@ -25,10 +25,7 @@ namespace mantle {
 
     class VulkanBackend final {
       public:
-        VulkanBackend() = default;
-        ~VulkanBackend();
-
-        MANTLE_NO_COPY_NO_MOVE(VulkanBackend);
+        MANTLE_DEFAULT_INIT(VulkanBackend);
 
         void init(const Window &window, bool vsync, VirtualHeap *heap,
                   ArenaAllocator *scratch_arena);
