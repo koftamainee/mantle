@@ -1,7 +1,11 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "sdl_allocator.h"
-#include "core/assert.h"
+
 #include <SDL3/SDL_stdinc.h>
 #include <new>
+
+#include "core/assert.h"
 
 namespace mantle {
 

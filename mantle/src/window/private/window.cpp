@@ -2,12 +2,12 @@
 
 #include "window/window.h"
 
-#include "sdl_allocator.h"
-
 #include <SDL3/SDL.h>
 #include <array>
 #include <core/assert.h>
 #include <utility>
+
+#include "sdl_allocator.h"
 
 namespace mantle {
     void Window::init(const Properties &properties, MemoryBlock mem) {
