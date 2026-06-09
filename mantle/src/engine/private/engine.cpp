@@ -55,7 +55,7 @@ namespace mantle {
         MemoryBlock memory = m_heap.take(megabytes(1));
         m_scratch_arena.init(memory);
 
-        m_window.init({}, &m_heap);
+        m_window.init({}, m_heap.take(kilobytes(512)));
 
         f32 camera_aspect =
             static_cast<f32>(m_window.get_width()) / static_cast<f32>(m_window.get_height());

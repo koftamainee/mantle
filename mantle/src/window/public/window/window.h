@@ -281,7 +281,7 @@ namespace mantle {
       public:
         MANTLE_DEFAULT_INIT(Window);
 
-        void init(const Properties &properties, VirtualHeap *heap);
+        void init(const Properties &properties, MemoryBlock mem);
         void destroy();
 
         void update();

@@ -2,16 +2,27 @@
 
 #include "window/window.h"
 
+#include "sdl_allocator.h"
+
 #include <SDL3/SDL.h>
 #include <array>
 #include <core/assert.h>
 #include <utility>
 
 namespace mantle {
-    void Window::init(const Properties &properties, VirtualHeap *heap) {
+    void Window::init(const Properties &properties, MemoryBlock mem) {
         MANTLE_CHECK(!m_is_initialized);
-
         m_logger = spdlog::get("window").get();
+
+        // damn it is singleton
+        SDLAllocator &alloc = SDLAllocator::create(mem);
+
+        bool set =
+            SDL_SetMemoryFunctions(alloc.malloc(), alloc.calloc(), alloc.realloc(), alloc.free());
+
+        if (!set) {
+            m_logger->warn("Failed to set SDL memory functions. SDL will be using system malloc");
+        }
 
         MANTLE_FATAL(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD), "Failed to initialize SDL");
         m_logger->info("SDL initialized");
