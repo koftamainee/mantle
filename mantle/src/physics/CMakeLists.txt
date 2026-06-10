@@ -1,1 +1,1 @@
-mantle_module(NAME physics DEPS core Jolt)
+mantle_module(NAME physics DEPS core Jolt glm)

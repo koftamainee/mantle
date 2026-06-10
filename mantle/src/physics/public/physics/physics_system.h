@@ -6,6 +6,7 @@
 
 #include "core/macros.h"
 #include "core/memory/memory_block.h"
+#include "glm/glm.hpp"
 
 namespace mantle {
 
@@ -17,8 +18,12 @@ namespace mantle {
         void update(f32 dt);
         void destroy();
 
+        void add_static_box(glm::vec3 pos, glm::vec3 half_extents);
+
       private:
         bool m_is_initialized = false;
+
+        friend class CharacterController;
 
         struct Impl;
         Impl *m_impl;

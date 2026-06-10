@@ -6,6 +6,7 @@ namespace mantle {
     void ArenaTempAllocator::init(MemoryBlock mem, std::string_view debug_name) {
         MANTLE_CHECK(!m_is_initialized);
         m_allocator.init(mem, debug_name);
+        m_is_initialized = true;
     }
 
     void ArenaTempAllocator::destroy() {
@@ -22,6 +23,10 @@ namespace mantle {
 
     void ArenaTempAllocator::Free(void *inAddress, JPH::uint inSize) {
         MANTLE_CHECK(m_is_initialized);
-        m_allocator.free(inAddress);
+        // m_allocator.free(inAddress); // i think we dont need this but i dont sure
+    }
+
+    void ArenaTempAllocator::Reset() {
+        m_allocator.reset();
     }
 } // namespace mantle

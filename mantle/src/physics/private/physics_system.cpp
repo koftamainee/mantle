@@ -24,6 +24,9 @@ namespace mantle {
 
     void PhysicsSystem::update(f32 dt) {
         MANTLE_CHECK(m_is_initialized);
+
+        m_impl->temp_allocator.Reset();
+
         m_impl->physics_system.Update(dt, m_impl->kCollisionSteps, &m_impl->temp_allocator,
                                       &m_impl->job_system);
     }
@@ -36,6 +39,11 @@ namespace mantle {
 
             spdlog::get("physics")->info("Physics system destroyed");
         }
+    }
+
+    void PhysicsSystem::add_static_box(glm::vec3 pos, glm::vec3 half_extents) {
+        MANTLE_CHECK(m_is_initialized);
+
     }
 
 } // namespace mantle

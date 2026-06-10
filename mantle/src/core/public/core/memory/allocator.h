@@ -22,8 +22,13 @@ namespace mantle {
         { a.free(ptr) } -> std::same_as<void>;
     };
 
+    template <typename A>
+    concept CResetableAllocator = requires(A a) {
+        { a.reset() } -> std::same_as<void>;
+    };
+
     template <typename A, typename T>
-    concept TypedAllocator = CAllocator<A> && requires(A a, usize count) {
+    concept CTypedAllocator = CAllocator<A> && requires(A a, usize count) {
         { a.template alloc<T>() } -> std::same_as<T *>;
         { a.template alloc<T>(count) } -> std::same_as<T *>;
         { a.template alloc_zeroed<T>() } -> std::same_as<T *>;
@@ -31,7 +36,7 @@ namespace mantle {
     };
 
     template <typename A, typename T, typename... Args>
-    concept EmplaceAllocator =
+    concept CEmplaceAllocator =
         CAllocator<A> && std::constructible_from<T, Args...> && requires(A a, Args &&...args) {
             { a.template emplace<T>(std::forward<Args>(args)...) } -> std::same_as<T *>;
         };

@@ -16,7 +16,7 @@ namespace mantle {
 
 #if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
     const char *
-    BPLayerInterfaceImplGetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const override {
+    BPLayerInterfaceImpl::GetBroadPhaseLayerName(JPH::BroadPhaseLayer inLayer) const {
         switch ((JPH::BroadPhaseLayer::Type)inLayer) {
             case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::NON_MOVING:
                 return "NON_MOVING";

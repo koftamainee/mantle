@@ -42,7 +42,7 @@ namespace mantle {
             return true;
         })
 
-        void *jolt_alloc(size_t size) { return s_allocator->alloc(size, 16); }
+        void *jolt_alloc(size_t size) { return s_allocator->alloc(size); }
         void  jolt_free(void *ptr) { s_allocator->free(ptr); }
         void *jolt_realloc(void *ptr, size_t old_size, size_t new_size) {
             return s_allocator->realloc(ptr, new_size);

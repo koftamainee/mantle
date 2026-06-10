@@ -23,6 +23,7 @@ namespace mantle {
 
         void *Allocate(JPH::uint inSize) override;
         void  Free(void *inAddress, JPH::uint inSize) override;
+        void Reset();
 
       private:
         bool                                m_is_initialized = false;

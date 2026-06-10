@@ -21,7 +21,7 @@ namespace mantle {
     };
 
     template <typename Inner, typename Mutex = std::mutex>
-        requires CAllocator<Inner> && TypedAllocator<Inner, u8> && EmplaceAllocator<Inner, u8> &&
+        requires CAllocator<Inner> && CTypedAllocator<Inner, u8> && CEmplaceAllocator<Inner, u8> &&
                  SyncMechanism<Mutex>
     class ThreadSafeAllocator final {
       public:
@@ -87,6 +87,10 @@ namespace mantle {
             std::lock_guard lock(m_mutex);
             void           *mem = m_inner.alloc(sizeof(T), alignof(T));
             return new (mem) T(std::forward<Args>(args)...);
+        }
+
+        void reset() requires CResetableAllocator<Inner> {
+            m_inner.reset();
         }
 
       private:
