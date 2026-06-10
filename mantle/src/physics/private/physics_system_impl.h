@@ -2,6 +2,10 @@
 
 #pragma once
 
+// fix-includes off
+#include <Jolt/Jolt.h>
+// fix-include on
+
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 

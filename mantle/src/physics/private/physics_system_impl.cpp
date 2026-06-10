@@ -6,11 +6,8 @@
 #include <Jolt/Jolt.h>
 // fix-includes on
 
-#include <Jolt/Core/Factory.h>
 #include <Jolt/Core/IssueReporting.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
-#include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/RegisterTypes.h>
 #include <cstdarg>
 
