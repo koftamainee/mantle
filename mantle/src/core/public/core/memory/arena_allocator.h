@@ -64,6 +64,7 @@ namespace mantle {
 
         void *realloc(void *ptr, usize size) {
             MANTLE_CHECKF(false, "Called realloc in arena allocator");
+            return nullptr;
         }
 
         struct Marker {
