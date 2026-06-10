@@ -6,13 +6,12 @@
 #include <Jolt/Jolt.h>
 // fix-includes on
 
+#include <Jolt/Core/TempAllocator.h>
+
 #include "core/macros.h"
 #include "core/memory/arena_allocator.h"
 #include "core/memory/memory_block.h"
 #include "core/memory/thread_safe_allocator.h"
-
-
-#include <Jolt/Core/TempAllocator.h>
 
 namespace mantle {
     class ArenaTempAllocator final : public JPH::TempAllocator {
@@ -25,8 +24,8 @@ namespace mantle {
         void *Allocate(JPH::uint inSize) override;
         void  Free(void *inAddress, JPH::uint inSize) override;
 
-    private:
-        bool m_is_initialized = false;
+      private:
+        bool                                m_is_initialized = false;
         ThreadSafeAllocator<ArenaAllocator> m_allocator {};
     };
 } // namespace mantle

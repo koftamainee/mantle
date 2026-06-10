@@ -3,12 +3,12 @@
 #include "../public/arena_temp_allocator.h"
 
 namespace mantle {
-    void  ArenaTempAllocator::init(MemoryBlock mem, std::string_view debug_name) {
+    void ArenaTempAllocator::init(MemoryBlock mem, std::string_view debug_name) {
         MANTLE_CHECK(!m_is_initialized);
         m_allocator.init(mem, debug_name);
     }
 
-    void  ArenaTempAllocator::destroy() {
+    void ArenaTempAllocator::destroy() {
         if (m_is_initialized) {
             m_allocator.destroy();
             m_is_initialized = false;

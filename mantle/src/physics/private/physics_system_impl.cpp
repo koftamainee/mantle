@@ -1,20 +1,22 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "physics_system_impl.h"
 
 // fix-includes off
 #include <Jolt/Jolt.h>
 // fix-includes on
 
-#include "Jolt/RegisterTypes.h"
-#include "Jolt/Core/Factory.h"
-#include "Jolt/Core/IssueReporting.h"
-#include "Jolt/Core/JobSystemThreadPool.h"
-#include "Jolt/Physics/PhysicsSettings.h"
-#include "Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h"
+#include <Jolt/Core/Factory.h>
+#include <Jolt/Core/IssueReporting.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/PhysicsSettings.h>
+#include <Jolt/RegisterTypes.h>
+#include <cstdarg>
+
 #include "core/memory/memory_units.h"
 #include "core/memory/thread_safe_allocator.h"
 #include "core/memory/tlsf_allocator.h"
-
-#include <cstdarg>
 
 namespace mantle {
     namespace {

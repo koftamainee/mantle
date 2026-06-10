@@ -1,7 +1,11 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
+#include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/PhysicsSystem.h>
+
 #include "arena_temp_allocator.h"
-#include "Jolt/Core/JobSystemThreadPool.h"
-#include "Jolt/Physics/PhysicsSystem.h"
 #include "core/memory/tlsf_allocator.h"
 #include "physics/physics_system.h"
 

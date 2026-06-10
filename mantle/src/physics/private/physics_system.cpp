@@ -8,10 +8,9 @@
 #include <Jolt/Jolt.h>
 // fix-includes on
 
-#include "physics_system_impl.h"
-
 #include "core/assert.h"
 #include "core/memory/memory_units.h"
+#include "physics_system_impl.h"
 
 namespace mantle {
     void PhysicsSystem::init(MemoryBlock block) {
