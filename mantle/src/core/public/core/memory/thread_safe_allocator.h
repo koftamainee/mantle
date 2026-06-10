@@ -1,10 +1,12 @@
 // Copyright (c) 2026 Mantle. All rights reserved.
 
 #pragma once
+
 #include <cstring>
 #include <mutex>
 #include <string_view>
 #include <utility>
+
 #include "core/macros.h"
 #include "core/memory/allocator.h"
 #include "core/memory/memory_block.h"

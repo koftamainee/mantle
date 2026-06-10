@@ -33,9 +33,8 @@ namespace mantle {
         MANTLE_CHECK(size > 0);
         MANTLE_CHECK(align > 0);
 
-        void *ptr = (align <= alignof(std::max_align_t))
-            ? tlsf_malloc(m_tlsf, size)
-            : tlsf_memalign(m_tlsf, align, size);
+        void *ptr = (align <= alignof(std::max_align_t)) ? tlsf_malloc(m_tlsf, size)
+                                                         : tlsf_memalign(m_tlsf, align, size);
 
         MANTLE_FATAL(ptr == nullptr, "Out of memory");
         return ptr;

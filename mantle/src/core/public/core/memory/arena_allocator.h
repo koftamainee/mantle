@@ -2,18 +2,15 @@
 
 #pragma once
 
-#include "core/assert.h"
-
-
 #include <cstring>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
+#include "core/assert.h"
 #include "core/macros.h"
 #include "core/memory/memory_block.h"
 #include "core/types.h"
-
-#include <string_view>
 
 namespace mantle {
 
@@ -62,7 +59,7 @@ namespace mantle {
             return new (mem) T(std::forward<Args>(args)...);
         }
 
-        void  free(void *) { MANTLE_CHECKF(false, "Called free in arena allocator"); }
+        void free(void *) { MANTLE_CHECKF(false, "Called free in arena allocator"); }
 
         void *realloc(void *ptr, usize size) {
             MANTLE_CHECKF(false, "Called realloc in arena allocator");

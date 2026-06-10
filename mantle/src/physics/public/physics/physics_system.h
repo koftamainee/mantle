@@ -20,16 +20,16 @@ namespace mantle {
         void destroy();
 
       private:
-        bool            m_is_initialized = false;
-        TlsfAllocator   m_allocator {};
-        std::mutex      m_alloc_mutex {};
+        bool          m_is_initialized = false;
+        TlsfAllocator m_allocator {};
+        std::mutex    m_alloc_mutex {};
 
-        void   *m_jolt_temp_allocator  = nullptr;
-        void   *m_jolt_job_system      = nullptr;
-        void   *m_jolt_physics_system  = nullptr;
-        void   *m_jolt_bp_interface    = nullptr;
-        void   *m_jolt_object_vs_bp   = nullptr;
-        void   *m_jolt_object_vs_object = nullptr;
+        void *m_jolt_temp_allocator = nullptr;
+        void *m_jolt_job_system = nullptr;
+        void *m_jolt_physics_system = nullptr;
+        void *m_jolt_bp_interface = nullptr;
+        void *m_jolt_object_vs_bp = nullptr;
+        void *m_jolt_object_vs_object = nullptr;
 
         spdlog::logger *m_logger = nullptr;
     };

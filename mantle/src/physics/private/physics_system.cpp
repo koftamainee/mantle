@@ -2,10 +2,10 @@
 
 #include "physics/physics_system.h"
 
-#include "core/assert.h"
-#include "Jolt/Jolt.h"
-
 #include <cstdarg>
+
+#include "Jolt/Jolt.h"
+#include "core/assert.h"
 
 namespace mantle {
     namespace {
@@ -23,11 +23,9 @@ namespace mantle {
             }
         }
 
-        bool assert_failed_jolt(const char *expr, const char *msg,
-                                const char *file, uint line) {
+        bool assert_failed_jolt(const char *expr, const char *msg, const char *file, uint line) {
             if (s_logger) {
-                s_logger->critical("Jolt assert: {}:{}: {} ({})", file, line,
-                                   msg ? msg : "", expr);
+                s_logger->critical("Jolt assert: {}:{}: {} ({})", file, line, msg ? msg : "", expr);
             }
             return true;
         }
@@ -49,9 +47,7 @@ namespace mantle {
     }
 
 
-    void PhysicsSystem::update(f32 dt) {
-        MANTLE_CHECK(m_is_initialized);
-    }
+    void PhysicsSystem::update(f32 dt) { MANTLE_CHECK(m_is_initialized); }
 
 
     void PhysicsSystem::destroy() {

@@ -23,10 +23,7 @@ namespace mantle {
         void init(MemoryBlock block, std::string_view debug_name = {});
         void destroy();
 
-        [[nodiscard]] void *alloc(
-            usize size,
-            usize align = alignof(std::max_align_t)
-        );
+        [[nodiscard]] void *alloc(usize size, usize align = alignof(std::max_align_t));
         [[nodiscard]] void *realloc(void *ptr, usize size);
         void                free(void *ptr);
 

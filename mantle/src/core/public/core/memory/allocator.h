@@ -1,8 +1,10 @@
 // Copyright (c) 2026 Mantle. All rights reserved.
 
 #pragma once
+
 #include <concepts>
 #include <string_view>
+
 #include "core/memory/memory_block.h"
 #include "core/types.h"
 
