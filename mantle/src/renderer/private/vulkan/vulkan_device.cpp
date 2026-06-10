@@ -29,38 +29,19 @@ namespace mantle {
                     return "Imagination";
                 default:
                     return "Unknown";
-                    {}
-                    break;
-                    {}
-                    break;
-                    {}
-                    break;
-                    {}
-                    break;
-                    {}
-                    break;
-                    {}
-                    break;
-                    {}
-                    break;
-                    {}
-                    break;
-                    {}
-                    break;
-                    {}
-                    break;
             }
         }
     } // anonymous namespace
 
     void VulkanDevice::init(VkInstance instance, VkSurfaceKHR surface,
-                            VkAllocationCallbacks *vk_callbacks, VirtualHeap *heap,
+                            VkAllocationCallbacks *vk_callbacks, TlsfAllocator *allocator,
                             ArenaAllocator *scratch_arena) {
         MANTLE_CHECK(!m_is_initialized);
 
         m_logger = spdlog::get("vulkan").get();
         m_alloc_callbacks = vk_callbacks;
-        m_resource = PersistentResource(heap);
+        m_allocator = allocator;
+        m_resource = TlsfResource(allocator);
         m_scratch_arena = scratch_arena;
         m_scratch_resource = ArenaResource(m_scratch_arena);
 

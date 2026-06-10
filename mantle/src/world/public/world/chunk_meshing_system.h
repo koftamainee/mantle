@@ -6,6 +6,8 @@
 
 #include "core/concurrency/worker_pool.h"
 #include "core/macros.h"
+#include "core/memory/arena_allocator.h"
+#include "core/memory/memory_block.h"
 #include "core/types.h"
 #include "world/chunk.h"
 
@@ -14,7 +16,6 @@ namespace spdlog {
 }
 
 namespace mantle {
-    class ArenaAllocator;
     class ChunkRenderingSystem;
     class ChunkStorageSystem;
     class Renderer;
@@ -30,14 +31,15 @@ namespace mantle {
 
         MANTLE_DEFAULT_INIT(ChunkMeshingSystem);
 
-        void init();
-        void upload_dirty(Renderer &renderer, ChunkStorageSystem &storage, ArenaAllocator &scratch,
-                          WorkerPool *pool, ChunkRenderingSystem &rendering) const;
+        void init(MemoryBlock block);
+        void upload_dirty(Renderer &renderer, ChunkStorageSystem &storage,
+                          WorkerPool *pool, ChunkRenderingSystem &rendering);
         void destroy();
 
       private:
         bool m_is_initialized = false;
 
+        ArenaAllocator        m_scratch {};
         mutable spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

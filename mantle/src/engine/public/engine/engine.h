@@ -4,8 +4,10 @@
 
 #include "core/concurrency/worker_pool.h"
 #include "core/memory/arena_allocator.h"
+#include "core/memory/tlsf_allocator.h"
 #include "core/memory/virtual_heap.h"
 #include "ecs/ecs.h"
+#include "physics/physics_system.h"
 #include "renderer/renderer.h"
 #include "window/window.h"
 #include "world/chunk_generation_system.h"
@@ -31,24 +33,28 @@ namespace mantle {
         void render();
 
       private:
-        bool                  m_is_initialized = false;
-        Window                m_window {};
-        Ecs                   m_ecs {};
-        Renderer              m_renderer {};
-        ChunkGenerationSystem m_chunk_generation_system {};
+        // Memory
+        OSMemory    m_os_memory;
+        VirtualHeap m_heap;
 
-        OSMemory       m_os_memory;
-        VirtualHeap    m_heap;
-        ArenaAllocator m_scratch_arena;
+        // Window
+        Window m_window {};
 
+        // Parallelism
         WorkerPool m_worker_pool;
 
-        ArenaAllocator m_rendering_arena;
-        ArenaAllocator m_meshing_arena;
+        // Core Systems
+        PhysicsSystem m_physics_system {};
+        Ecs           m_ecs {};
 
-        ChunkMeshingSystem   m_chunk_meshing_system {};
-        ChunkRenderingSystem m_chunk_rendering_system {};
-        ChunkStorageSystem   m_chunk_storage_system {};
+        // Graphics
+        Renderer m_renderer {};
+
+        // Old world (to be removed)
+        ChunkGenerationSystem m_chunk_generation_system {};
+        ChunkStorageSystem    m_chunk_storage_system {};
+        ChunkRenderingSystem  m_chunk_rendering_system {};
+        ChunkMeshingSystem    m_chunk_meshing_system {};
 
         u64 m_last_time = 0;
         f32 m_fps_timer = 0.0f;
@@ -61,6 +67,7 @@ namespace mantle {
         f32 m_fps_exec_accum = 0.0f;
         f32 m_fps_end_accum = 0.0f;
 
+        bool             m_is_initialized = false;
         spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

@@ -4,7 +4,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "core/memory/pmr/persistent_resource.h"
+#include "core/memory/pmr/tlsf_resource.h"
 #include "deletion_queue.h"
 #include "renderer/gpu_resource_manager.h"
 #include "resources.h"
@@ -45,7 +45,8 @@ namespace mantle {
         VulkanBackend     *backend = nullptr;
         VulkanGPUAllocator gpu_allocator {};
 
-        PersistentResource resource;
+        TlsfAllocator  *allocator = nullptr;
+        TlsfResource    resource;
 
         std::array<DeletionQueue, frame_lag> deletion_queues;
         u32                                  current_frame = 0;

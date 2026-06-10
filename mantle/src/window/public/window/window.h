@@ -10,7 +10,7 @@
 #include <string>
 
 #include "core/macros.h"
-#include "core/memory/virtual_heap.h"
+#include "core/memory/memory_block.h"
 #include "core/types.h"
 
 namespace spdlog {

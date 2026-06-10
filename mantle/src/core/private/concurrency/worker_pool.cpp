@@ -8,13 +8,18 @@ namespace mantle {
 
     WorkerPool::~WorkerPool() { destroy(); }
 
-    void WorkerPool::init(u32 num_workers, usize scratch_size, VirtualHeap *heap) {
+    void WorkerPool::init(u32 num_workers, usize scratch_size, MemoryBlock block) {
         MANTLE_CHECK(m_workers.empty());
 
+        usize per_worker = scratch_size;
+        usize total = per_worker * num_workers;
+        MANTLE_CHECK(total <= block.size);
+
         m_workers.resize(num_workers);
+        u8 *base = static_cast<u8 *>(block.ptr);
         for (u32 i = 0; i < num_workers; i++) {
             auto       &w = m_workers[i];
-            MemoryBlock mem = heap->take(scratch_size);
+            MemoryBlock mem = {base + i * per_worker, per_worker};
             w.scratch.init(mem);
             w.thread = std::jthread([this, &w](std::stop_token stop) { worker_loop(w, stop); });
         }

@@ -36,6 +36,12 @@ set(BUILD_GMOCK   OFF CACHE BOOL "" FORCE)
 add_subdirectory(googletest)
 
 
+# Jolt Physics
+set(PHYSICS_REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/JoltPhysics)
+set(ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+include(${PHYSICS_REPO_ROOT}/Jolt/Jolt.cmake)
+
+
 add_library(tlsf STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tlsf/tlsf.c)
 target_include_directories(tlsf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tlsf)
 

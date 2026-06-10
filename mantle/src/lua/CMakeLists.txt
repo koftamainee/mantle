@@ -1,1 +1,0 @@
-mantle_module(NAME lua DEPS core sol2 LuaJIT::LuaJIT)

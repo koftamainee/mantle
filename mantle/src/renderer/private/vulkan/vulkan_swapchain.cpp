@@ -15,10 +15,10 @@
 namespace mantle {
 
     void VulkanSwapchain::init(VkDevice device, VkSurfaceKHR surface,
-                               const SwapchainSupportDetails &support_details,
-                               const QueueFamilyIndices &indices, u32 width, u32 height, bool vsync,
-                               VkAllocationCallbacks *vk_callbacks, VirtualHeap *heap,
-                               ArenaAllocator *scratch_arena) {
+                                const SwapchainSupportDetails &support_details,
+                                const QueueFamilyIndices &indices, u32 width, u32 height, bool vsync,
+                                VkAllocationCallbacks *vk_callbacks, TlsfAllocator *allocator,
+                                ArenaAllocator *scratch_arena) {
         MANTLE_CHECK(!m_is_initialized);
         MANTLE_CHECK(device != VK_NULL_HANDLE);
 
@@ -27,13 +27,12 @@ namespace mantle {
         m_alloc_callbacks = vk_callbacks;
 
         m_scratch_arena = scratch_arena;
-        m_heap = heap;
+        m_allocator = allocator;
         m_scratch_resource = ArenaResource(m_scratch_arena);
 
-        m_persistent_allocator.init(m_heap);
-        m_persistent_resource = PersistentResource(m_heap);
+        m_tlsf_resource = TlsfResource(allocator);
 
-        m_images = std::pmr::vector<Image>(&m_persistent_resource);
+        m_images = std::pmr::vector<Image>(&m_tlsf_resource);
 
         m_surface_format = pick_surface_format(support_details.formats);
         m_extent = pick_extent(support_details.capabilities, width, height);

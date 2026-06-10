@@ -4,7 +4,7 @@
 #include "engine/engine.h"
 
 int main() {
-    mantle::init_logger();
+    mantle::register_loggers();
 
     mantle::Engine engine;
     engine.init();

@@ -11,24 +11,23 @@
 
 namespace mantle {
 
-    void VulkanBackend::init(const Window &window, bool vsync, VirtualHeap *heap,
-                             ArenaAllocator *scratch_arena) {
+    void VulkanBackend::init(const Window &window, bool vsync, MemoryBlock block,
+                              ArenaAllocator *scratch_arena) {
         MANTLE_CHECK(!m_is_initialized);
 
         m_logger = spdlog::get("vulkan").get();
-        m_heap = heap;
         m_scratch_arena = scratch_arena;
         m_vsync = vsync;
 
-        m_tlsf_allocator.init(m_heap->take(megabytes(100)));
+        m_tlsf_allocator.init(block);
         m_vk_allocator.init(&m_tlsf_allocator);
 
         m_context.init(window.get_native_window(), scratch_arena, m_vk_allocator.vk_allocator());
 
         VkSurfaceKHR surface = m_context.get_surface();
 
-        m_device.init(m_context.get_instance(), surface, m_vk_allocator.vk_allocator(), m_heap,
-                      m_scratch_arena);
+        m_device.init(m_context.get_instance(), surface, m_vk_allocator.vk_allocator(),
+                      &m_tlsf_allocator, m_scratch_arena);
         VkDevice device = m_device.get_device();
 
         auto [width, height] = window.get_framebuffer_size();
@@ -38,7 +37,7 @@ namespace mantle {
 
         m_swapchain.init(device, surface, m_device.get_swapchain_support_details(surface, &pmr),
                          m_device.get_queue_families(), width, height, m_vsync,
-                         m_vk_allocator.vk_allocator(), m_heap, m_scratch_arena);
+                         m_vk_allocator.vk_allocator(), &m_tlsf_allocator, m_scratch_arena);
 
 
         m_is_initialized = true;
@@ -74,7 +73,7 @@ namespace mantle {
         ArenaResource pmr(m_scratch_arena);
         m_swapchain.init(device, surface, m_device.get_swapchain_support_details(surface, &pmr),
                          m_device.get_queue_families(), width, height, m_vsync,
-                         m_vk_allocator.vk_allocator(), m_heap, m_scratch_arena);
+                         m_vk_allocator.vk_allocator(), &m_tlsf_allocator, m_scratch_arena);
     }
 
     SwapchainInfo VulkanBackend::get_swapchain_info() const {

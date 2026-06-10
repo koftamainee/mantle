@@ -76,6 +76,7 @@ namespace mantle {
         spdlog::critical(fmt, std::forward<Args>(args)...);
 #else
         spdlog::critical("Fatal error [E{:08X}]", error_code);
+        spdlog::critical(fmt, std::forward<Args>(args)...);
 #endif
         debug_break();
     }

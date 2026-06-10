@@ -7,8 +7,9 @@
 #include <vulkan/frame_scheduler.h>
 #include <vulkan/vulkan_backend.h>
 
-#include "core/memory/persistent_allocator.h"
-#include "core/memory/pmr/persistent_resource.h"
+#include "core/memory/memory_units.h"
+#include "core/memory/pmr/tlsf_resource.h"
+#include "core/memory/tlsf_allocator.h"
 #include "frame_graph/frame_graph_pass_context_internal.h"
 #include "frame_graph/render_graph_internal.h"
 #include "renderer/frame_graph.h"
@@ -96,25 +97,40 @@ namespace mantle {
         ImageHandle        backbuffer {};
         FrameContext       current_frame {};
 
-        PersistentResource            persistent_resource {};
+        TlsfResource                  persistent_resource {};
         std::pmr::vector<ImageHandle> swapchain_images {};
     };
 
-    void Renderer::init(const Window &window, bool vsync, VirtualHeap *heap,
-                        ArenaAllocator *scratch_arena) {
+    void Renderer::init(const Window &window, bool vsync, MemoryBlock block) {
         MANTLE_CHECK(!m_is_initialized);
 
         m_logger = spdlog::get("renderer").get();
 
-        PersistentAllocator alloc;
-        alloc.init(heap);
-        m_impl = alloc.emplace<Impl>();
+        // Carve: frame arena + backend block + rest for permanent allocator
+        constexpr usize frame_arena_size = megabytes(2);
+        constexpr usize backend_size = megabytes(64);
 
-        m_impl->persistent_resource = PersistentResource(heap);
+        m_frame_arena.init({block.ptr, frame_arena_size});
+
+        MemoryBlock backend_block = {
+            static_cast<u8 *>(block.ptr) + frame_arena_size,
+            backend_size,
+        };
+
+        MemoryBlock perm_block = {
+            static_cast<u8 *>(block.ptr) + frame_arena_size + backend_size,
+            block.size - frame_arena_size - backend_size,
+        };
+        m_perm_allocator.init(perm_block);
+
+        m_impl = m_perm_allocator.emplace<Impl>();
+
+        m_impl->persistent_resource = TlsfResource(&m_perm_allocator);
         m_impl->swapchain_images = std::pmr::vector<ImageHandle>(&m_impl->persistent_resource);
 
-        m_impl->backend.init(window, vsync, heap, scratch_arena);
-        m_impl->frame_scheduler.init(&m_impl->backend, &m_impl->resource_manager, 3, heap);
+        m_impl->backend.init(window, vsync, backend_block, &m_frame_arena);
+        m_impl->frame_scheduler.init(&m_impl->backend, &m_impl->resource_manager, 3,
+                                     m_frame_arena, &m_perm_allocator);
         m_impl->resource_manager.init(&m_impl->backend);
 
         m_impl->resource_manager.import_swapchain_images(m_impl->swapchain_images);
@@ -137,6 +153,8 @@ namespace mantle {
         m_impl->resource_manager.destroy();
         m_impl->frame_scheduler.destroy();
         m_impl->backend.destroy();
+        m_perm_allocator.destroy();
+        m_frame_arena.destroy();
         m_impl = nullptr;
         m_is_initialized = false;
         m_logger->info("Renderer destroyed");
@@ -144,6 +162,8 @@ namespace mantle {
 
     Renderer::Result Renderer::begin_frame() {
         MANTLE_CHECK(m_is_initialized);
+
+        m_frame_arena.reset();
 
         FrameResult result = m_impl->frame_scheduler.begin_frame(m_impl->current_frame);
 

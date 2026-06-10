@@ -4,16 +4,15 @@
 
 #include "core/assert.h"
 #include "core/memory/memory_units.h"
-#include "core/memory/virtual_heap.h"
 
 namespace mantle {
-    void ChunkStorageSystem::init(u32 capacity, VirtualHeap *heap) {
+    void ChunkStorageSystem::init(u32 capacity, MemoryBlock block) {
         MANTLE_CHECK(!m_is_initialized);
         MANTLE_CHECK(capacity > 0);
-        MANTLE_CHECK(heap != nullptr);
 
         usize arena_size = capacity * sizeof(Slot) + kilobytes(64);
-        m_arena.init(heap->take(arena_size));
+        MANTLE_CHECK(arena_size <= block.size);
+        m_arena.init(block);
         m_resource = ArenaResource(&m_arena);
 
         m_capacity = capacity;

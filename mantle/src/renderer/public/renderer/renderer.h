@@ -3,7 +3,8 @@
 #pragma once
 
 #include "core/memory/arena_allocator.h"
-#include "core/memory/virtual_heap.h"
+#include "core/memory/memory_block.h"
+#include "core/memory/tlsf_allocator.h"
 #include "core/types.h"
 #include "frame_graph.h"
 #include "gpu_resource_manager.h"
@@ -26,8 +27,7 @@ namespace mantle {
 
         MANTLE_DEFAULT_INIT(Renderer);
 
-        void init(const Window &window, bool vsync, VirtualHeap *heap,
-                  ArenaAllocator *scratch_arena);
+        void init(const Window &window, bool vsync, MemoryBlock block);
         void destroy();
 
         Result begin_frame();
@@ -37,6 +37,8 @@ namespace mantle {
         ImageHandle         backbuffer() const;
 
         void execute(FrameGraph &render_graph);
+
+        ArenaAllocator &frame_arena() { return m_frame_arena; }
 
         void             resize_swapchain(u32 width, u32 height);
         SwapchainInfo    get_swapchain_info();
@@ -48,6 +50,9 @@ namespace mantle {
 
         struct Impl;
         Impl *m_impl = nullptr;
+
+        TlsfAllocator  m_perm_allocator {};
+        ArenaAllocator m_frame_arena {};
 
         spdlog::logger *m_logger = nullptr;
     };

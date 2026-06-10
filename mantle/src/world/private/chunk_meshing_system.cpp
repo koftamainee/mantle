@@ -17,14 +17,20 @@
 
 namespace mantle {
 
-    void ChunkMeshingSystem::init() {
+    void ChunkMeshingSystem::init(MemoryBlock block) {
         MANTLE_CHECK(!m_is_initialized);
+
+        m_scratch.init(block);
+
         m_logger = spdlog::get("world").get();
         m_is_initialized = true;
         m_logger->info("Chunk meshing system initialized");
     }
 
-    void ChunkMeshingSystem::destroy() { m_is_initialized = false; }
+    void ChunkMeshingSystem::destroy() {
+        m_scratch.destroy();
+        m_is_initialized = false;
+    }
 
     namespace {
 
@@ -64,14 +70,17 @@ namespace mantle {
     } // namespace
 
     void ChunkMeshingSystem::upload_dirty(Renderer &renderer, ChunkStorageSystem &storage,
-                                          ArenaAllocator &scratch, WorkerPool *pool,
-                                          ChunkRenderingSystem &rendering) const {
+                                          WorkerPool *pool,
+                                          ChunkRenderingSystem &rendering) {
         MANTLE_CHECK(m_is_initialized);
+
+        m_scratch.reset();
 
         if (!storage.any_dirty()) {
             return;
         }
 
+        ArenaAllocator &scratch = m_scratch;
         auto       &rm = renderer.resource_manager();
         const auto &dirty = storage.dirty_indices();
 

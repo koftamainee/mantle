@@ -8,11 +8,11 @@
 
 #include "chunk.h"
 #include "core/macros.h"
+#include "core/memory/memory_block.h"
 #include "core/memory/pmr/arena_resource.h"
 #include "core/types.h"
 
 namespace mantle {
-    class VirtualHeap;
 
     struct Vec3Hash {
         usize operator()(glm::ivec3 const &v) const noexcept {
@@ -27,7 +27,7 @@ namespace mantle {
       public:
         MANTLE_DEFAULT_INIT(ChunkStorageSystem);
 
-        void init(u32 capacity, VirtualHeap *heap);
+        void init(u32 capacity, MemoryBlock block);
         void destroy();
 
         u32  add_chunk(glm::ivec3 position);

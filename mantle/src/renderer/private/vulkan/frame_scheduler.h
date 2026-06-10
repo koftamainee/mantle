@@ -7,8 +7,9 @@
 
 #include "command_recorder.h"
 #include "core/memory/arena_allocator.h"
+#include "core/memory/memory_block.h"
 #include "core/memory/pmr/arena_resource.h"
-#include "core/memory/virtual_heap.h"
+#include "core/memory/tlsf_allocator.h"
 #include "core/types.h"
 
 namespace spdlog {
@@ -36,7 +37,8 @@ namespace mantle {
         MANTLE_DEFAULT_INIT(FrameScheduler);
 
         void init(VulkanBackend *backend, GPUResourceManager *resource_manager,
-                  u32 frames_in_flight, VirtualHeap *heap);
+                  u32 frames_in_flight, ArenaAllocator &frame_arena,
+                  TlsfAllocator *perm_allocator);
         void destroy();
 
         FrameResult begin_frame(FrameContext &out_ctx);
@@ -44,7 +46,7 @@ namespace mantle {
 
         void on_swapchain_rebuilt(u32 new_image_count) const;
 
-        ArenaAllocator &frame_arena() { return m_frame_arena; }
+        ArenaAllocator &frame_arena() { return *m_frame_arena; }
         ArenaResource  &frame_arena_resource() { return m_pmr; }
 
       private:
@@ -59,8 +61,8 @@ namespace mantle {
         bool           m_is_initialized = false;
         VulkanBackend *m_backend = nullptr;
 
-        ArenaAllocator m_frame_arena {};
-        ArenaResource  m_pmr {};
+        ArenaAllocator *m_frame_arena = nullptr;
+        ArenaResource   m_pmr {};
 
         u32 m_frames_in_flight = 0;
         u32 m_swapchain_image_count = 0;

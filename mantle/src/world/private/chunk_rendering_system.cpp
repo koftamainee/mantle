@@ -24,20 +24,21 @@ namespace mantle {
     static constexpr f32 VOXEL_SCALE = 0.1f;
     static constexpr f32 CHUNK_WORLD_SIZE = static_cast<f32>(Chunk::size) * VOXEL_SCALE;
 
-    void ChunkRenderingSystem::init(Renderer &renderer, ArenaAllocator &scratch_arena,
-                                    u32 max_chunks) {
+    void ChunkRenderingSystem::init(Renderer &renderer, MemoryBlock block, u32 max_chunks) {
         MANTLE_CHECK(!m_is_initialized);
+
+        m_arena.init(block);
 
         m_logger = spdlog::get("world").get();
         m_renderer = &renderer;
         m_max_chunks = max_chunks;
         auto &rm = renderer.resource_manager();
 
-        m_slots = scratch_arena.push<ChunkMeshSlot>(max_chunks);
+        m_slots = m_arena.push<ChunkMeshSlot>(max_chunks);
         std::memset(m_slots, 0, sizeof(ChunkMeshSlot) * max_chunks);
 
-        ScopeArena            scope(&scratch_arena);
-        ArenaResource         resource(&scratch_arena);
+        ScopeArena            scope(&m_arena);
+        ArenaResource         resource(&m_arena);
         std::pmr::vector<u32> spv(&resource);
 
         load_spv("assets/shaders/mesh_render.spv", spv);

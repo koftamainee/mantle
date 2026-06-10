@@ -5,7 +5,7 @@
 #include "spdlog/logger.h"
 
 namespace mantle {
-    void init_logger();
+    void register_loggers();
 
     spdlog::logger *raw_logger();
 } // namespace mantle

@@ -23,14 +23,25 @@ namespace mantle {
         void init(MemoryBlock block);
         void destroy();
 
+        [[nodiscard]] void *alloc(usize size, usize align = alignof(std::max_align_t)) {
+            return push(size, align);
+        }
         [[nodiscard]] void *push(usize size, usize align = alignof(std::max_align_t));
 
+        template <typename T>
+        [[nodiscard]] T *alloc(usize count = 1) {
+            return push<T>(count);
+        }
         template <typename T>
         [[nodiscard]] T *push(usize count = 1) {
             static_assert(std::is_trivially_constructible_v<T>);
             return static_cast<T *>(push(sizeof(T) * count, alignof(T)));
         }
 
+        template <typename T>
+        [[nodiscard]] T *alloc_zeroed(usize count = 1) {
+            return push_zeroed<T>(count);
+        }
         template <typename T>
         [[nodiscard]] T *push_zeroed(usize count = 1) {
             static_assert(std::is_trivially_constructible_v<T>);

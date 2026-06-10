@@ -11,7 +11,7 @@
 
 #include "core/macros.h"
 #include "core/memory/arena_allocator.h"
-#include "core/memory/virtual_heap.h"
+#include "core/memory/memory_block.h"
 #include "core/types.h"
 
 namespace mantle {
@@ -23,7 +23,7 @@ namespace mantle {
 
         MANTLE_NO_COPY_NO_MOVE(WorkerPool);
 
-        void init(u32 num_workers, usize scratch_size, VirtualHeap *heap);
+        void init(u32 num_workers, usize scratch_size, MemoryBlock block);
         void destroy();
 
         using TaskFn = void (*)(ArenaAllocator &scratch, void *user_data);

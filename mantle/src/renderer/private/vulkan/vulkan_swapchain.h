@@ -8,10 +8,10 @@
 
 #include "core/macros.h"
 #include "core/memory/arena_allocator.h"
-#include "core/memory/persistent_allocator.h"
+#include "core/memory/memory_block.h"
 #include "core/memory/pmr/arena_resource.h"
-#include "core/memory/pmr/persistent_resource.h"
-#include "core/memory/virtual_heap.h"
+#include "core/memory/pmr/tlsf_resource.h"
+#include "core/memory/tlsf_allocator.h"
 #include "core/types.h"
 #include "vulkan_types.h"
 
@@ -33,7 +33,7 @@ namespace mantle {
         void init(VkDevice device, VkSurfaceKHR surface,
                   const SwapchainSupportDetails &support_details, const QueueFamilyIndices &indices,
                   u32 width, u32 height, bool vsync, VkAllocationCallbacks *vk_callbacks,
-                  VirtualHeap *heap, ArenaAllocator *scratch_arena);
+                  TlsfAllocator *allocator, ArenaAllocator *scratch_arena);
 
         void destroy();
 
@@ -60,10 +60,8 @@ namespace mantle {
         ArenaAllocator *m_scratch_arena = nullptr;
         ArenaResource   m_scratch_resource {};
 
-        VirtualHeap *m_heap = nullptr;
-
-        PersistentAllocator m_persistent_allocator {};
-        PersistentResource  m_persistent_resource {};
+        TlsfAllocator *m_allocator = nullptr;
+        TlsfResource   m_tlsf_resource {};
 
         VkDevice           m_device = VK_NULL_HANDLE;
         VkSurfaceFormatKHR m_surface_format {};

@@ -7,7 +7,7 @@
 #include "renderer/gpu_resource_manager.h"
 
 namespace mantle {
-    void TransientResources::init(PersistentResource *persistent_resource,
+    void TransientResources::init(TlsfResource *persistent_resource,
                                   GPUResourceManager *resource_manager) {
         m_resource_manager = resource_manager;
         m_image_cache = std::pmr::vector<CreatedImageEntry>(persistent_resource);

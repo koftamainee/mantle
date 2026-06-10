@@ -3,7 +3,7 @@
 #include "frame_scheduler.h"
 
 #include "core/assert.h"
-#include "core/memory/persistent_allocator.h"
+#include "core/memory/tlsf_allocator.h"
 #include "resources/gpu_resource_manager_internal.h"
 #include "vkassert.h"
 #include "vulkan_backend.h"
@@ -11,23 +11,22 @@
 
 namespace mantle {
     void FrameScheduler::init(VulkanBackend *backend, GPUResourceManager *resource_manager,
-                              u32 frames_in_flight, VirtualHeap *heap) {
+                              u32 frames_in_flight, ArenaAllocator &frame_arena,
+                              TlsfAllocator *perm_allocator) {
         MANTLE_CHECK(!m_is_initialized);
         MANTLE_CHECK(backend != nullptr);
         MANTLE_CHECK(frames_in_flight > 0);
 
         m_logger = spdlog::get("vulkan").get();
-        m_frame_arena.init(heap->take(megabytes(1)));
-        m_pmr = ArenaResource(&m_frame_arena);
+        m_frame_arena = &frame_arena;
+        m_pmr = ArenaResource(m_frame_arena);
 
         m_backend = backend;
         m_frames_in_flight = frames_in_flight;
         m_swapchain_image_count = m_backend->get_swapchain_info().image_count;
 
-        PersistentAllocator alloc;
-        alloc.init(m_backend->m_heap);
-        m_frames = alloc.push<FrameData>(m_frames_in_flight);
-        m_render_finished = alloc.push<VkSemaphore>(m_swapchain_image_count);
+        m_frames = perm_allocator->alloc<FrameData>(m_frames_in_flight);
+        m_render_finished = perm_allocator->alloc<VkSemaphore>(m_swapchain_image_count);
 
         m_command_pool = m_backend->m_device.create_command_pool(
             m_backend->m_device.get_queue_families().graphics_family);
@@ -104,7 +103,7 @@ namespace mantle {
         VulkanDevice &device = m_backend->m_device;
         VkDevice      vk_device = device.get_device();
 
-        m_frame_arena.reset();
+        m_frame_arena->reset();
 
         MANTLE_VK_VERIFY(vkWaitForFences(vk_device, 1, &frame.fence, VK_TRUE, UINT64_MAX));
 

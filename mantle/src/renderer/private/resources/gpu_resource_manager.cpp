@@ -7,7 +7,8 @@
 #include <vulkan/vulkan_utils.h>
 
 #include "core/assert.h"
-#include "core/memory/persistent_allocator.h"
+#include "core/memory/tlsf_allocator.h"
+#include "core/memory/memory_units.h"
 #include "gpu_resource_manager_internal.h"
 
 namespace mantle {
@@ -74,8 +75,8 @@ namespace mantle {
 
         template <typename T>
             requires std::is_trivially_copyable_v<std::remove_cv_t<T>>
-        std::span<const std::remove_cv_t<T>> deep_copy_span(std::span<T>        src,
-                                                            PersistentResource &resource) {
+        std::span<const std::remove_cv_t<T>> deep_copy_span(std::span<T>  src,
+                                                             TlsfResource &resource) {
             using U = std::remove_cv_t<T>;
             if (src.empty()) {
                 return {};
@@ -85,7 +86,7 @@ namespace mantle {
             return {dst, src.size()};
         }
 
-        std::string_view deep_copy_string(std::string_view src, PersistentResource &resource) {
+        std::string_view deep_copy_string(std::string_view src, TlsfResource &resource) {
             if (src.empty()) {
                 return {};
             }
@@ -96,7 +97,7 @@ namespace mantle {
         }
 
         std::span<const ShaderModule> deep_copy_shader_modules(std::span<const ShaderModule> src,
-                                                               PersistentResource &resource) {
+                                                                TlsfResource &resource) {
             if (src.empty()) {
                 return {};
             }
@@ -1001,12 +1002,11 @@ namespace mantle {
         MANTLE_CHECK(!m_is_initialized);
 
         m_logger = spdlog::get("renderer").get();
-        PersistentAllocator alloc;
-        alloc.init(backend->m_heap);
-        m_impl = alloc.emplace<Impl>();
+        m_impl = backend->m_tlsf_allocator.emplace<Impl>();
         MANTLE_CHECK(m_impl != nullptr);
         m_impl->backend = backend;
-        m_impl->resource = PersistentResource(m_impl->backend->m_heap);
+        m_impl->allocator = &backend->m_tlsf_allocator;
+        m_impl->resource = TlsfResource(&backend->m_tlsf_allocator);
 
         m_impl->buffers = std::pmr::vector<Slot<BufferResource>>(&m_impl->resource);
         m_impl->buffers_free_list = std::pmr::vector<u32>(&m_impl->resource);
@@ -1033,7 +1033,7 @@ namespace mantle {
             backend->m_context.get_instance(), backend->m_vk_allocator.vk_allocator());
 
         for (auto &queue : m_impl->deletion_queues) {
-            queue.init(m_impl->backend->m_heap);
+            queue.init({m_impl->allocator->alloc(kilobytes(256)), kilobytes(256)});
         }
 
         init_bindless();

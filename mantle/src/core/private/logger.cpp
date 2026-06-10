@@ -7,7 +7,7 @@
 #include <spdlog/spdlog.h>
 
 namespace mantle {
-    void init_logger() {
+    void register_loggers() {
         auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("mantle.log", true);
 
@@ -30,6 +30,7 @@ namespace mantle {
         make_logger("window");
         make_logger("core");
         make_logger("ecs");
+        make_logger("physics");
 
         spdlog::set_default_logger(spdlog::get("engine"));
 

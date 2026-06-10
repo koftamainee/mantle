@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "core/memory/arena_allocator.h"
+#include "core/memory/memory_block.h"
 #include "core/memory/memory_units.h"
 #include "core/memory/pmr/arena_resource.h"
 
@@ -23,8 +24,8 @@ namespace mantle {
 
         MANTLE_NO_COPY_NO_MOVE(DeletionQueue);
 
-        void init(VirtualHeap *heap) {
-            m_arena.init(heap->take(kilobytes(256)));
+        void init(MemoryBlock block) {
+            m_arena.init(block);
             m_resource = ArenaResource(&m_arena);
             m_deletors = std::pmr::vector<Deletor>(&m_resource);
         }

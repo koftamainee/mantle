@@ -5,6 +5,8 @@
 #include <glm/vec3.hpp>
 
 #include "core/macros.h"
+#include "core/memory/arena_allocator.h"
+#include "core/memory/memory_block.h"
 #include "core/types.h"
 #include "renderer/blackboard.h"
 #include "renderer/frame_graph.h"
@@ -16,14 +18,13 @@ namespace spdlog {
 }
 
 namespace mantle {
-    class ArenaAllocator;
     class Renderer;
 
     class ChunkRenderingSystem final {
       public:
         MANTLE_DEFAULT_INIT(ChunkRenderingSystem);
 
-        void init(Renderer &renderer, ArenaAllocator &scratch_arena, u32 max_chunks);
+        void init(Renderer &renderer, MemoryBlock block, u32 max_chunks);
         void add_passes(FrameGraph &graph, const Blackboard &blackboard) const;
         void destroy();
 
@@ -45,6 +46,7 @@ namespace mantle {
 
         ChunkMeshSlot *m_slots = nullptr;
 
+        ArenaAllocator  m_arena {};
         spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

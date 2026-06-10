@@ -3,6 +3,8 @@
 #pragma once
 
 #include "core/memory/arena_allocator.h"
+#include "core/memory/memory_block.h"
+#include "core/memory/tlsf_allocator.h"
 #include "core/types.h"
 #include "renderer/types.h"
 #include "vulkan_context.h"
@@ -32,7 +34,7 @@ namespace mantle {
       public:
         MANTLE_DEFAULT_INIT(VulkanBackend);
 
-        void init(const Window &window, bool vsync, VirtualHeap *heap,
+        void init(const Window &window, bool vsync, MemoryBlock block,
                   ArenaAllocator *scratch_arena);
         void destroy();
         void wait_idle() const;
@@ -57,7 +59,6 @@ namespace mantle {
         VulkanDevice    m_device {};
         VulkanSwapchain m_swapchain {};
 
-        VirtualHeap       *m_heap = nullptr;
         ArenaAllocator    *m_scratch_arena = nullptr;
         TlsfAllocator      m_tlsf_allocator {};
         VulkanCPUAllocator m_vk_allocator {};

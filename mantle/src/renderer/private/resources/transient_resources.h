@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "core/macros.h"
-#include "core/memory/pmr/persistent_resource.h"
+#include "core/memory/pmr/tlsf_resource.h"
 #include "renderer/types.h"
 
 namespace mantle {
@@ -18,7 +18,7 @@ namespace mantle {
 
         MANTLE_NO_COPY_NO_MOVE(TransientResources);
 
-        void init(PersistentResource *persistent_resource, GPUResourceManager *resource_manager);
+        void init(TlsfResource *persistent_resource, GPUResourceManager *resource_manager);
 
         void set_images(std::pmr::vector<FGImageEntry> *images);
         void set_buffers(std::pmr::vector<FGBufferEntry> *buffers);
