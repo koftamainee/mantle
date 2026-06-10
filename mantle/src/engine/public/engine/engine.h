@@ -67,7 +67,7 @@ namespace mantle {
         f32 m_fps_exec_accum = 0.0f;
         f32 m_fps_end_accum = 0.0f;
 
-        bool             m_is_initialized = false;
+        bool            m_is_initialized = false;
         spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle

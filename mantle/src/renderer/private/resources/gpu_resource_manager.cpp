@@ -7,8 +7,8 @@
 #include <vulkan/vulkan_utils.h>
 
 #include "core/assert.h"
-#include "core/memory/tlsf_allocator.h"
 #include "core/memory/memory_units.h"
+#include "core/memory/tlsf_allocator.h"
 #include "gpu_resource_manager_internal.h"
 
 namespace mantle {
@@ -76,7 +76,7 @@ namespace mantle {
         template <typename T>
             requires std::is_trivially_copyable_v<std::remove_cv_t<T>>
         std::span<const std::remove_cv_t<T>> deep_copy_span(std::span<T>  src,
-                                                             TlsfResource &resource) {
+                                                            TlsfResource &resource) {
             using U = std::remove_cv_t<T>;
             if (src.empty()) {
                 return {};
@@ -97,7 +97,7 @@ namespace mantle {
         }
 
         std::span<const ShaderModule> deep_copy_shader_modules(std::span<const ShaderModule> src,
-                                                                TlsfResource &resource) {
+                                                               TlsfResource &resource) {
             if (src.empty()) {
                 return {};
             }

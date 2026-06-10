@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "physics/physics_system.h"
 
 #include "core/assert.h"
@@ -13,9 +15,7 @@ namespace mantle {
         m_logger->info("Physics system is initialized");
     }
 
-    void PhysicsSystem::update(f32 dt) {
-        MANTLE_CHECK(m_is_initialized);
-    }
+    void PhysicsSystem::update(f32 dt) { MANTLE_CHECK(m_is_initialized); }
 
     void PhysicsSystem::destroy() {
         if (m_is_initialized) {

@@ -54,10 +54,10 @@ namespace mantle {
         m_os_memory.init();
         m_heap.init(m_os_memory, heap_total);
 
-        const MemoryBlock window_block       = m_heap.take(kilobytes(256));
-        const MemoryBlock renderer_block     = m_heap.take(megabytes(80));
-        const MemoryBlock worker_pool_block  = m_heap.take(megabytes(32));
-        const MemoryBlock physics_block      = m_heap.take(megabytes(1));
+        const MemoryBlock window_block = m_heap.take(kilobytes(256));
+        const MemoryBlock renderer_block = m_heap.take(megabytes(80));
+        const MemoryBlock worker_pool_block = m_heap.take(megabytes(32));
+        const MemoryBlock physics_block = m_heap.take(megabytes(1));
 
         m_window.init({}, window_block);
 
@@ -81,8 +81,8 @@ namespace mantle {
 
         {
             const MemoryBlock chunk_rendering_block = m_heap.take(megabytes(4));
-            const MemoryBlock meshing_block         = m_heap.take(megabytes(100));
-            const MemoryBlock chunk_storage_block   = m_heap.take(megabytes(16));
+            const MemoryBlock meshing_block = m_heap.take(megabytes(100));
+            const MemoryBlock chunk_storage_block = m_heap.take(megabytes(16));
 
             constexpr u32 max_chunks = 150;
             constexpr i32 R = 2;

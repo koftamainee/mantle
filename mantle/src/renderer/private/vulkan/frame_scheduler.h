@@ -37,8 +37,7 @@ namespace mantle {
         MANTLE_DEFAULT_INIT(FrameScheduler);
 
         void init(VulkanBackend *backend, GPUResourceManager *resource_manager,
-                  u32 frames_in_flight, ArenaAllocator &frame_arena,
-                  TlsfAllocator *perm_allocator);
+                  u32 frames_in_flight, ArenaAllocator &frame_arena, TlsfAllocator *perm_allocator);
         void destroy();
 
         FrameResult begin_frame(FrameContext &out_ctx);

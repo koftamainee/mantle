@@ -45,8 +45,8 @@ namespace mantle {
         VulkanBackend     *backend = nullptr;
         VulkanGPUAllocator gpu_allocator {};
 
-        TlsfAllocator  *allocator = nullptr;
-        TlsfResource    resource;
+        TlsfAllocator *allocator = nullptr;
+        TlsfResource   resource;
 
         std::array<DeletionQueue, frame_lag> deletion_queues;
         u32                                  current_frame = 0;

@@ -129,8 +129,8 @@ namespace mantle {
         m_impl->swapchain_images = std::pmr::vector<ImageHandle>(&m_impl->persistent_resource);
 
         m_impl->backend.init(window, vsync, backend_block, &m_frame_arena);
-        m_impl->frame_scheduler.init(&m_impl->backend, &m_impl->resource_manager, 3,
-                                     m_frame_arena, &m_perm_allocator);
+        m_impl->frame_scheduler.init(&m_impl->backend, &m_impl->resource_manager, 3, m_frame_arena,
+                                     &m_perm_allocator);
         m_impl->resource_manager.init(&m_impl->backend);
 
         m_impl->resource_manager.import_swapchain_images(m_impl->swapchain_images);

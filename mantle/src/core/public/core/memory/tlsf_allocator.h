@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstring>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -10,8 +11,6 @@
 #include "core/memory/memory_block.h"
 #include "core/types.h"
 #include "tlsf.h"
-
-#include <string_view>
 
 namespace mantle {
 

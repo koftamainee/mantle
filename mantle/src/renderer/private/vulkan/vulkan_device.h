@@ -94,10 +94,10 @@ namespace mantle {
 
         VkAllocationCallbacks *m_alloc_callbacks = nullptr;
 
-        ArenaAllocator  *m_scratch_arena = nullptr;
-        ArenaResource    m_scratch_resource {};
-        TlsfResource     m_resource {};
-        TlsfAllocator   *m_allocator = nullptr;
+        ArenaAllocator *m_scratch_arena = nullptr;
+        ArenaResource   m_scratch_resource {};
+        TlsfResource    m_resource {};
+        TlsfAllocator  *m_allocator = nullptr;
 
         VkPhysicalDevice                          m_physical_device {};
         VkDevice                                  m_device {};

@@ -15,10 +15,10 @@
 namespace mantle {
 
     void VulkanSwapchain::init(VkDevice device, VkSurfaceKHR surface,
-                                const SwapchainSupportDetails &support_details,
-                                const QueueFamilyIndices &indices, u32 width, u32 height, bool vsync,
-                                VkAllocationCallbacks *vk_callbacks, TlsfAllocator *allocator,
-                                ArenaAllocator *scratch_arena) {
+                               const SwapchainSupportDetails &support_details,
+                               const QueueFamilyIndices &indices, u32 width, u32 height, bool vsync,
+                               VkAllocationCallbacks *vk_callbacks, TlsfAllocator *allocator,
+                               ArenaAllocator *scratch_arena) {
         MANTLE_CHECK(!m_is_initialized);
         MANTLE_CHECK(device != VK_NULL_HANDLE);
 

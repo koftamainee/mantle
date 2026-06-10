@@ -70,8 +70,7 @@ namespace mantle {
     } // namespace
 
     void ChunkMeshingSystem::upload_dirty(Renderer &renderer, ChunkStorageSystem &storage,
-                                          WorkerPool *pool,
-                                          ChunkRenderingSystem &rendering) {
+                                          WorkerPool *pool, ChunkRenderingSystem &rendering) {
         MANTLE_CHECK(m_is_initialized);
 
         m_scratch.reset();
@@ -81,8 +80,8 @@ namespace mantle {
         }
 
         ArenaAllocator &scratch = m_scratch;
-        auto       &rm = renderer.resource_manager();
-        const auto &dirty = storage.dirty_indices();
+        auto           &rm = renderer.resource_manager();
+        const auto     &dirty = storage.dirty_indices();
 
         BufferHandle   vertex_buffer = rendering.vertex_buffer();
         BufferHandle   index_buffer = rendering.index_buffer();

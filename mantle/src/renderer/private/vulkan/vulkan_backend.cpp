@@ -12,7 +12,7 @@
 namespace mantle {
 
     void VulkanBackend::init(const Window &window, bool vsync, MemoryBlock block,
-                              ArenaAllocator *scratch_arena) {
+                             ArenaAllocator *scratch_arena) {
         MANTLE_CHECK(!m_is_initialized);
 
         m_logger = spdlog::get("vulkan").get();

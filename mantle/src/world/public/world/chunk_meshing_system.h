@@ -32,14 +32,14 @@ namespace mantle {
         MANTLE_DEFAULT_INIT(ChunkMeshingSystem);
 
         void init(MemoryBlock block);
-        void upload_dirty(Renderer &renderer, ChunkStorageSystem &storage,
-                          WorkerPool *pool, ChunkRenderingSystem &rendering);
+        void upload_dirty(Renderer &renderer, ChunkStorageSystem &storage, WorkerPool *pool,
+                          ChunkRenderingSystem &rendering);
         void destroy();
 
       private:
         bool m_is_initialized = false;
 
-        ArenaAllocator        m_scratch {};
+        ArenaAllocator          m_scratch {};
         mutable spdlog::logger *m_logger = nullptr;
     };
 } // namespace mantle
