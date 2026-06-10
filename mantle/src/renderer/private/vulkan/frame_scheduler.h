@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <vector>
-
 #include <vulkan/vulkan_core.h>
+
+#include <vector>
 
 #include "command_recorder.h"
 #include "core/memory/arena_allocator.h"

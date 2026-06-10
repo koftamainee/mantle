@@ -2,11 +2,11 @@
 
 #include "window/window.h"
 
-#include <array>
-#include <utility>
-
 #include <SDL3/SDL.h>
 #include <core/assert.h>
+
+#include <array>
+#include <utility>
 
 #include "sdl_allocator.h"
 

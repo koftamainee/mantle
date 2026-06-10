@@ -2,10 +2,10 @@
 
 #include "world/chunk_rendering_system.h"
 
+#include <spdlog/spdlog.h>
+
 #include <array>
 #include <cstring>
-
-#include <spdlog/spdlog.h>
 
 #include "core/assert.h"
 #include "core/memory/arena_allocator.h"

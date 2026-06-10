@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include <flecs.h>
-
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
+
+#include <flecs.h>
 
 #include "core/macros.h"
 #include "core/types.h"

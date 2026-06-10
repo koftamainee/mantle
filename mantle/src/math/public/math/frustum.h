@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <array>
-
 #include <glm/glm.hpp>
+
+#include <array>
 
 #include "aabb.h"
 #include "plane.h"

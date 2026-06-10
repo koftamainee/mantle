@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include <vulkan/vulkan.h>
+
 #include <array>
 #include <optional>
 #include <string>
 #include <vector>
-
-#include <vulkan/vulkan.h>
 
 #include "core/macros.h"
 #include "core/memory/arena_allocator.h"

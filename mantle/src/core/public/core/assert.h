@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include <cstdint>
 #include <cstdlib>
 #include <source_location>
 #include <utility>
-
-#include <spdlog/spdlog.h>
 
 #include "macros.h"
 #include "types.h"

@@ -2,13 +2,13 @@
 
 #include "../vulkan/vulkan_device.h"
 
-#include <algorithm>
-#include <unordered_set>
-
 #include <core/assert.h>
 #include <spdlog/spdlog.h>
 #include <vulkan/vkassert.h>
 #include <vulkan/vulkan_types.h>
+
+#include <algorithm>
+#include <unordered_set>
 
 #include "core/memory/scope_arena.h"
 

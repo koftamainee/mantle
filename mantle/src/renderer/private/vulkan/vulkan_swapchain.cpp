@@ -2,11 +2,11 @@
 
 #include "vulkan/vulkan_swapchain.h"
 
-#include <algorithm>
-#include <array>
-
 #include <spdlog/spdlog.h>
 #include <vulkan/vulkan.h>
+
+#include <algorithm>
+#include <array>
 
 #include "core/assert.h"
 #include "core/memory/scope_arena.h"

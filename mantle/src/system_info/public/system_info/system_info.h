@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include <spdlog/logger.h>
+
 #include <cstdint>
 #include <string_view>
-
-#include <spdlog/logger.h>
 
 #include "core/types.h"
 

@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <span>
-
 #include <vulkan/vulkan.h>
+
+#include <span>
 
 #include "core/memory/arena_allocator.h"
 #include "core/memory/pmr/arena_resource.h"

@@ -2,10 +2,10 @@
 
 #include "world/chunk_meshing_system.h"
 
+#include <spdlog/spdlog.h>
+
 #include <cstring>
 #include <vector>
-
-#include <spdlog/spdlog.h>
 
 #include "bgm.h"
 #include "chunk_helpers.h"
