@@ -7,11 +7,11 @@
 #include "mantle/core/memory/tlsf_allocator.h"
 #include "mantle/core/types.h"
 #include "mantle/renderer/types.h"
+#include "mantle/window/window.h"
 #include "vulkan_context.h"
 #include "vulkan_cpu_allocator.h"
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
-#include "mantle/window/window.h"
 
 namespace spdlog {
     class logger;

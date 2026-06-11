@@ -41,14 +41,14 @@ namespace mantle {
         void create_floor_mesh(Renderer &renderer);
         void create_capsule_mesh(Renderer &renderer);
 
-        bool             m_is_initialized = false;
-        ArenaAllocator   m_arena{};
-        spdlog::logger  *m_logger = nullptr;
+        bool            m_is_initialized = false;
+        ArenaAllocator  m_arena {};
+        spdlog::logger *m_logger = nullptr;
 
-        SimpleMesh m_meshes[2]{};
+        SimpleMesh m_meshes[2] {};
         u32        m_mesh_count = 0;
 
-        GraphicsPipelineHandle m_pipeline{};
+        GraphicsPipelineHandle m_pipeline {};
     };
 
 } // namespace mantle

@@ -2,8 +2,8 @@
 
 #include "mantle/renderer/frame_graph.h"
 
-#include "mantle/core/assert.h"
 #include "frame_graph/render_graph_internal.h"
+#include "mantle/core/assert.h"
 
 namespace mantle {
     FrameGraph::FrameGraph(ArenaAllocator *arena) :

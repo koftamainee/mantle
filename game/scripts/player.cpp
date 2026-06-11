@@ -2,13 +2,12 @@
 
 #include <glm/glm.hpp>
 
-#include "mantle/ecs/ecs.h"
+#include "../components.h"
 #include "mantle/ecs/components.h"
+#include "mantle/ecs/ecs.h"
 #include "mantle/engine/engine.h"
 #include "mantle/input/input.h"
 #include "mantle/physics/character_controller.h"
-
-#include "../components.h"
 
 namespace game {
     using mantle::f32;

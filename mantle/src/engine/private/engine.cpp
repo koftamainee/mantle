@@ -11,20 +11,17 @@
 #include "mantle/core/assert.h"
 #include "mantle/core/logger.h"
 #include "mantle/core/memory/memory_units.h"
+#include "mantle/ecs/components.h"
 #include "mantle/input/input.h"
 #include "mantle/renderer/blackboard_types.h"
 #include "mantle/system_info/system_info.h"
 #include "mantle/window/window.h"
-
 #include "simple_renderer.h"
-#include "mantle/ecs/components.h"
 
 namespace mantle {
     Engine *Engine::s_instance = nullptr;
 
-    Engine *Engine::instance() {
-        return s_instance;
-    }
+    Engine *Engine::instance() { return s_instance; }
 
     void Engine::init(const EngineConfig &cfg) {
         MANTLE_CHECK(!m_is_initialized);
@@ -60,9 +57,8 @@ namespace mantle {
         m_window.set_resize_callback([this](u32 w, u32 h) {
             m_logger->info("Swapchain recreation triggered by window resize: {}x{}", w, h);
             m_renderer.resize_swapchain(w, h);
-            m_ecs.foreach<Camera>([w, h](Camera &cam) {
-                cam.aspect = static_cast<f32>(w) / static_cast<f32>(h);
-            });
+            m_ecs.foreach<Camera>(
+                [w, h](Camera &cam) { cam.aspect = static_cast<f32>(w) / static_cast<f32>(h); });
         });
 
         m_worker_pool.init(8, megabytes(4), worker_pool_block);
@@ -220,20 +216,19 @@ namespace mantle {
         auto [width, height] = m_window.get_framebuffer_size();
 
         glm::mat4 view_proj(1.0f);
-        m_ecs.foreach<Camera, const Transform>(
-            [&view_proj](Camera &cam, const Transform &t) {
-                glm::vec3 dir;
-                float yawRad = glm::radians(t.rotation.y);
-                float pitchRad = glm::radians(t.rotation.x);
-                dir.x = std::cos(pitchRad) * std::sin(yawRad);
-                dir.y = std::sin(pitchRad);
-                dir.z = -std::cos(pitchRad) * std::cos(yawRad);
-                glm::vec3 target = t.position + dir;
-                glm::mat4 view = glm::lookAt(t.position, target, glm::vec3(0, 1, 0));
-                glm::mat4 proj = glm::perspective(glm::radians(cam.fov), cam.aspect, cam.near, cam.far);
-                proj[1][1] *= -1.0f;
-                view_proj = proj * view;
-            });
+        m_ecs.foreach<Camera, const Transform>([&view_proj](Camera &cam, const Transform &t) {
+            glm::vec3 dir;
+            float     yawRad = glm::radians(t.rotation.y);
+            float     pitchRad = glm::radians(t.rotation.x);
+            dir.x = std::cos(pitchRad) * std::sin(yawRad);
+            dir.y = std::sin(pitchRad);
+            dir.z = -std::cos(pitchRad) * std::cos(yawRad);
+            glm::vec3 target = t.position + dir;
+            glm::mat4 view = glm::lookAt(t.position, target, glm::vec3(0, 1, 0));
+            glm::mat4 proj = glm::perspective(glm::radians(cam.fov), cam.aspect, cam.near, cam.far);
+            proj[1][1] *= -1.0f;
+            view_proj = proj * view;
+        });
 
         auto &bb = graph.blackboard();
         bb.add(BbBackbuffer {backbuffer});
@@ -262,73 +257,59 @@ namespace mantle {
 
     void Engine::process_awake_phase(f32 dt) {
         (void)dt;
-        m_ecs.foreach<ScriptComponent>(
-            [this](const ScriptComponent &sc) {
-                if (!sc.ready_called && sc.callbacks) {
-                    if (sc.callbacks->on_awake) {
-                        sc.callbacks->on_awake(*this);
-                    }
+        m_ecs.foreach<ScriptComponent>([this](const ScriptComponent &sc) {
+            if (!sc.ready_called && sc.callbacks) {
+                if (sc.callbacks->on_awake) {
+                    sc.callbacks->on_awake(*this);
                 }
-            });
+            }
+        });
     }
 
     void Engine::process_script_phase(ScriptPhase phase, f32 dt) {
-        m_ecs.foreach<ScriptComponent>(
-            [this, phase, dt](ScriptComponent &sc) {
-                if (!sc.callbacks) {
-                    return;
-                }
-                switch (phase) {
-                    case ScriptPhase::PhysicsUpdate:
-                        if (sc.callbacks->on_physics_update) {
-                            sc.callbacks->on_physics_update(*this, dt);
+        m_ecs.foreach<ScriptComponent>([this, phase, dt](ScriptComponent &sc) {
+            if (!sc.callbacks) {
+                return;
+            }
+            switch (phase) {
+                case ScriptPhase::PhysicsUpdate:
+                    if (sc.callbacks->on_physics_update) {
+                        sc.callbacks->on_physics_update(*this, dt);
+                    }
+                    break;
+                case ScriptPhase::Update:
+                    if (!sc.ready_called) {
+                        if (sc.callbacks->on_start) {
+                            sc.callbacks->on_start(*this);
                         }
-                        break;
-                    case ScriptPhase::Update:
-                        if (!sc.ready_called) {
-                            if (sc.callbacks->on_start) {
-                                sc.callbacks->on_start(*this);
-                            }
-                            sc.ready_called = true;
-                        }
-                        if (sc.callbacks->on_update) {
-                            sc.callbacks->on_update(*this, dt);
-                        }
-                        break;
-                    case ScriptPhase::LateUpdate:
-                        if (sc.callbacks->on_late_update) {
-                            sc.callbacks->on_late_update(*this, dt);
-                        }
-                        break;
-                }
-            });
+                        sc.ready_called = true;
+                    }
+                    if (sc.callbacks->on_update) {
+                        sc.callbacks->on_update(*this, dt);
+                    }
+                    break;
+                case ScriptPhase::LateUpdate:
+                    if (sc.callbacks->on_late_update) {
+                        sc.callbacks->on_late_update(*this, dt);
+                    }
+                    break;
+            }
+        });
     }
 
     void Engine::register_script(const ScriptCallbacks *callbacks) {
         m_scripts.push_back(callbacks);
     }
 
-    Ecs &Engine::ecs() {
-        return m_ecs;
-    }
+    Ecs &Engine::ecs() { return m_ecs; }
 
-    const Ecs &Engine::ecs() const {
-        return m_ecs;
-    }
+    const Ecs &Engine::ecs() const { return m_ecs; }
 
-    Window &Engine::window() {
-        return m_window;
-    }
+    Window &Engine::window() { return m_window; }
 
-    const Window &Engine::window() const {
-        return m_window;
-    }
+    const Window &Engine::window() const { return m_window; }
 
-    CharacterController &Engine::character() {
-        return m_character;
-    }
+    CharacterController &Engine::character() { return m_character; }
 
-    const CharacterController &Engine::character() const {
-        return m_character;
-    }
+    const CharacterController &Engine::character() const { return m_character; }
 } // namespace mantle

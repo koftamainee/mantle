@@ -14,20 +14,20 @@ namespace mantle {
         LateUpdate,
     };
 
-    using ScriptFn   = void (*)(Engine &engine);
+    using ScriptFn = void (*)(Engine &engine);
     using ScriptDtFn = void (*)(Engine &engine, f32 dt);
 
     struct ScriptCallbacks {
-        ScriptFn   on_awake          = nullptr;
-        ScriptFn   on_start          = nullptr;
-        ScriptDtFn on_update         = nullptr;
+        ScriptFn   on_awake = nullptr;
+        ScriptFn   on_start = nullptr;
+        ScriptDtFn on_update = nullptr;
         ScriptDtFn on_physics_update = nullptr;
-        ScriptDtFn on_late_update    = nullptr;
-        ScriptFn   on_destroy        = nullptr;
+        ScriptDtFn on_late_update = nullptr;
+        ScriptFn   on_destroy = nullptr;
     };
 
     struct ScriptComponent {
         bool                   ready_called = false;
-        const ScriptCallbacks *callbacks    = nullptr;
+        const ScriptCallbacks *callbacks = nullptr;
     };
 } // namespace mantle

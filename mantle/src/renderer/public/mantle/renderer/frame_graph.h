@@ -2,16 +2,15 @@
 
 #pragma once
 
-#include "mantle/renderer/types.h"
-
 #include <string_view>
 #include <vector>
 
+#include "gpu_resource_manager.h"
 #include "mantle/core/memory/arena_allocator.h"
 #include "mantle/core/memory/pmr/arena_resource.h"
 #include "mantle/core/memory/scope_arena.h"
-#include "gpu_resource_manager.h"
 #include "mantle/renderer/blackboard.h"
+#include "mantle/renderer/types.h"
 
 namespace mantle {
     class TransientResources;

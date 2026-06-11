@@ -26,7 +26,7 @@ namespace mantle {
 
         friend class CharacterController;
 
-        TlsfAllocator m_phys_allocator{};
+        TlsfAllocator m_phys_allocator {};
 
         struct Impl;
         Impl *m_impl;

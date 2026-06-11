@@ -6,10 +6,10 @@
 #include <vulkan/vulkan_backend.h>
 #include <vulkan/vulkan_utils.h>
 
+#include "gpu_resource_manager_internal.h"
 #include "mantle/core/assert.h"
 #include "mantle/core/memory/memory_units.h"
 #include "mantle/core/memory/tlsf_allocator.h"
-#include "gpu_resource_manager_internal.h"
 
 namespace mantle {
     ShaderHandle GPUResourceManager::create_shader(std::span<const u32> spir_v) {

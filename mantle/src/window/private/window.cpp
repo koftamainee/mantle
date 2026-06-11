@@ -3,11 +3,11 @@
 #include "mantle/window/window.h"
 
 #include <SDL3/SDL.h>
-#include "mantle/core/assert.h"
 
 #include <array>
 #include <utility>
 
+#include "mantle/core/assert.h"
 #include "sdl_allocator.h"
 
 namespace mantle {

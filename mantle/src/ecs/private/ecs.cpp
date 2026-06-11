@@ -35,7 +35,5 @@ namespace mantle {
         return Entity(e);
     }
 
-    Entity Ecs::lookup(std::string_view name) const {
-        return Entity(m_world.lookup(name.data()));
-    }
+    Entity Ecs::lookup(std::string_view name) const { return Entity(m_world.lookup(name.data())); }
 } // namespace mantle

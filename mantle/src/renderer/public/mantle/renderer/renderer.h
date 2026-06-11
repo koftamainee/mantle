@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "frame_graph.h"
+#include "gpu_resource_manager.h"
 #include "mantle/core/memory/arena_allocator.h"
 #include "mantle/core/memory/memory_block.h"
 #include "mantle/core/memory/tlsf_allocator.h"
 #include "mantle/core/types.h"
-#include "frame_graph.h"
-#include "gpu_resource_manager.h"
 #include "mantle/renderer/types.h"
 
 namespace spdlog {

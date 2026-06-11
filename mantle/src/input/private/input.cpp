@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #include "mantle/input/input.h"
 
 #include <algorithm>

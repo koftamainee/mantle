@@ -1,11 +1,13 @@
+// Copyright (c) 2026 Mantle. All rights reserved.
+
 #pragma once
+
+#include <glm/glm.hpp>
 
 #include <memory_resource>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-
-#include <glm/glm.hpp>
 
 #include "mantle/core/memory/memory_block.h"
 #include "mantle/core/memory/pmr/tlsf_resource.h"
@@ -23,10 +25,10 @@ namespace mantle {
     struct InputAction {
         InputActionType type = InputActionType::Digital;
         f32             deadzone = 0.5f;
-        u16             keys[8]{};
-        u8              mouse_buttons[8]{};
-        u8              controller_buttons[8]{};
-        u8              controller_axes[8]{};
+        u16             keys[8] {};
+        u8              mouse_buttons[8] {};
+        u8              controller_buttons[8] {};
+        u8              controller_axes[8] {};
         u8              key_count = 0;
         u8              mouse_count = 0;
         u8              ctrl_btn_count = 0;
@@ -36,26 +38,25 @@ namespace mantle {
     struct StringHash {
         using is_transparent = void;
         size_t operator()(std::string_view sv) const noexcept {
-            return std::hash<std::string_view>{}(sv);
+            return std::hash<std::string_view> {}(sv);
         }
     };
 
     class Input final {
       public:
-        static void init(MemoryBlock block);
-        static void shutdown();
+        static void   init(MemoryBlock block);
+        static void   shutdown();
         static Input &get();
 
-        static void   begin_frame(Window &window);
+        static void begin_frame(Window &window);
 
-        static bool   is_action_pressed(std::string_view name);
-        static bool   is_action_just_pressed(std::string_view name);
-        static bool   is_action_just_released(std::string_view name);
-        static f32    get_action_strength(std::string_view name);
-        static f32    get_axis(std::string_view negative, std::string_view positive);
-        static glm::vec2 get_vector(
-            std::string_view negative_x, std::string_view positive_x,
-            std::string_view negative_y, std::string_view positive_y);
+        static bool      is_action_pressed(std::string_view name);
+        static bool      is_action_just_pressed(std::string_view name);
+        static bool      is_action_just_released(std::string_view name);
+        static f32       get_action_strength(std::string_view name);
+        static f32       get_axis(std::string_view negative, std::string_view positive);
+        static glm::vec2 get_vector(std::string_view negative_x, std::string_view positive_x,
+                                    std::string_view negative_y, std::string_view positive_y);
 
         void add_action(std::string_view name, f32 deadzone = 0.5f,
                         InputActionType type = InputActionType::Digital);
@@ -76,18 +77,17 @@ namespace mantle {
 
         Input() = default;
 
-        void update_action_state(std::string_view name, InputAction &action,
-                                 const Window &window);
+        void update_action_state(std::string_view name, InputAction &action, const Window &window);
 
         using ActionMap =
             std::pmr::unordered_map<std::pmr::string, InputAction, StringHash, std::equal_to<>>;
         using StateMap =
             std::pmr::unordered_map<std::pmr::string, ActionState, StringHash, std::equal_to<>>;
 
-        TlsfAllocator m_allocator{};
-        TlsfResource  m_resource{};
-        ActionMap     m_actions{&m_resource};
-        StateMap      m_states{&m_resource};
+        TlsfAllocator m_allocator {};
+        TlsfResource  m_resource {};
+        ActionMap     m_actions {&m_resource};
+        StateMap      m_states {&m_resource};
         Window       *m_window = nullptr;
         bool          m_queried_this_frame = false;
 

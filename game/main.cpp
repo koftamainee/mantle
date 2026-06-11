@@ -1,13 +1,12 @@
 #include "mantle/core/types.h"
+#include "mantle/ecs/components.h"
+#include "mantle/ecs/ecs.h"
 #include "mantle/engine/engine.h"
 #include "mantle/engine/script.h"
-#include "mantle/ecs/ecs.h"
-#include "mantle/ecs/components.h"
 #include "mantle/input/input.h"
 #include "mantle/window/window.h"
-
-#include "scripts/player.h"
 #include "scripts/camera.h"
+#include "scripts/player.h"
 
 void setup_actions() {
     using Key = mantle::Window::Key;

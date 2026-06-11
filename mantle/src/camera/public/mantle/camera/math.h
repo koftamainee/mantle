@@ -7,8 +7,8 @@
 
 namespace mantle {
     inline glm::vec3 orbit_position(glm::vec3 target, f32 distance, f32 yaw, f32 pitch) {
-        float yawRad = glm::radians(yaw);
-        float pitchRad = glm::radians(pitch);
+        float     yawRad = glm::radians(yaw);
+        float     pitchRad = glm::radians(pitch);
         glm::vec3 offset;
         offset.x = distance * std::cos(pitchRad) * std::sin(yawRad);
         offset.y = distance * std::sin(pitchRad);
@@ -26,11 +26,11 @@ namespace mantle {
         return proj;
     }
 
-    inline glm::mat4 compute_view_proj(const glm::vec3 &camera_pos, f32 yaw, f32 pitch,
-                                        f32 fov, f32 aspect, f32 near, f32 far) {
+    inline glm::mat4 compute_view_proj(const glm::vec3 &camera_pos, f32 yaw, f32 pitch, f32 fov,
+                                       f32 aspect, f32 near, f32 far) {
         glm::vec3 dir;
-        float yawRad = glm::radians(yaw);
-        float pitchRad = glm::radians(pitch);
+        float     yawRad = glm::radians(yaw);
+        float     pitchRad = glm::radians(pitch);
         dir.x = std::cos(pitchRad) * std::sin(yawRad);
         dir.y = std::sin(pitchRad);
         dir.z = -std::cos(pitchRad) * std::cos(yawRad);

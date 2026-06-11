@@ -2,14 +2,13 @@
 
 #include <glm/glm.hpp>
 
+#include "../components.h"
 #include "mantle/camera/math.h"
-#include "mantle/ecs/ecs.h"
 #include "mantle/ecs/components.h"
+#include "mantle/ecs/ecs.h"
 #include "mantle/engine/engine.h"
 #include "mantle/input/input.h"
 #include "mantle/window/window.h"
-
-#include "../components.h"
 
 namespace game {
     using namespace mantle;

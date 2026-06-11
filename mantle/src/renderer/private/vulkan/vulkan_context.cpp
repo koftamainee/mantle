@@ -2,9 +2,9 @@
 
 #include "vulkan/vulkan_context.h"
 
-#include "mantle/core/assert.h"
 #include <spdlog/spdlog.h>
 
+#include "mantle/core/assert.h"
 #include "mantle/core/memory/pmr/arena_resource.h"
 #include "mantle/core/memory/scope_arena.h"
 #include "vkassert.h"

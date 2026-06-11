@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include <string_view>
-
 #include <flecs.h>
+#include <string_view>
 
 #include "mantle/core/types.h"
 
@@ -16,29 +15,29 @@ namespace mantle {
       public:
         Entity() = default;
 
-        template<typename T, typename... Args>
-        Entity &add(Args &&... args) {
+        template <typename T, typename... Args>
+        Entity &add(Args &&...args) {
             m_entity.set<T>(T(std::forward<Args>(args)...));
             return *this;
         }
 
-        template<typename T>
+        template <typename T>
         Entity &set(T &&value) {
             m_entity.set<T>(std::forward<T>(value));
             return *this;
         }
 
-        template<typename T>
+        template <typename T>
         T *get_mut() {
             return m_entity.is_alive() ? &m_entity.ensure<T>() : nullptr;
         }
 
-        template<typename T>
+        template <typename T>
         const T *get() const {
             return m_entity.get<T>();
         }
 
-        template<typename T>
+        template <typename T>
         bool has() const {
             return m_entity.has<T>();
         }
@@ -48,27 +47,17 @@ namespace mantle {
             return *this;
         }
 
-        const char *name() const {
-            return m_entity.name();
-        }
+        const char *name() const { return m_entity.name(); }
 
-        bool is_alive() const {
-            return m_entity.is_alive();
-        }
+        bool is_alive() const { return m_entity.is_alive(); }
 
-        void destroy() {
-            m_entity.destruct();
-        }
+        void destroy() { m_entity.destruct(); }
 
-        bool operator==(const Entity &other) const {
-            return m_entity == other.m_entity;
-        }
+        bool operator==(const Entity &other) const { return m_entity == other.m_entity; }
 
-        bool operator!=(const Entity &other) const {
-            return m_entity != other.m_entity;
-        }
+        bool operator!=(const Entity &other) const { return m_entity != other.m_entity; }
 
-    private:
+      private:
         friend class Engine;
         explicit Entity(flecs::entity e) : m_entity(e) {}
 

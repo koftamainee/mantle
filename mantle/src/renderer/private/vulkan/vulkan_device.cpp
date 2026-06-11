@@ -2,7 +2,6 @@
 
 #include "../vulkan/vulkan_device.h"
 
-#include "mantle/core/assert.h"
 #include <spdlog/spdlog.h>
 #include <vulkan/vkassert.h>
 #include <vulkan/vulkan_types.h>
@@ -10,6 +9,7 @@
 #include <algorithm>
 #include <unordered_set>
 
+#include "mantle/core/assert.h"
 #include "mantle/core/memory/scope_arena.h"
 
 namespace mantle {

@@ -2,13 +2,13 @@
 
 #include "simple_renderer.h"
 
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <array>
 #include <memory_resource>
 #include <span>
 #include <vector>
-
-#include <glm/gtc/constants.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "mantle/core/assert.h"
 #include "mantle/core/memory/arena_allocator.h"
@@ -34,7 +34,7 @@ namespace mantle {
         u32 push_ring(std::pmr::vector<BasicVertex> &verts, f32 y, f32 radius, u32 segments) {
             u32 start = static_cast<u32>(verts.size());
             for (u32 i = 0; i < segments; i++) {
-                f32 a = static_cast<f32>(i) / static_cast<f32>(segments) * glm::two_pi<f32>();
+                f32       a = static_cast<f32>(i) / static_cast<f32>(segments) * glm::two_pi<f32>();
                 glm::vec3 n = glm::normalize(glm::vec3(std::cos(a), 0.0f, -std::sin(a)));
                 verts.push_back({{std::cos(a) * radius, y, -std::sin(a) * radius}, n});
             }
@@ -50,8 +50,8 @@ namespace mantle {
                 f32 y = center_y + sign * radius * std::sin(a);
                 for (u32 i = 0; i < segments; i++) {
                     f32 ang = static_cast<f32>(i) / static_cast<f32>(segments) * glm::two_pi<f32>();
-                    glm::vec3 n = glm::normalize(glm::vec3(std::cos(ang), sign * std::sin(a),
-                                                            -std::sin(ang)));
+                    glm::vec3 n = glm::normalize(
+                        glm::vec3(std::cos(ang), sign * std::sin(a), -std::sin(ang)));
                     verts.push_back({{std::cos(ang) * r, y, -std::sin(ang) * r}, n});
                 }
             }
@@ -143,7 +143,7 @@ namespace mantle {
     }
 
     u32 SimpleRenderer::add_mesh(Renderer &renderer, std::span<const u8> vertices,
-                                  u32 vertex_stride, std::span<const u32> indices) {
+                                 u32 vertex_stride, std::span<const u32> indices) {
         MANTLE_CHECK(m_mesh_count < 2);
 
         auto &rm = renderer.resource_manager();
@@ -179,19 +179,18 @@ namespace mantle {
     }
 
     void SimpleRenderer::create_floor_mesh(Renderer &renderer) {
-        ArenaResource               resource(&m_arena);
+        ArenaResource                 resource(&m_arena);
         std::pmr::vector<BasicVertex> verts(&resource);
         std::pmr::vector<u32>         inds(&resource);
 
-        constexpr f32 hx = 10.0f;
-        constexpr f32 hz = 10.0f;
-        constexpr f32 hy = 0.5f;
-        constexpr glm::vec3 base_color{0.3f, 0.5f, 0.3f};
+        constexpr f32       hx = 10.0f;
+        constexpr f32       hz = 10.0f;
+        constexpr f32       hy = 0.5f;
+        constexpr glm::vec3 base_color {0.3f, 0.5f, 0.3f};
 
-        auto push_face = [&](glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d,
-                             glm::vec3 n) {
-            u32 start = static_cast<u32>(verts.size());
-            f32 bright = 0.8f + 0.2f * (n.y * 0.5f + 0.5f);
+        auto push_face = [&](glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec3 n) {
+            u32       start = static_cast<u32>(verts.size());
+            f32       bright = 0.8f + 0.2f * (n.y * 0.5f + 0.5f);
             glm::vec3 col = base_color * bright;
             for (auto &p : {a, b, c, d}) {
                 verts.push_back({p, col});
@@ -212,10 +211,10 @@ namespace mantle {
     }
 
     void SimpleRenderer::create_capsule_mesh(Renderer &renderer) {
-        ArenaResource               resource(&m_arena);
+        ArenaResource                 resource(&m_arena);
         std::pmr::vector<BasicVertex> verts(&resource);
         std::pmr::vector<u32>         inds(&resource);
-        constexpr glm::vec3      col{0.8f, 0.3f, 0.3f};
+        constexpr glm::vec3           col {0.8f, 0.3f, 0.3f};
 
         constexpr u32 segs = CAPSULE_SEGMENTS;
         constexpr f32 r = CAPSULE_RADIUS;
@@ -226,8 +225,7 @@ namespace mantle {
 
         for (u32 i = 0; i < segs; i++) {
             u32 ni = (i + 1) % segs;
-            push_quad_indices(inds, bottom_ring + i, bottom_ring + ni, top_ring + ni,
-                              top_ring + i);
+            push_quad_indices(inds, bottom_ring + i, bottom_ring + ni, top_ring + ni, top_ring + i);
         }
 
         u32 hemi_start = static_cast<u32>(verts.size());
@@ -278,7 +276,7 @@ namespace mantle {
     }
 
     void SimpleRenderer::add_passes(FrameGraph &graph, const Blackboard &blackboard,
-                                     const Ecs &ecs) {
+                                    const Ecs &ecs) {
         MANTLE_CHECK(m_is_initialized);
 
         auto        backbuffer = blackboard.get<BbBackbuffer>().handle;
@@ -289,12 +287,12 @@ namespace mantle {
         u32 height = fb_size.height;
 
         struct RenderPass {
-            FGImageHandle   color;
-            FGImageHandle   depth;
-            FGBufferHandle  vertex_fg[2];
-            FGBufferHandle  index_fg[2];
-            u32             mesh_count;
-            glm::mat4       view_proj;
+            FGImageHandle  color;
+            FGImageHandle  depth;
+            FGBufferHandle vertex_fg[2];
+            FGBufferHandle index_fg[2];
+            u32            mesh_count;
+            glm::mat4      view_proj;
         };
 
         graph.add_pass<RenderPass>(
@@ -327,11 +325,11 @@ namespace mantle {
                         .clear_a = 1.0f,
                     },
                 }};
-                FGDepthAttachment depth_att = {
-                    .image = pass.depth,
-                    .load = AttachmentLoad::Clear,
-                    .store = AttachmentStore::DontCare,
-                    .clear_value = 1.0f,
+                FGDepthAttachment                depth_att = {
+                                   .image = pass.depth,
+                                   .load = AttachmentLoad::Clear,
+                                   .store = AttachmentStore::DontCare,
+                                   .clear_value = 1.0f,
                 };
                 ctx.begin_rendering({
                     .colors = colors,
@@ -350,8 +348,7 @@ namespace mantle {
                         }
 
                         glm::mat4 model = glm::translate(glm::mat4(1.0f), t.position);
-                        model = glm::rotate(model, glm::radians(t.rotation.y),
-                                            glm::vec3(0, 1, 0));
+                        model = glm::rotate(model, glm::radians(t.rotation.y), glm::vec3(0, 1, 0));
                         model = glm::scale(model, t.scale);
 
                         struct PushData {
