@@ -2,21 +2,19 @@
 
 #include "mantle/engine/engine.h"
 
+#include <flecs.h>
 #include <algorithm>
 #include <cfloat>
 #include <string_view>
 
 #include "mantle/build_info/build_info.h"
-#include "mantle/camera/math.h"
 #include "mantle/core/assert.h"
 #include "mantle/core/logger.h"
 #include "mantle/core/memory/memory_units.h"
 #include "mantle/ecs/components.h"
-#include "mantle/input/input.h"
 #include "mantle/renderer/blackboard_types.h"
 #include "mantle/system_info/system_info.h"
 #include "mantle/window/window.h"
-#include "simple_renderer.h"
 
 namespace mantle {
     Engine *Engine::s_instance = nullptr;
@@ -43,41 +41,29 @@ namespace mantle {
         m_persistent_allocator.init(engine_block);
         m_heap_resource = TlsfResource(&m_persistent_allocator);
 
-        const MemoryBlock input_block = m_heap.take(kilobytes(256));
-        Input::init(input_block);
-
         const MemoryBlock window_block = m_heap.take(kilobytes(256));
         const MemoryBlock renderer_block = m_heap.take(megabytes(80));
         const MemoryBlock worker_pool_block = m_heap.take(megabytes(32));
         const MemoryBlock physics_block = m_heap.take(megabytes(100));
-        const MemoryBlock sr_block = m_heap.take(megabytes(4));
 
         m_window.init(cfg.window, window_block);
 
         m_window.set_resize_callback([this](u32 w, u32 h) {
             m_logger->info("Swapchain recreation triggered by window resize: {}x{}", w, h);
             m_renderer.resize_swapchain(w, h);
-            m_ecs.foreach<Camera>(
-                [w, h](Camera &cam) { cam.aspect = static_cast<f32>(w) / static_cast<f32>(h); });
+            // TODO: fix me with direct flecs world usage
+            // m_world.foreach<Camera>(
+            //     [w, h](Camera &cam) { cam.aspect = static_cast<f32>(w) / static_cast<f32>(h); });
         });
 
         m_worker_pool.init(8, megabytes(4), worker_pool_block);
 
         m_physics_system.init(physics_block);
-        m_physics_system.add_static_box({0, 0.0f, 0}, {10, 0.5f, 10});
         m_character.init(m_physics_system, {0.0f, 5.0f, 0.0f});
-
-        m_ecs.init();
 
         m_renderer.init(m_window, false, renderer_block);
 
-        m_simple_renderer = m_persistent_allocator.emplace<SimpleRenderer>();
-        m_simple_renderer->init(m_renderer, sr_block);
-
-        m_ecs.create_entity("Floor").add<MeshComponent>(0u);
-        m_ecs.create_entity("Capsule")
-            .set<Transform>({.position = {0.0f, 5.0f + 0.8f, 0.0f}})
-            .add<MeshComponent>(1u);
+        m_input.init(&m_window);
 
         m_is_initialized = true;
         m_logger->info("Engine initialized. Starting the game");
@@ -126,7 +112,7 @@ namespace mantle {
                 m_fps_frametime_max = delta_time;
             }
 
-            if (current_time - m_fps_timer >= 1e9f) {
+            if (static_cast<f32>(current_time) - m_fps_timer >= 1e9f) {
                 f32 avg_ms = m_fps_frametime_accum / static_cast<f32>(m_fps_frame_count) * 1000.0f;
 
                 m_logger->info("{} FPS | {:>4.1f} ms | begin: {:.2f} | exec: {:.2f} | "
@@ -144,7 +130,7 @@ namespace mantle {
                 m_fps_begin_accum = 0.0f;
                 m_fps_exec_accum = 0.0f;
                 m_fps_end_accum = 0.0f;
-                m_fps_timer = current_time;
+                m_fps_timer = static_cast<f32>(current_time);
             }
 
             update(delta_time);
@@ -154,24 +140,12 @@ namespace mantle {
 
     void Engine::destroy() {
         if (m_is_initialized) {
-            m_ecs.foreach<ScriptComponent>([this](ScriptComponent &sc) {
-                if (sc.callbacks && sc.callbacks->on_destroy) {
-                    sc.callbacks->on_destroy(*this);
-                }
-            });
 
-            m_simple_renderer->destroy(m_renderer);
-            m_simple_renderer->~SimpleRenderer();
-            m_persistent_allocator.free(m_simple_renderer);
-            m_simple_renderer = nullptr;
+            m_input.destroy();
 
             m_persistent_allocator.destroy();
-
-            Input::shutdown();
-
             m_renderer.destroy();
 
-            m_ecs.destroy();
             m_character.destroy();
             m_physics_system.destroy();
 
@@ -186,18 +160,21 @@ namespace mantle {
         }
     }
 
+    flecs::world &Engine::world() {
+        MANTLE_CHECK(m_is_initialized);
+        return m_world;
+    }
+
+    InputSystem &Engine::input_system() {
+        MANTLE_CHECK(m_is_initialized);
+        return m_input;
+    }
+
     void Engine::update(f32 dt) {
         m_window.update();
-
-        Input::begin_frame(m_window);
-
-        process_awake_phase(dt);
-        process_script_phase(ScriptPhase::PhysicsUpdate, dt);
-
+        m_input.update();
+        (void)m_world.progress(dt);
         m_physics_system.update(dt);
-
-        process_script_phase(ScriptPhase::Update, dt);
-        process_script_phase(ScriptPhase::LateUpdate, dt);
     }
 
     void Engine::render() {
@@ -215,27 +192,12 @@ namespace mantle {
         FGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());
         auto [width, height] = m_window.get_framebuffer_size();
 
-        glm::mat4 view_proj(1.0f);
-        m_ecs.foreach<Camera, const Transform>([&view_proj](Camera &cam, const Transform &t) {
-            glm::vec3 dir;
-            float     yawRad = glm::radians(t.rotation.y);
-            float     pitchRad = glm::radians(t.rotation.x);
-            dir.x = std::cos(pitchRad) * std::sin(yawRad);
-            dir.y = std::sin(pitchRad);
-            dir.z = -std::cos(pitchRad) * std::cos(yawRad);
-            glm::vec3 target = t.position + dir;
-            glm::mat4 view = glm::lookAt(t.position, target, glm::vec3(0, 1, 0));
-            glm::mat4 proj = glm::perspective(glm::radians(cam.fov), cam.aspect, cam.near, cam.far);
-            proj[1][1] *= -1.0f;
-            view_proj = proj * view;
-        });
 
         auto &bb = graph.blackboard();
         bb.add(BbBackbuffer {backbuffer});
-        bb.add(BbCameraData {view_proj});
+        // bb.add(BbCameraData {view_proj});
         bb.add(BbFramebufferSize {width, height});
 
-        m_simple_renderer->add_passes(graph, bb, m_ecs);
 
         m_renderer.execute(graph);
         u64 t2 = m_window.get_time_ns();
@@ -254,62 +216,4 @@ namespace mantle {
         m_fps_exec_accum += static_cast<f32>(t2 - t1) / 1e6f;
         m_fps_end_accum += static_cast<f32>(t3 - t2) / 1e6f;
     }
-
-    void Engine::process_awake_phase(f32 dt) {
-        (void)dt;
-        m_ecs.foreach<ScriptComponent>([this](const ScriptComponent &sc) {
-            if (!sc.ready_called && sc.callbacks) {
-                if (sc.callbacks->on_awake) {
-                    sc.callbacks->on_awake(*this);
-                }
-            }
-        });
-    }
-
-    void Engine::process_script_phase(ScriptPhase phase, f32 dt) {
-        m_ecs.foreach<ScriptComponent>([this, phase, dt](ScriptComponent &sc) {
-            if (!sc.callbacks) {
-                return;
-            }
-            switch (phase) {
-                case ScriptPhase::PhysicsUpdate:
-                    if (sc.callbacks->on_physics_update) {
-                        sc.callbacks->on_physics_update(*this, dt);
-                    }
-                    break;
-                case ScriptPhase::Update:
-                    if (!sc.ready_called) {
-                        if (sc.callbacks->on_start) {
-                            sc.callbacks->on_start(*this);
-                        }
-                        sc.ready_called = true;
-                    }
-                    if (sc.callbacks->on_update) {
-                        sc.callbacks->on_update(*this, dt);
-                    }
-                    break;
-                case ScriptPhase::LateUpdate:
-                    if (sc.callbacks->on_late_update) {
-                        sc.callbacks->on_late_update(*this, dt);
-                    }
-                    break;
-            }
-        });
-    }
-
-    void Engine::register_script(const ScriptCallbacks *callbacks) {
-        m_scripts.push_back(callbacks);
-    }
-
-    Ecs &Engine::ecs() { return m_ecs; }
-
-    const Ecs &Engine::ecs() const { return m_ecs; }
-
-    Window &Engine::window() { return m_window; }
-
-    const Window &Engine::window() const { return m_window; }
-
-    CharacterController &Engine::character() { return m_character; }
-
-    const CharacterController &Engine::character() const { return m_character; }
 } // namespace mantle

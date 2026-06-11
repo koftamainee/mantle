@@ -13,15 +13,4 @@ namespace mantle {
         glm::vec3 scale {1.0f};
     };
 
-    struct MeshComponent {
-        u32 mesh_id = UINT32_MAX;
-    };
-
-    struct Camera {
-        f32 fov = 75.0f;
-        f32 aspect = 1.0f;
-        f32 near = 0.1f;
-        f32 far = 1000.0f;
-    };
-
 } // namespace mantle

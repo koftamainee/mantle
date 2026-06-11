@@ -1,1 +1,1 @@
-mantle_module(NAME input DEPS ecs window glm)
+mantle_module(NAME input DEPS ecs window keybinds)

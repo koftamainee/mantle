@@ -267,24 +267,24 @@ namespace mantle {
         return !m_pressed_mb[i] && m_pressed_mb_prev[i];
     }
 
-    Window::MousePosition Window::get_mouse_position() const {
+    MousePosition Window::get_mouse_position() const {
         MANTLE_CHECK(m_is_initialized);
         float x, y;
         SDL_GetMouseState(&x, &y);
         return {x, y};
     }
 
-    bool Window::is_keyboard_active() const {
+    bool Window::is_keyboard_active_this_frame() const {
         MANTLE_CHECK(m_is_initialized);
         return m_keyboard_active;
     }
 
-    bool Window::is_mouse_active() const {
+    bool Window::is_mouse_active_this_frame() const {
         MANTLE_CHECK(m_is_initialized);
         return m_mouse_active;
     }
 
-    bool Window::is_controller_active() const {
+    bool Window::is_controller_active_this_frame() const {
         MANTLE_CHECK(m_is_initialized);
         return m_controller_active;
     }
@@ -300,6 +300,24 @@ namespace mantle {
             return false;
         }
         return m_pressed_cb[std::to_underlying(button)];
+    }
+
+    bool Window::is_controller_button_just_pressed(ControllerButton button) const {
+        MANTLE_CHECK(m_is_initialized);
+        if (!m_controller) {
+            return false;
+        }
+        usize i = std::to_underlying(button);
+        return m_pressed_cb[i] && !m_pressed_cb_prev[i];
+    }
+
+    bool Window::is_controller_button_just_released(ControllerButton button) const {
+        MANTLE_CHECK(m_is_initialized);
+        if (!m_controller) {
+            return false;
+        }
+        usize i = std::to_underlying(button);
+        return !m_pressed_cb[i] && m_pressed_cb_prev[i];
     }
 
     f32 Window::get_controller_axis(ControllerAxis axis) const {
@@ -373,9 +391,9 @@ namespace mantle {
         return {m_frame_events.data(), m_frame_event_count};
     }
 
-    Window::MouseDelta Window::get_mouse_delta() const { return m_mouse_delta; }
+    MouseDelta Window::get_mouse_delta() const { return m_mouse_delta; }
 
-    Window::MouseDelta Window::get_mouse_wheel() const { return m_mouse_wheel; }
+    MouseDelta Window::get_mouse_wheel() const { return m_mouse_wheel; }
 
     void Window::set_resize_callback(std::function<void(u32, u32)> callback) {
         m_resize_callback = std::move(callback);

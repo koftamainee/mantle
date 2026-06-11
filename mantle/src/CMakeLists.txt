@@ -10,13 +10,13 @@ add_subdirectory(math)
 add_subdirectory(noise)
 add_subdirectory(ecs)
 add_subdirectory(physics)
+add_subdirectory(keybinds)
 add_subdirectory(input)
-add_subdirectory(camera)
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/mantle_init.cpp" "")
 add_library(mantle SHARED "${CMAKE_CURRENT_BINARY_DIR}/mantle_init.cpp")
 target_link_libraries(mantle PUBLIC
     -Wl,--whole-archive
-    core build_info system_info window renderer engine math noise ecs physics input camera
+    core build_info system_info window renderer engine math noise ecs physics input keybinds
     -Wl,--no-whole-archive
 )
