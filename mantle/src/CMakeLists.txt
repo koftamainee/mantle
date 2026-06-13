@@ -14,9 +14,7 @@ add_subdirectory(keybinds)
 add_subdirectory(input)
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/mantle_init.cpp" "")
-add_library(mantle SHARED "${CMAKE_CURRENT_BINARY_DIR}/mantle_init.cpp")
+add_library(mantle STATIC "${CMAKE_CURRENT_BINARY_DIR}/mantle_init.cpp")
 target_link_libraries(mantle PUBLIC
-    -Wl,--whole-archive
     core build_info system_info window renderer engine math noise ecs physics input keybinds
-    -Wl,--no-whole-archive
 )

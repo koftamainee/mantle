@@ -63,7 +63,7 @@ cmake --build build
 
 ```bash
 cd build/target
-./game # game is a separate executable which binds to engine in lib/ (libmantle.so/libmantle.dll)
+./game
 ```
 
 ---
