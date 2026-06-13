@@ -7,22 +7,49 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-LICENSE_PATH = REPO_ROOT / "LICENSE"
+APACHE_HEADER_TEMPLATE = """\
+// Copyright {year} Mantle
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License."""
 
-YEAR_RE = re.compile(r"\b\d{4}\b")
-COPYRIGHT_COMMENT_RE = re.compile(r"// [^\n]*Copyright.*All rights reserved\.\s*")
 
-def load_copyright_template() -> str:
-    text = LICENSE_PATH.read_text(encoding="utf-8")
-    for line in text.splitlines():
-        if "Copyright" in line and "All rights reserved" in line:
-            line = line.strip()
-            if line.startswith("# "):
-                line = "// " + line[2:]
-            elif not line.startswith("//"):
-                line = "// " + line
-            return line
-    raise RuntimeError("Could not find copyright line in LICENSE")
+COPYRIGHT_RE = re.compile(r"// Copyright")
+
+
+def make_header(year: int) -> str:
+    return APACHE_HEADER_TEMPLATE.format(year=year) + "\n"
+
+
+def has_copyright(text: str) -> bool:
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped and not stripped.startswith("//"):
+            return False
+        if COPYRIGHT_RE.match(stripped):
+            return True
+    return False
+
+
+def strip_copyright_block(text: str) -> str:
+    lines = text.split("\n")
+    start = 0
+    while start < len(lines) and lines[start].strip() == "":
+        start += 1
+    while start < len(lines) and lines[start].strip().startswith("//"):
+        start += 1
+    while start < len(lines) and lines[start].strip() == "":
+        start += 1
+    return "\n".join(lines[start:])
 
 
 def get_source_files() -> list[Path]:
@@ -55,35 +82,19 @@ def get_year_from_git(file_path: Path) -> int:
     return datetime.now().year
 
 
-def has_copyright(text: str) -> bool:
-    return bool(COPYRIGHT_COMMENT_RE.match(text.lstrip()))
-
-
-def make_header(year: int) -> str:
-    template = load_copyright_template()
-    template = YEAR_RE.sub(str(year), template, count=1)
-    return template + "\n"
-
-
 def process_file(file_path: Path, fix: bool) -> bool:
     text = file_path.read_text(encoding="utf-8")
 
     if has_copyright(text):
-        return False
+        body = strip_copyright_block(text)
+    else:
+        body = text.lstrip("\n")
 
     year = get_year_from_git(file_path)
     header = make_header(year)
 
-    lines = text.split("\n")
-
-    first_content = 0
-    while first_content < len(lines) and lines[first_content].strip() == "":
-        first_content += 1
-
-    rest = lines[first_content:]
-    new_lines = [header.rstrip("\n"), ""] + rest
-
-    new_text = "\n".join(new_lines)
+    new_text = header.rstrip("\n") + "\n\n" + body.lstrip("\n")
+    new_text = new_text.rstrip("\n") + "\n"
 
     if new_text == text:
         return False

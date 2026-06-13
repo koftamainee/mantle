@@ -5,3 +5,24 @@ mantle/third_party/*/*
 !mantle/third_party/CMakeLists.txt
 
 .vulkansdk/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# CMake
+CMakeUserPresets.json
+
+# Windows artifacts
+*.exe
+*.obj
+*.pdb
+*.dll
+*.lib
+*.exp
