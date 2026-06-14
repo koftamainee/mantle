@@ -114,8 +114,8 @@ jobs:
             configure: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DMANTLE_ENABLE_FORMAT=OFF
             ctest: ctest --test-dir build --output-on-failure
             artifact: mantle-relwithdebinfo-linux-x64
-          - os: windows-latest
-            configure: cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMANTLE_ENABLE_FORMAT=OFF
+          - os: windows-2025-vs2026
+            configure: cmake -B build -G "Visual Studio 18 2026" -A x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMANTILE_ENABLE_FORMAT=OFF
             ctest: ctest --test-dir build --output-on-failure -C RelWithDebInfo
             artifact: mantle-relwithdebinfo-windows-x64
 
