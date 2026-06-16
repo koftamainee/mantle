@@ -211,7 +211,6 @@ namespace mantle {
             return;
         }
 
-        m_assets.flush_uploads(m_renderer);
 
         FrameGraph    graph(&m_renderer.frame_arena());
         FGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());

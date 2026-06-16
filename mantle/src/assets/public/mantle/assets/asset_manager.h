@@ -18,6 +18,7 @@
 
 #include "mantle/assets/types.h"
 #include "mantle/core/memory/memory_block.h"
+#include "mantle/ecs/components.h"
 
 namespace flecs {
     class world;
@@ -25,36 +26,28 @@ namespace flecs {
 } // namespace flecs
 
 namespace mantle {
-
-    struct LocalTransform;
     class Renderer;
 
-    class AssetManager {
+    class AssetManager final {
         friend class Engine;
-
-      public:
+        friend class Renderer;
+    public:
         AssetManager() = default;
-
         MANTLE_NO_COPY_NO_MOVE(AssetManager);
 
-        SceneHandle preload(std::string_view scene_uuid);
-        void        unload(SceneHandle scene);
+        SceneHandle preload(std::string_view uuid);
 
-        flecs::entity instantiate(flecs::world &world, SceneHandle scene);
-        flecs::entity instantiate(flecs::world &world, SceneHandle scene,
-                                  const LocalTransform &root_transform);
+        void unload(SceneHandle scene);
 
-        const MeshData     &get_mesh(MeshHandle handle) const;
-        const MaterialData &get_material(MaterialHandle handle) const;
+        flecs::entity instantiate(flecs::world &world, SceneHandle scene, LocalTransform transform = {});
 
-      private:
-        void init(Renderer &renderer, MemoryBlock block);
+    private:
+        void init(Renderer &renderer, MemoryBlock mem);
         void destroy();
-        void flush_uploads(Renderer &renderer);
 
-        bool m_is_initialized = false;
+        bool  m_is_initialized = false;
         struct Impl;
-        Impl *m_impl = nullptr;
+        Impl *m_impl            = nullptr;
     };
 
 

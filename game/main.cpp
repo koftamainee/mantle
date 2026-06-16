@@ -1,6 +1,7 @@
 #include "actions.h"
 #include "assets.gen.h"
 #include "flecs.h"
+#include "mantle/ecs/components.h"
 #include "mantle/engine/engine.h"
 #include "mantle/window/window.h"
 
@@ -27,16 +28,19 @@ int main() {
 
     register_inputs(engine.input_system());
 
-
     flecs::world &world = engine.world();
     auto &assets = engine.assets();
 
     // SceneHandle girl = assets.preload(scenes::models::kJustAGirl);
-    // assets.instantiate(world, girl);
+    LocalTransform transform = {};
+    for (i32 i = 0; i < 10; i++) {
+        transform.translation.x += i * 10;
+        // assets.instantiate(world, girl, transform);
+    }
 
     engine.run();
 
-    // assets.unload(girl);
+    // assets.unload(girl); // ????
     engine.destroy();
 
 
