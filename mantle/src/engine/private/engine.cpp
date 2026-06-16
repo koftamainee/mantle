@@ -14,19 +14,23 @@
 
 #include "mantle/engine/engine.h"
 
-#include <algorithm>
 #include <cfloat>
 #include <flecs.h>
 #include <string_view>
 
+#include "mantle/assets/asset_manager.h"
 #include "mantle/build_info/build_info.h"
 #include "mantle/core/assert.h"
 #include "mantle/core/logger.h"
 #include "mantle/core/memory/memory_units.h"
 #include "mantle/ecs/components.h"
 #include "mantle/renderer/blackboard_types.h"
+#include "mantle/renderer/renderer.h"
 #include "mantle/system_info/system_info.h"
 #include "mantle/window/window.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace mantle {
     Engine *Engine::s_instance = nullptr;
@@ -57,15 +61,13 @@ namespace mantle {
         const MemoryBlock renderer_block = m_heap.take(megabytes(80));
         const MemoryBlock worker_pool_block = m_heap.take(megabytes(32));
         const MemoryBlock physics_block = m_heap.take(megabytes(100));
+        const MemoryBlock assets_block = m_heap.take(megabytes(64));
 
         m_window.init(cfg.window, window_block);
 
         m_window.set_resize_callback([this](u32 w, u32 h) {
             m_logger->info("Swapchain recreation triggered by window resize: {}x{}", w, h);
             m_renderer.resize_swapchain(w, h);
-            // TODO: fix me with direct flecs world usage
-            // m_world.foreach<Camera>(
-            //     [w, h](Camera &cam) { cam.aspect = static_cast<f32>(w) / static_cast<f32>(h); });
         });
 
         m_worker_pool.init(8, megabytes(4), worker_pool_block);
@@ -74,6 +76,8 @@ namespace mantle {
         m_character.init(m_physics_system, {0.0f, 5.0f, 0.0f});
 
         m_renderer.init(m_window, false, renderer_block);
+
+        m_assets.init(m_renderer, assets_block);
 
         m_input.init(&m_window);
 
@@ -153,6 +157,8 @@ namespace mantle {
     void Engine::destroy() {
         if (m_is_initialized) {
 
+            m_assets.destroy();
+
             m_input.destroy();
 
             m_persistent_allocator.destroy();
@@ -182,6 +188,11 @@ namespace mantle {
         return m_input;
     }
 
+    AssetManager &Engine::assets() {
+        MANTLE_CHECK(m_is_initialized);
+        return m_assets;
+    }
+
     void Engine::update(f32 dt) {
         m_window.update();
         m_input.update();
@@ -199,6 +210,8 @@ namespace mantle {
             m_renderer.resize_swapchain(width, height);
             return;
         }
+
+        m_assets.flush_uploads(m_renderer);
 
         FrameGraph    graph(&m_renderer.frame_arena());
         FGImageHandle backbuffer = graph.import_image(m_renderer.backbuffer());

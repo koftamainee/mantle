@@ -22,15 +22,6 @@
 
 #include "mantle/core/enum_flags.h"
 
-#define MANTLE_HANDLE(type)                                                                        \
-    struct type {                                                                                  \
-        u32  index = UINT32_MAX;                                                                   \
-        u32  generation = UINT32_MAX;                                                              \
-        bool is_valid() const {                                                                    \
-            return this->index != UINT32_MAX && this->generation != UINT32_MAX;                    \
-        }                                                                                          \
-    }
-
 namespace mantle {
     MANTLE_HANDLE(BufferHandle);
     MANTLE_HANDLE(ImageHandle);

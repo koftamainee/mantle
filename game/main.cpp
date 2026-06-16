@@ -1,7 +1,6 @@
 #include "actions.h"
+#include "assets.gen.h"
 #include "flecs.h"
-#include "mantle/core/types.h"
-#include "mantle/ecs/components.h"
 #include "mantle/engine/engine.h"
 #include "mantle/window/window.h"
 
@@ -30,9 +29,14 @@ int main() {
 
 
     flecs::world &world = engine.world();
+    auto &assets = engine.assets();
 
+    // SceneHandle girl = assets.preload(scenes::models::kJustAGirl);
+    // assets.instantiate(world, girl);
 
     engine.run();
+
+    // assets.unload(girl);
     engine.destroy();
 
 

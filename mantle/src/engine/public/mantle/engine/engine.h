@@ -17,6 +17,8 @@
 #include "mantle/engine/engine.h"
 
 #include "flecs.h"
+
+#include "mantle/assets/asset_manager.h"
 #include "mantle/core/concurrency/worker_pool.h"
 #include "mantle/core/memory/pmr/tlsf_resource.h"
 #include "mantle/core/memory/tlsf_allocator.h"
@@ -32,22 +34,25 @@ namespace spdlog {
 }
 
 namespace mantle {
-    struct EngineConfig {
-        Window::Properties window;
-    };
 
-    class Engine final {
-      public:
-        MANTLE_DEFAULT_INIT(Engine);
+struct EngineConfig {
+    Window::Properties window;
+};
 
-        static Engine *instance();
+class Engine final {
+  public:
+    MANTLE_DEFAULT_INIT(Engine);
 
-        void init(const EngineConfig &cfg);
-        void run();
-        void destroy();
+    static Engine *instance();
 
-        flecs::world &world();
-        InputSystem  &input_system();
+    void init(const EngineConfig &cfg);
+    void run();
+    void destroy();
+
+    flecs::world  &world();
+    InputSystem   &input_system();
+    AssetManager  &assets();
+    void           wait_idle();
 
       private:
         void update(f32 dt);
@@ -69,8 +74,8 @@ namespace mantle {
         flecs::world        m_world {};
         InputSystem         m_input {};
 
-        Renderer m_renderer {};
-
+        Renderer     m_renderer {};
+        AssetManager m_assets {};
         u64 m_last_time = 0;
         f32 m_fps_timer = 0.0f;
         u32 m_fps_frame_count = 0;
