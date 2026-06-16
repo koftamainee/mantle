@@ -17,7 +17,6 @@
 #include "mantle/engine/engine.h"
 
 #include "flecs.h"
-
 #include "mantle/assets/asset_manager.h"
 #include "mantle/core/concurrency/worker_pool.h"
 #include "mantle/core/memory/pmr/tlsf_resource.h"
@@ -35,24 +34,24 @@ namespace spdlog {
 
 namespace mantle {
 
-struct EngineConfig {
-    Window::Properties window;
-};
+    struct EngineConfig {
+        Window::Properties window;
+    };
 
-class Engine final {
-  public:
-    MANTLE_DEFAULT_INIT(Engine);
+    class Engine final {
+      public:
+        MANTLE_DEFAULT_INIT(Engine);
 
-    static Engine *instance();
+        static Engine *instance();
 
-    void init(const EngineConfig &cfg);
-    void run();
-    void destroy();
+        void init(const EngineConfig &cfg);
+        void run();
+        void destroy();
 
-    flecs::world  &world();
-    InputSystem   &input_system();
-    AssetManager  &assets();
-    void           wait_idle();
+        flecs::world &world();
+        InputSystem  &input_system();
+        AssetManager &assets();
+        void          wait_idle();
 
       private:
         void update(f32 dt);
@@ -76,12 +75,12 @@ class Engine final {
 
         Renderer     m_renderer {};
         AssetManager m_assets {};
-        u64 m_last_time = 0;
-        f32 m_fps_timer = 0.0f;
-        u32 m_fps_frame_count = 0;
-        f32 m_fps_frametime_accum = 0.0f;
-        f32 m_fps_frametime_min = 1e10f;
-        f32 m_fps_frametime_max = 0.0f;
+        u64          m_last_time = 0;
+        f32          m_fps_timer = 0.0f;
+        u32          m_fps_frame_count = 0;
+        f32          m_fps_frametime_accum = 0.0f;
+        f32          m_fps_frametime_min = 1e10f;
+        f32          m_fps_frametime_max = 0.0f;
 
         f32 m_fps_begin_accum = 0.0f;
         f32 m_fps_exec_accum = 0.0f;

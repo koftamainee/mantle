@@ -14,6 +14,9 @@
 
 #include "mantle/engine/engine.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <cfloat>
 #include <flecs.h>
 #include <string_view>
@@ -28,9 +31,6 @@
 #include "mantle/renderer/renderer.h"
 #include "mantle/system_info/system_info.h"
 #include "mantle/window/window.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace mantle {
     Engine *Engine::s_instance = nullptr;
