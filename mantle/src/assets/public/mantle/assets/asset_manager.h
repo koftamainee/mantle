@@ -31,7 +31,8 @@ namespace mantle {
     class AssetManager final {
         friend class Engine;
         friend class Renderer;
-    public:
+
+      public:
         AssetManager() = default;
         MANTLE_NO_COPY_NO_MOVE(AssetManager);
 
@@ -39,15 +40,16 @@ namespace mantle {
 
         void unload(SceneHandle scene);
 
-        flecs::entity instantiate(flecs::world &world, SceneHandle scene, LocalTransform transform = {});
+        flecs::entity instantiate(flecs::world &world, SceneHandle scene,
+                                  LocalTransform transform = {});
 
-    private:
+      private:
         void init(Renderer &renderer, MemoryBlock mem);
         void destroy();
 
-        bool  m_is_initialized = false;
+        bool m_is_initialized = false;
         struct Impl;
-        Impl *m_impl            = nullptr;
+        Impl *m_impl = nullptr;
     };
 
 
