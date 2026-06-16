@@ -1,0 +1,26 @@
+[project]
+name = "mantle"
+
+[build]
+output = "cmake-build-debug/target/assets/"
+jobs = 0
+
+[output]
+meshes = "meshes"
+materials = "materials"
+textures = "textures"
+skeletons = "skeletons"
+animations = "animations"
+scenes = "scenes"
+
+[codegen]
+enabled = true
+template = "tools/scenes_gen.template"
+output = "game/assets.gen.h"
+
+[[target]]
+lod_count = 4
+texture_quality = 255
+skip_tangents = false
+strip_empty = true
+files = ["scenes/models/just_a_girl.mscn"]

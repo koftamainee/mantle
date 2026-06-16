@@ -1,0 +1,31 @@
+[source."assets/models/just_a_girl.glb"]
+source_type = "model"
+mtime = 1781616304
+
+[source."assets/models/just_a_girl.glb".outputs]
+"texture.1" = "9662592f-1498-4077-b1f7-961df1a5ab55"
+"texture.2" = "4e7a9093-1ff0-4d96-a2fc-a23164d68b9b"
+"texture.0" = "438a6006-e96c-4969-aac0-d68c1f46f136"
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+"material.2" = "f2e5f02f-586b-4120-b1a0-777145d1aa48"
+"material.1" = "ea80108c-afdb-40fc-af0c-2076dba5560e"
+"material.0" = "26f20002-6fa2-45c9-a148-e988a85ae543"
+prop = "c5b7b068-44ce-4efb-b29e-a8c80cde810e"
+
+[source."assets/models/just_a_girl.glb".dependencies]
+
+[source."scenes/models/just_a_girl.mscn"]
+source_type = "scene"
+mtime = 1781616797
+
+[source."scenes/models/just_a_girl.mscn".outputs]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+"texture.1" = "9662592f-1498-4077-b1f7-961df1a5ab55"
+scene = "abf2a568-2ff3-48f6-a895-b4142500366f"
+"material.1" = "ea80108c-afdb-40fc-af0c-2076dba5560e"
+"texture.2" = "4e7a9093-1ff0-4d96-a2fc-a23164d68b9b"
+"texture.0" = "438a6006-e96c-4969-aac0-d68c1f46f136"
+"material.2" = "f2e5f02f-586b-4120-b1a0-777145d1aa48"
+"material.0" = "26f20002-6fa2-45c9-a148-e988a85ae543"
+
+[source."scenes/models/just_a_girl.mscn".dependencies]

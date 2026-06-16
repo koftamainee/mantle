@@ -1,0 +1,130 @@
+[[entity]]
+name = "Sketchfab_model"
+[[entity.components]]
+type = "Transform"
+translation = [0.0, 0.0, 0.0]
+[[entity]]
+name = "final_v01.obj.cleaner.materialmerger.gles"
+parent = "Sketchfab_model"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity]]
+name = "Object_2"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["26f20002-6fa2-45c9-a148-e988a85ae543"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 0
+[[entity]]
+name = "Object_3"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["26f20002-6fa2-45c9-a148-e988a85ae543"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 1
+[[entity]]
+name = "Object_4"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["26f20002-6fa2-45c9-a148-e988a85ae543"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 2
+[[entity]]
+name = "Object_5"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["ea80108c-afdb-40fc-af0c-2076dba5560e"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 3
+[[entity]]
+name = "Object_6"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["ea80108c-afdb-40fc-af0c-2076dba5560e"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 4
+[[entity]]
+name = "Object_7"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["ea80108c-afdb-40fc-af0c-2076dba5560e"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 5
+[[entity]]
+name = "Object_8"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["ea80108c-afdb-40fc-af0c-2076dba5560e"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 6
+[[entity]]
+name = "Object_9"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["ea80108c-afdb-40fc-af0c-2076dba5560e"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 7
+[[entity]]
+name = "Object_10"
+parent = "final_v01.obj.cleaner.materialmerger.gles"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, 0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, 0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["f2e5f02f-586b-4120-b1a0-777145d1aa48"]
+mesh = "a1b416c6-fd89-403f-a0b7-b21748823841"
+surface_offset = 8
