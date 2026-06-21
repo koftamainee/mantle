@@ -207,7 +207,8 @@ namespace mantle {
         FGImageHandle  import_image(ImageHandle image);
         FGBufferHandle import_buffer(BufferHandle buffer);
 
-        Blackboard &blackboard() { return m_blackboard; }
+        Blackboard     &blackboard() { return m_blackboard; }
+        ArenaAllocator &arena() { return *m_arena; }
 
       private:
         struct RenderPassNode {

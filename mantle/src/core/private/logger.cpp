@@ -43,6 +43,7 @@ namespace mantle {
         make_logger("core");
         make_logger("ecs");
         make_logger("physics");
+        make_logger("assets");
 
         spdlog::set_default_logger(spdlog::get("engine"));
 

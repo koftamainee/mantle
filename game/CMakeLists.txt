@@ -27,3 +27,8 @@ mantle_shader(game
     NAME basic_mesh
     SOURCES "${SHADERS_DIR}/basic_mesh.slang"
 )
+
+mantle_shader(game
+    NAME debug_mesh
+    SOURCES "${SHADERS_DIR}/debug_mesh.slang"
+)

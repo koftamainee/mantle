@@ -16,11 +16,13 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <cfloat>
 #include <flecs.h>
 #include <string_view>
 
+#include "default_render_pipeline.h"
 #include "mantle/assets/asset_manager.h"
 #include "mantle/build_info/build_info.h"
 #include "mantle/core/assert.h"
@@ -81,11 +83,14 @@ namespace mantle {
 
         m_input.init(&m_window);
 
+        // Set up default render pipeline
+        m_pipeline = std::make_unique<DefaultRenderPipeline>(m_world, m_assets, m_renderer);
+
         m_is_initialized = true;
         m_logger->info("Engine initialized. Starting the game");
 
         constexpr auto art = R"(
-================================================================================
+===============================================================================
 
              /$$      /$$                       /$$     /$$
             | $$$    /$$$                      | $$    | $$
@@ -157,6 +162,7 @@ namespace mantle {
     void Engine::destroy() {
         if (m_is_initialized) {
 
+            m_pipeline.reset();
             m_assets.destroy();
 
             m_input.destroy();
@@ -193,9 +199,51 @@ namespace mantle {
         return m_assets;
     }
 
+    void Engine::set_render_pipeline(std::unique_ptr<RenderPipeline> pipeline) {
+        MANTLE_CHECK(m_is_initialized);
+        m_pipeline = std::move(pipeline);
+    }
+
     void Engine::update(f32 dt) {
         m_window.update();
         m_input.update();
+
+        // Orbit camera control from keyboard
+        {
+            f32 yaw_speed = 0.0f, pitch_speed = 0.0f, dolly_speed = 0.0f;
+
+            if (m_window.is_key_pressed(Key::Left))  yaw_speed = -1.0f;
+            if (m_window.is_key_pressed(Key::Right)) yaw_speed = 1.0f;
+            if (m_window.is_key_pressed(Key::Up))    pitch_speed = 1.0f;
+            if (m_window.is_key_pressed(Key::Down))  pitch_speed = -1.0f;
+            if (m_window.is_key_pressed(Key::Q))     dolly_speed = 1.0f;
+            if (m_window.is_key_pressed(Key::E))     dolly_speed = -1.0f;
+
+            m_camera_yaw += yaw_speed * 60.0f * dt;
+            m_camera_pitch += pitch_speed * 60.0f * dt;
+            m_camera_pitch = glm::clamp(m_camera_pitch, -89.0f, 89.0f);
+            m_camera_orbit_distance += dolly_speed * 5.0f * dt;
+            m_camera_orbit_distance = glm::max(m_camera_orbit_distance, 0.5f);
+
+            f32 yaw_rad = glm::radians(m_camera_yaw);
+            f32 pitch_rad = glm::radians(m_camera_pitch);
+
+            glm::vec3 eye;
+            eye.x = m_camera_orbit_distance * cos(pitch_rad) * sin(yaw_rad);
+            eye.y = m_camera_orbit_distance * sin(pitch_rad);
+            eye.z = m_camera_orbit_distance * cos(pitch_rad) * cos(yaw_rad);
+            eye += m_camera_target;
+
+            glm::mat4 view = glm::lookAt(eye, m_camera_target, glm::vec3(0, 1, 0));
+
+            f32 aspect = static_cast<f32>(m_window.get_width()) /
+                         static_cast<f32>(m_window.get_height());
+            glm::mat4 proj = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 1000.0f);
+            proj[1][1] *= -1.0f; // Vulkan NDC
+
+            m_view_proj = proj * view;
+        }
+
         (void)m_world.progress(dt);
         m_physics_system.update(dt);
     }
@@ -219,9 +267,12 @@ namespace mantle {
 
         auto &bb = graph.blackboard();
         bb.add(BbBackbuffer {backbuffer});
-        // bb.add(BbCameraData {view_proj});
+        bb.add(BbCameraData {m_view_proj});
         bb.add(BbFramebufferSize {width, height});
 
+        if (m_pipeline) {
+            m_pipeline->add_passes(graph);
+        }
 
         m_renderer.execute(graph);
         u64 t2 = m_window.get_time_ns();

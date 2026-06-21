@@ -21,7 +21,7 @@ void register_inputs(InputSystem &input) {
 
 int main() {
     EngineConfig cfg;
-    cfg.window = {.title = "Mantle Engine", .size = {0, 0}, .fullscreen = true};
+    cfg.window = {.title = "Mantle Engine", .size = {0, 0}, .fullscreen = false};
 
     Engine engine;
     engine.init(cfg);
@@ -31,16 +31,15 @@ int main() {
     flecs::world &world = engine.world();
     auto &assets = engine.assets();
 
-    // SceneHandle girl = assets.preload(scenes::models::kJustAGirl);
+    SceneHandle girl = assets.preload(scenes::models::kJustAGirl);
+
     LocalTransform transform = {};
-    for (i32 i = 0; i < 10; i++) {
-        transform.translation.x += i * 10;
-        // assets.instantiate(world, girl, transform);
-    }
+    transform.translation = {0.0f, 0.0f, 0.0f};
+    assets.instantiate(world, girl, transform);
 
     engine.run();
 
-    // assets.unload(girl); // ????
+    assets.unload(girl);
     engine.destroy();
 
 

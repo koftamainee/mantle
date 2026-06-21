@@ -20,6 +20,10 @@
 #include "mantle/core/memory/memory_block.h"
 #include "mantle/ecs/components.h"
 
+namespace spdlog {
+    class logger;
+}
+
 namespace flecs {
     class world;
     class entity;
@@ -43,6 +47,11 @@ namespace mantle {
         flecs::entity instantiate(flecs::world &world, SceneHandle scene,
                                   LocalTransform transform = {});
 
+        // Access for render pipeline
+        u32            mesh_count() const;
+        const MeshData &mesh_data_by_index(u32 index) const;
+        const MeshData *mesh_data(MeshHandle handle) const;
+
       private:
         void init(Renderer &renderer, MemoryBlock mem);
         void destroy();
@@ -50,6 +59,7 @@ namespace mantle {
         bool m_is_initialized = false;
         struct Impl;
         Impl *m_impl = nullptr;
+        spdlog::logger *m_logger = nullptr;
     };
 
 
