@@ -22,6 +22,6 @@ namespace mantle {
     void          AssetManager::unload(SceneHandle scene) {}
     flecs::entity AssetManager::instantiate(flecs::world &world, SceneHandle scene,
                                             LocalTransform transform) {}
-    void AssetManager::init(Renderer &renderer, MemoryBlock block) {}
-    void AssetManager::destroy() {}
+    void          AssetManager::init(Renderer &renderer, MemoryBlock block) {}
+    void          AssetManager::destroy() {}
 } // namespace mantle
