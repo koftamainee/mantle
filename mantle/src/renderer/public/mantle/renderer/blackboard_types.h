@@ -24,6 +24,7 @@ namespace mantle {
     };
     struct BbCameraData {
         glm::mat4 view_proj;
+        glm::vec3 camera_pos;
     };
     struct BbFramebufferSize {
         u32 width;

@@ -25,3 +25,6 @@
 [submodule "mantle/third_party/mintload"]
 	path = mantle/third_party/mintload
 	url = https://github.com/koftamainee/mintload
+[submodule "mantle/third_party/ktx"]
+	path = mantle/third_party/ktx
+	url = https://github.com/KhronosGroup/KTX-Software.git

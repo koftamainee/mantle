@@ -30,11 +30,14 @@ namespace flecs {
 } // namespace flecs
 
 namespace mantle {
+
+    class DefaultRenderPipeline;
     class Renderer;
 
     class AssetManager final {
         friend class Engine;
         friend class Renderer;
+        friend class DefaultRenderPipeline;
 
       public:
         AssetManager() = default;
@@ -55,6 +58,10 @@ namespace mantle {
       private:
         void init(Renderer &renderer, MemoryBlock mem);
         void destroy();
+
+        // Exposed to friend classes (DefaultRenderPipeline) for PBR pipeline
+        BufferHandle build_material_buffer();
+        void collect_pending_uploads(std::vector<TextureUpload> &out);
 
         bool m_is_initialized = false;
         struct Impl;

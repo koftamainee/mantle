@@ -89,6 +89,13 @@ namespace mantle {
         D16S8,
         D24S8,
         D32S8,
+        Bc7RgbaUnorm,
+        Bc7RgbaSrgb,
+        Bc3RgbaUnorm,
+        Bc3RgbaSrgb,
+        Bc5RgUnorm,
+        Astc4x4RgbaUnorm,
+        Astc4x4RgbaSrgb,
     };
     enum class ImageUsage {
         None = 0,
@@ -124,12 +131,13 @@ namespace mantle {
         }
     };
 
-    enum class ShaderStage {
+    enum class ShaderStage : u8 {
         Vertex,
         TessellationControl,
         TessellationEvaluation,
         Fragment,
         Compute,
+        VertexFragment,
     };
     struct ShaderModule final {
         std::string_view entry_point = "main";

@@ -1,0 +1,137 @@
+[[entity]]
+name = "Sketchfab_model"
+[[entity.components]]
+type = "Transform"
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "root"
+parent = "Sketchfab_model"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "GLTF_SceneRootNode"
+parent = "root"
+[[entity.components]]
+type = "Transform"
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "shirt_0"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "Object_4"
+parent = "shirt_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9b9cece8-e9aa-48c3-b8fb-df57c282da1c"]
+mesh = "031b1de3-44bf-48b8-bde3-b778d64e83c2"
+surface_offset = 0
+[[entity]]
+name = "shorts_1"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "Object_6"
+parent = "shorts_1"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["6d09388a-cbdf-49b0-a256-8c3adad60d7b"]
+mesh = "031b1de3-44bf-48b8-bde3-b778d64e83c2"
+surface_offset = 1
+[[entity]]
+name = "hair_2"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "Object_8"
+parent = "hair_2"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["4c9ea981-d7da-44b0-902b-7d3fe213fead"]
+mesh = "031b1de3-44bf-48b8-bde3-b778d64e83c2"
+surface_offset = 2
+[[entity]]
+name = "body_3"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "Object_10"
+parent = "body_3"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["e15e2259-14d1-418a-9cc2-84340ed356c2"]
+mesh = "031b1de3-44bf-48b8-bde3-b778d64e83c2"
+surface_offset = 3
+[[entity]]
+name = "Object_11"
+parent = "body_3"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["7457dd3e-e56a-456c-9f2e-3b336ec0a89d"]
+mesh = "031b1de3-44bf-48b8-bde3-b778d64e83c2"
+surface_offset = 4
+[[entity]]
+name = "sneakers_4"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "Object_13"
+parent = "sneakers_4"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["a59f185d-7000-4ed0-a90e-8ea48dcaab8a"]
+mesh = "031b1de3-44bf-48b8-bde3-b778d64e83c2"
+surface_offset = 5

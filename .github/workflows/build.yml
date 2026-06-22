@@ -115,7 +115,7 @@ jobs:
             ctest: ctest --test-dir build --output-on-failure
             artifact: mantle-relwithdebinfo-linux-x64
           - os: windows-2025-vs2026
-            configure: cmake -B build -G "Visual Studio 18 2026" -A x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMANTILE_ENABLE_FORMAT=OFF
+            configure: cmake -B build -G "Visual Studio 18 2026" -A x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMANTLE_ENABLE_FORMAT=OFF
             ctest: ctest --test-dir build --output-on-failure -C RelWithDebInfo
             artifact: mantle-relwithdebinfo-windows-x64
 
@@ -187,17 +187,11 @@ jobs:
             Write-Host "Vulkan SDK already installed at $sdkPath"
           } else {
             Write-Host "Installing Vulkan SDK (this may take 3-5 min)..."
-            $args = @(
-              "--accept-licenses",
-              "--default-answer",
-              "--confirm-command",
-              "install",
-              "com.lunarg.vulkan.vma",
-              "com.lunarg.vulkan.debug"
-            )
-            $p = Start-Process -FilePath $installer -ArgumentList $args -Wait -NoNewWindow -PassThru
-            if ($p.ExitCode -ne 0) {
-              throw "Installer failed with exit code $($p.ExitCode)"
+            $proc = Start-Process -FilePath $installer -ArgumentList @(
+              "--accept-licenses", "--default-answer", "--confirm-command", "install"
+            ) -Wait -NoNewWindow -PassThru
+            if ($proc.ExitCode -ne 0) {
+              throw "Vulkan SDK installer failed with exit code $($proc.ExitCode)"
             }
             Write-Host "Vulkan SDK installed"
           }

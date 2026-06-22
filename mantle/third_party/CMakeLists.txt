@@ -67,4 +67,15 @@ find_package(Vulkan REQUIRED)
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3-static Vulkan::Vulkan)
 
+
+# KTX-Software (libktx) for KTX2 texture loading
+set(KTX_FEATURE_DOC OFF CACHE BOOL "" FORCE)
+set(KTX_FEATURE_JNI OFF CACHE BOOL "" FORCE)
+set(KTX_FEATURE_PY OFF CACHE BOOL "" FORCE)
+set(KTX_FEATURE_TESTS OFF CACHE BOOL "" FORCE)
+set(KTX_FEATURE_TOOLS OFF CACHE BOOL "" FORCE)
+set(KTX_FEATURE_JS OFF CACHE BOOL "" FORCE)
+set(KTX_FEATURE_TOOLS_CTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(ktx)
+
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_VULKAN_USE_DYNAMIC_RENDERING=1)

@@ -29,13 +29,8 @@ namespace mantle {
 
         m_impl = new Impl();
         m_impl->renderer = &renderer;
-        m_impl->logger = m_logger;
-
-        m_impl->meshes.reserve(64);
-        m_impl->materials.reserve(64);
-        m_impl->scenes.reserve(8);
-
         m_logger = spdlog::get("assets").get();
+        m_impl->logger = m_logger;
         m_is_initialized = true;
         m_logger->info("AssetManager initialized");
     }
@@ -231,6 +226,26 @@ namespace mantle {
             return nullptr;
         }
         return &m_impl->meshes[handle.index].data;
+    }
+
+    BufferHandle AssetManager::build_material_buffer() {
+        return m_impl->build_material_buffer();
+    }
+
+    void AssetManager::collect_pending_uploads(std::vector<TextureUpload> &out) {
+        for (auto &mat : m_impl->materials) {
+            if (!mat.loaded) continue;
+            for (auto &tu : mat.texture_uploads) {
+                TextureUpload copy;
+                copy.staging = tu.staging;
+                copy.image = tu.image;
+                copy.mip_count = tu.mip_count;
+                for (u32 mi = 0; mi < tu.mip_count; mi++) {
+                    copy.mip_offsets[mi] = tu.mip_offsets[mi];
+                }
+                out.push_back(copy);
+            }
+        }
     }
 
 } // namespace mantle

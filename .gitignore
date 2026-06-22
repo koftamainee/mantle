@@ -25,4 +25,5 @@ CMakeUserPresets.json
 *.pdb
 *.dll
 *.lib
-*.expmantle.log
+*.exp
+mantle.log

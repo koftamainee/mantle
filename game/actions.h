@@ -4,9 +4,8 @@
 
 namespace game {
     MANTLE_ACTIONS(GameAction)
-    MoveX, MoveY, Jump,
+    MoveForward, StrafeRight, MoveUp,
+    LookX, LookY,
     MANTLE_ACTIONS_END()
 
 }
-
-// clang-format on

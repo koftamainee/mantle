@@ -204,57 +204,22 @@ namespace mantle {
         m_pipeline = std::move(pipeline);
     }
 
+    void Engine::set_camera(glm::mat4 view_proj, glm::vec3 pos) {
+        m_view_proj = view_proj;
+        m_camera_pos = pos;
+    }
+
+    u32 Engine::window_width() const {
+        return m_window.get_width();
+    }
+
+    u32 Engine::window_height() const {
+        return m_window.get_height();
+    }
+
     void Engine::update(f32 dt) {
         m_window.update();
         m_input.update();
-
-        // Orbit camera control from keyboard
-        {
-            f32 yaw_speed = 0.0f, pitch_speed = 0.0f, dolly_speed = 0.0f;
-
-            if (m_window.is_key_pressed(Key::Left)) {
-                yaw_speed = -1.0f;
-            }
-            if (m_window.is_key_pressed(Key::Right)) {
-                yaw_speed = 1.0f;
-            }
-            if (m_window.is_key_pressed(Key::Up)) {
-                pitch_speed = 1.0f;
-            }
-            if (m_window.is_key_pressed(Key::Down)) {
-                pitch_speed = -1.0f;
-            }
-            if (m_window.is_key_pressed(Key::Q)) {
-                dolly_speed = 1.0f;
-            }
-            if (m_window.is_key_pressed(Key::E)) {
-                dolly_speed = -1.0f;
-            }
-
-            m_camera_yaw += yaw_speed * 60.0f * dt;
-            m_camera_pitch += pitch_speed * 60.0f * dt;
-            m_camera_pitch = glm::clamp(m_camera_pitch, -89.0f, 89.0f);
-            m_camera_orbit_distance += dolly_speed * 5.0f * dt;
-            m_camera_orbit_distance = glm::max(m_camera_orbit_distance, 0.5f);
-
-            f32 yaw_rad = glm::radians(m_camera_yaw);
-            f32 pitch_rad = glm::radians(m_camera_pitch);
-
-            glm::vec3 eye;
-            eye.x = m_camera_orbit_distance * cos(pitch_rad) * sin(yaw_rad);
-            eye.y = m_camera_orbit_distance * sin(pitch_rad);
-            eye.z = m_camera_orbit_distance * cos(pitch_rad) * cos(yaw_rad);
-            eye += m_camera_target;
-
-            glm::mat4 view = glm::lookAt(eye, m_camera_target, glm::vec3(0, 1, 0));
-
-            f32 aspect =
-                static_cast<f32>(m_window.get_width()) / static_cast<f32>(m_window.get_height());
-            glm::mat4 proj = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 1000.0f);
-            proj[1][1] *= -1.0f; // Vulkan NDC
-
-            m_view_proj = proj * view;
-        }
 
         (void)m_world.progress(dt);
         m_physics_system.update(dt);
@@ -279,7 +244,7 @@ namespace mantle {
 
         auto &bb = graph.blackboard();
         bb.add(BbBackbuffer {backbuffer});
-        bb.add(BbCameraData {m_view_proj});
+        bb.add(BbCameraData {m_view_proj, m_camera_pos});
         bb.add(BbFramebufferSize {width, height});
 
         if (m_pipeline) {

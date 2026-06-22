@@ -1,0 +1,1519 @@
+[[entity]]
+name = "Sketchfab_model"
+[[entity.components]]
+type = "Transform"
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "AnimationPlayer"
+animations = ["0bbd09a5-da3c-4498-8173-e6b9824e83b9"]
+[[entity]]
+name = "root"
+parent = "Sketchfab_model"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "GLTF_SceneRootNode"
+parent = "root"
+[[entity.components]]
+type = "Transform"
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "Armature_100"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "GLTF_created_0"
+parent = "Armature_100"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "GLTF_created_0_rootJoint"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "mixamorig:Hips_64"
+parent = "GLTF_created_0_rootJoint"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.7263994812965393, 0.07762657105922699, 0.06353334337472916, 0.6799128651618958]
+scale = [1.0, 1.0, 1.0]
+translation = [0.00391387939453125, -96.18977355957031, -0.0042819976806640625]
+[[entity]]
+name = "mixamorig:Spine_53"
+parent = "mixamorig:Hips_64"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.00715241301804781, -0.007603497710078955, 0.01058786641806364, 0.9998894929885864]
+scale = [1.0000001192092896, 1.0000001192092896, 0.9999999403953552]
+translation = [0.0000002384185791015625, -0.8253093957901001, -10.955429077148438]
+[[entity]]
+name = "mixamorig:Spine1_52"
+parent = "mixamorig:Spine_53"
+[[entity.components]]
+type = "Transform"
+rotation = [0.012454936280846596, -0.003871082328259945, 0.0026820520870387554, 0.9999114274978638]
+scale = [0.9999998807907104, 0.9999999403953552, 0.9999999403953552]
+translation = [0.0, 0.00000095367431640625, -12.817554473876953]
+[[entity]]
+name = "mixamorig:Spine2_51"
+parent = "mixamorig:Spine1_52"
+[[entity.components]]
+type = "Transform"
+rotation = [0.012446391396224499, -0.0020566361490637064, 0.00307688070461154, 0.9999157786369324]
+scale = [0.9999998807907104, 1.0, 1.0]
+translation = [-0.00000019190957800674369, 0.0000003556754109013127, -14.648669242858887]
+[[entity]]
+name = "mixamorig:Neck_2"
+parent = "mixamorig:Spine2_51"
+[[entity.components]]
+type = "Transform"
+rotation = [0.046823278069496155, 0.005280293989926577, -0.009801994077861309, 0.9988411664962769]
+scale = [1.0000001192092896, 0.9999999403953552, 1.0]
+translation = [-0.0000002086165409309615, 0.00000031448013260160224, -16.479719161987305]
+[[entity]]
+name = "mixamorig:Head_1"
+parent = "mixamorig:Neck_2"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.01231515035033226, -0.023473873734474182, -0.09360141307115555, 0.995256781578064]
+scale = [1.0, 1.0, 1.0]
+translation = [0.00000011920928955078125, 3.780320644378662, -9.04547119140625]
+[[entity]]
+name = "mixamorig:HeadTop_End_0"
+parent = "mixamorig:Head_1"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0000000009313227966600834, -0.00000000032014219053522197, -0.00000000000000000000000000000008589647551967072, 1.0]
+scale = [1.0, 0.9999999403953552, 1.0]
+translation = [-0.00000095367431640625, 9.387718200683594, -22.462753295898438]
+[[entity]]
+name = "mixamorig:LeftShoulder_26"
+parent = "mixamorig:Spine2_51"
+[[entity.components]]
+type = "Transform"
+rotation = [0.6763858199119568, -0.5807711482048035, -0.29516443610191345, 0.3436352610588074]
+scale = [1.0, 1.0, 1.0000001192092896]
+translation = [6.989449977874756, -0.3310990631580353, -12.95035171508789]
+[[entity]]
+name = "mixamorig:LeftArm_25"
+parent = "mixamorig:LeftShoulder_26"
+[[entity.components]]
+type = "Transform"
+rotation = [0.30611783266067505, 0.09737646579742432, -0.1316998153924942, 0.9377979040145874]
+scale = [1.0, 0.9999999403953552, 1.0]
+translation = [-0.0000022477502170659136, -0.000004503515810938552, -16.334760665893555]
+[[entity]]
+name = "mixamorig:LeftForeArm_24"
+parent = "mixamorig:LeftArm_25"
+[[entity.components]]
+type = "Transform"
+rotation = [0.03793381154537201, 0.3982515037059784, -0.010233408771455288, 0.9164344668388367]
+scale = [1.0, 0.9999999403953552, 1.000000238418579]
+translation = [-0.000004998159511160338, -0.000008000782145245466, -21.744714736938477]
+[[entity]]
+name = "mixamorig:LeftHand_23"
+parent = "mixamorig:LeftForeArm_24"
+[[entity.components]]
+type = "Transform"
+rotation = [0.18641725182533264, 0.05468820035457611, 0.9448332786560059, 0.2637198567390442]
+scale = [0.9999998211860657, 0.9999997615814209, 0.9999998211860657]
+translation = [0.00000038841170635350863, 0.0000034771906030073296, -18.92289161682129]
+[[entity]]
+name = "mixamorig:LeftHandThumb1_6"
+parent = "mixamorig:LeftHand_23"
+[[entity.components]]
+type = "Transform"
+rotation = [0.1579536348581314, 0.5004177093505859, -0.336866557598114, 0.7817631959915161]
+scale = [1.0000001192092896, 0.9999999403953552, 0.9999999403953552]
+translation = [-2.195141315460205, 1.7642549276351929, -3.225013017654419]
+[[entity]]
+name = "mixamorig:LeftHandThumb2_5"
+parent = "mixamorig:LeftHandThumb1_6"
+[[entity.components]]
+type = "Transform"
+rotation = [0.015836507081985474, -0.046358391642570496, 0.011520584113895893, 0.9987329244613647]
+scale = [1.000000238418579, 0.9999998211860657, 1.0]
+translation = [-0.01862621307373047, 0.000004259507932147244, -3.4252102375030518]
+[[entity]]
+name = "mixamorig:LeftHandThumb3_4"
+parent = "mixamorig:LeftHandThumb2_5"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.13096049427986145, 0.11735127121210098, -0.00025596865452826023, 0.9844175577163696]
+scale = [0.9999998211860657, 1.0, 0.9999998807907104]
+translation = [-0.36049509048461914, 0.0000019718456769624026, -3.7910380363464355]
+[[entity]]
+name = "mixamorig:LeftHandThumb4_3"
+parent = "mixamorig:LeftHandThumb3_4"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.000000003725291186640334, -0.0000000020954784574200858, 0.0000000023283057704048815, 1.0]
+scale = [0.9999998807907104, 0.9999998807907104, 0.9999999403953552]
+translation = [0.3791162371635437, 0.000010013580322265625, -2.9846572875976563]
+[[entity]]
+name = "mixamorig:LeftHandIndex1_10"
+parent = "mixamorig:LeftHand_23"
+[[entity.components]]
+type = "Transform"
+rotation = [0.46916744112968445, 0.0061734807677567005, 0.004549362231045961, 0.8830759525299072]
+scale = [0.9999998807907104, 1.000000238418579, 1.000000238418579]
+translation = [-4.3220391273498535, 0.10971332341432571, -10.869889259338379]
+[[entity]]
+name = "mixamorig:LeftHandIndex2_9"
+parent = "mixamorig:LeftHandIndex1_10"
+[[entity.components]]
+type = "Transform"
+rotation = [0.5757920742034912, -0.09882765263319016, 0.004434435162693262, 0.8115891814231873]
+scale = [0.9999999403953552, 1.000000238418579, 1.0]
+translation = [0.08923482894897461, 0.0000017661485571807134, -3.5387940406799316]
+[[entity]]
+name = "mixamorig:LeftHandIndex3_8"
+parent = "mixamorig:LeftHandIndex2_9"
+[[entity.components]]
+type = "Transform"
+rotation = [0.18976493179798126, -0.036656107753515244, -0.0020036352798342705, 0.9811429977416992]
+scale = [1.0000001192092896, 1.0, 1.0000001192092896]
+translation = [-0.021979331970214844, 0.000001763858904269, -3.2219772338867188]
+[[entity]]
+name = "mixamorig:LeftHandIndex4_7"
+parent = "mixamorig:LeftHandIndex3_8"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.000000005820765647257531, 0.0000000341096892952919, 0.0000000000000008881784197001252, 1.0]
+scale = [1.0000001192092896, 1.0, 1.0000001192092896]
+translation = [-0.06724226474761963, -0.0000006258488838284393, -2.806628704071045]
+[[entity]]
+name = "mixamorig:LeftHandMiddle1_14"
+parent = "mixamorig:LeftHand_23"
+[[entity.components]]
+type = "Transform"
+rotation = [0.5211182832717896, -0.028550205752253532, -0.008284340612590313, 0.8529666066169739]
+scale = [0.9999998807907104, 1.0, 1.0]
+translation = [-1.582026720046997, -0.3320287764072418, -12.694631576538086]
+[[entity]]
+name = "mixamorig:LeftHandMiddle2_13"
+parent = "mixamorig:LeftHandMiddle1_14"
+[[entity.components]]
+type = "Transform"
+rotation = [0.4695492386817932, -0.07862166315317154, 0.0012813882203772664, 0.8793978095054626]
+scale = [1.0, 1.0, 0.9999999403953552]
+translation = [0.03749346733093262, 0.000007321267730731051, -3.299109697341919]
+[[entity]]
+name = "mixamorig:LeftHandMiddle3_12"
+parent = "mixamorig:LeftHandMiddle2_13"
+[[entity.components]]
+type = "Transform"
+rotation = [0.3844953179359436, -0.060508593916893005, -0.0023853990714997053, 0.9211386442184448]
+scale = [0.9999997615814209, 0.9999998807907104, 1.0]
+translation = [-0.014277935028076172, -0.000006022602065058891, -3.125771999359131]
+[[entity]]
+name = "mixamorig:LeftHandMiddle4_11"
+parent = "mixamorig:LeftHandMiddle3_12"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.000000009546065271592852, -0.0000001802109181880951, 0.0000005736947059631348, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [-0.023217201232910156, -0.000014781950994802173, -2.6458253860473633]
+[[entity]]
+name = "mixamorig:LeftHandRing1_18"
+parent = "mixamorig:LeftHand_23"
+[[entity.components]]
+type = "Transform"
+rotation = [0.5413516163825989, -0.04635049030184746, -0.01797431707382202, 0.8393253087997437]
+scale = [0.9999999403953552, 1.0000001192092896, 1.0000001192092896]
+translation = [1.6345337629318237, -0.10832267254590988, -12.759919166564941]
+[[entity]]
+name = "mixamorig:LeftHandRing2_17"
+parent = "mixamorig:LeftHandRing1_18"
+[[entity.components]]
+type = "Transform"
+rotation = [0.47857558727264404, -0.0842348039150238, 0.0029463323298841715, 0.8739916086196899]
+scale = [1.0000001192092896, 1.0000001192092896, 1.0]
+translation = [0.06404352188110352, -0.000002786450522762607, -2.9089503288269043]
+[[entity]]
+name = "mixamorig:LeftHandRing3_16"
+parent = "mixamorig:LeftHandRing2_17"
+[[entity.components]]
+type = "Transform"
+rotation = [0.23060521483421326, -0.04237277805805206, -0.002516089240089059, 0.9721211194992065]
+scale = [0.9999997615814209, 0.9999997615814209, 0.9999995827674866]
+translation = [-0.014919757843017578, -0.0000016211437241508975, -2.895190954208374]
+[[entity]]
+name = "mixamorig:LeftHandRing4_15"
+parent = "mixamorig:LeftHandRing3_16"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.000000029220247554917478, 0.00000004330649971961975, -0.00000012712553143501282, 1.0]
+scale = [1.0000001192092896, 1.0, 1.0000001192092896]
+translation = [-0.04913592338562012, 0.0000013411042800726136, -2.3430275917053223]
+[[entity]]
+name = "mixamorig:LeftHandPinky1_22"
+parent = "mixamorig:LeftHand_23"
+[[entity.components]]
+type = "Transform"
+rotation = [0.6102080345153809, -0.05643002316355705, 0.009676641784608364, 0.7901697158813477]
+scale = [0.9999998807907104, 1.0000001192092896, 1.0]
+translation = [4.269505977630615, -0.4123893678188324, -12.546812057495117]
+[[entity]]
+name = "mixamorig:LeftHandPinky2_21"
+parent = "mixamorig:LeftHandPinky1_22"
+[[entity.components]]
+type = "Transform"
+rotation = [0.4202430248260498, -0.0935249850153923, 0.0017526205629110336, 0.9025773406028748]
+scale = [0.9999997615814209, 0.9999998211860657, 0.9999997019767761]
+translation = [0.036067962646484375, 0.0000031330614547186997, -2.2280006408691406]
+[[entity]]
+name = "mixamorig:LeftHandPinky3_20"
+parent = "mixamorig:LeftHandPinky2_21"
+[[entity.components]]
+type = "Transform"
+rotation = [0.10864719748497009, -0.02775006741285324, -0.0020316303707659245, 0.9936909079551697]
+scale = [1.0000001192092896, 1.0000001192092896, 1.0]
+translation = [-0.011410713195800781, 0.000003595466296246741, -1.8606934547424316]
+[[entity]]
+name = "mixamorig:LeftHandPinky4_19"
+parent = "mixamorig:LeftHandPinky3_20"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.000000005122264834511725, -0.00000016298145055770874, -0.0000008502975106239319, 1.0]
+scale = [1.0, 1.0000001192092896, 1.0]
+translation = [-0.024666309356689453, 0.00000041723137655935716, -1.3138325214385986]
+[[entity]]
+name = "mixamorig:RightShoulder_50"
+parent = "mixamorig:Spine2_51"
+[[entity.components]]
+type = "Transform"
+rotation = [0.6450293660163879, 0.5156910419464111, 0.3642285168170929, 0.43050846457481384]
+scale = [1.0, 1.0, 1.0]
+translation = [-6.989453315734863, -0.20139417052268982, -12.940593719482422]
+[[entity]]
+name = "mixamorig:RightArm_49"
+parent = "mixamorig:RightShoulder_50"
+[[entity.components]]
+type = "Transform"
+rotation = [0.21037107706069946, -0.21840131282806396, 0.29029741883277893, 0.907619059085846]
+scale = [1.0, 1.0, 1.0]
+translation = [-0.0000011007327884726692, -0.000002482906666045892, -16.334766387939453]
+[[entity]]
+name = "mixamorig:RightForeArm_48"
+parent = "mixamorig:RightArm_49"
+[[entity.components]]
+type = "Transform"
+rotation = [0.034817010164260864, -0.68479323387146, 0.007828242145478725, 0.7278631925582886]
+scale = [1.0, 1.0, 1.0000001192092896]
+translation = [-0.00000016071953723439947, -0.0000007562400128335867, -21.719499588012695]
+[[entity]]
+name = "mixamorig:RightHand_47"
+parent = "mixamorig:RightForeArm_48"
+[[entity.components]]
+type = "Transform"
+rotation = [0.21016070246696472, 0.20516358315944672, -0.2835988998413086, 0.9128592610359192]
+scale = [0.9999999403953552, 0.9999998211860657, 0.9999999403953552]
+translation = [0.000007542849289166043, -0.0000018381714426141116, -18.804977416992188]
+[[entity]]
+name = "mixamorig:RightHandThumb1_30"
+parent = "mixamorig:RightHand_47"
+[[entity.components]]
+type = "Transform"
+rotation = [0.2967369556427002, -0.369325190782547, 0.5649414658546448, 0.6755643486976624]
+scale = [1.0000001192092896, 1.000000238418579, 1.000000238418579]
+translation = [2.1122922897338867, 1.5094869136810303, -3.3293216228485107]
+[[entity]]
+name = "mixamorig:RightHandThumb2_29"
+parent = "mixamorig:RightHandThumb1_30"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.023824146017432213, 0.362344890832901, -0.006721045356243849, 0.9317153692245483]
+scale = [0.9999996423721313, 0.9999999403953552, 0.9999999403953552]
+translation = [-0.14154726266860962, -0.000007112721505109221, -3.3745696544647217]
+[[entity]]
+name = "mixamorig:RightHandThumb3_28"
+parent = "mixamorig:RightHandThumb2_29"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.15898476541042328, 0.24250192940235138, -0.04344278946518898, 0.956048846244812]
+scale = [1.0000001192092896, 1.0, 1.0]
+translation = [0.4298456907272339, 0.000010400447536085267, -3.853372812271118]
+[[entity]]
+name = "mixamorig:RightHandThumb4_27"
+parent = "mixamorig:RightHandThumb3_28"
+[[entity.components]]
+type = "Transform"
+rotation = [0.000000007450578376477779, 0.00000006286428799739952, 0.000000001862642484695698, 1.0]
+scale = [0.9999998807907104, 0.9999998211860657, 0.9999998807907104]
+translation = [-0.2882959842681885, 0.0000028610236313397763, -3.597609519958496]
+[[entity]]
+name = "mixamorig:RightHandIndex1_34"
+parent = "mixamorig:RightHand_47"
+[[entity.components]]
+type = "Transform"
+rotation = [0.17411422729492188, -0.07208893448114395, -0.005395257845520973, 0.9820684194564819]
+scale = [0.9999997615814209, 1.0, 1.0000001192092896]
+translation = [4.469074249267578, 0.36778825521469116, -11.568865776062012]
+[[entity]]
+name = "mixamorig:RightHandIndex2_33"
+parent = "mixamorig:RightHandIndex1_34"
+[[entity.components]]
+type = "Transform"
+rotation = [0.3461785912513733, 0.08244955539703369, -0.0012937915744259953, 0.9345377087593079]
+scale = [1.0, 1.0, 1.0]
+translation = [-0.12115204334259033, -0.0000015166831417445792, -3.5622565746307373]
+[[entity]]
+name = "mixamorig:RightHandIndex3_32"
+parent = "mixamorig:RightHandIndex2_33"
+[[entity.components]]
+type = "Transform"
+rotation = [0.5462672114372253, 0.097295381128788, 0.011588098481297493, 0.8318602442741394]
+scale = [0.9999998211860657, 1.0, 1.0]
+translation = [0.05269813537597656, 0.0000066490865719970316, -3.1061415672302246]
+[[entity]]
+name = "mixamorig:RightHandIndex4_31"
+parent = "mixamorig:RightHandIndex3_32"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.000000001862642040606488, 0.000000013271347576448989, -0.0000000651925802230835, 1.0]
+scale = [1.0000001192092896, 1.0, 1.0]
+translation = [0.0684506893157959, -0.0000017285348121731658, -2.3474369049072266]
+[[entity]]
+name = "mixamorig:RightHandMiddle1_38"
+parent = "mixamorig:RightHand_47"
+[[entity.components]]
+type = "Transform"
+rotation = [0.3872416913509369, 0.001897926558740437, 0.007134449668228626, 0.9219487309455872]
+scale = [1.0, 1.000000238418579, 1.0000004768371582]
+translation = [1.5583447217941284, -0.028617804870009422, -12.489541053771973]
+[[entity]]
+name = "mixamorig:RightHandMiddle2_37"
+parent = "mixamorig:RightHandMiddle1_38"
+[[entity.components]]
+type = "Transform"
+rotation = [0.764005720615387, 0.13515236973762512, -0.006995564326643944, 0.6308566927909851]
+scale = [1.0, 1.0000001192092896, 1.0000001192092896]
+translation = [-0.1011052131652832, 0.0000013113021850585938, -3.623013973236084]
+[[entity]]
+name = "mixamorig:RightHandMiddle3_36"
+parent = "mixamorig:RightHandMiddle2_37"
+[[entity.components]]
+type = "Transform"
+rotation = [0.2943814694881439, 0.05958741158246994, 0.003533357521519065, 0.9538220167160034]
+scale = [0.9999998211860657, 0.9999997615814209, 0.9999997019767761]
+translation = [0.021270275115966797, -0.0000002088837049996073, -3.1616976261138916]
+[[entity]]
+name = "mixamorig:RightHandMiddle4_35"
+parent = "mixamorig:RightHandMiddle3_36"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.00000000232831021129698, 0.00000019045543808715593, 0.0000005811452865600586, 1.0]
+scale = [1.0000001192092896, 1.0000003576278687, 1.000000238418579]
+translation = [0.07984304428100586, -0.0000010728750794442021, -2.5682382583618164]
+[[entity]]
+name = "mixamorig:RightHandRing1_42"
+parent = "mixamorig:RightHand_47"
+[[entity.components]]
+type = "Transform"
+rotation = [0.4293173849582672, 0.061438895761966705, 0.024197880178689957, 0.9007365703582764]
+scale = [0.9999999403953552, 1.0000001192092896, 0.9999999403953552]
+translation = [-1.776975393295288, -0.3348003029823303, -13.853955268859863]
+[[entity]]
+name = "mixamorig:RightHandRing2_41"
+parent = "mixamorig:RightHandRing1_42"
+[[entity.components]]
+type = "Transform"
+rotation = [0.7564560174942017, 0.14068379998207092, -0.006845850497484207, 0.6386982798576355]
+scale = [0.9999999403953552, 0.9999998211860657, 0.9999999403953552]
+translation = [-0.04690718650817871, -0.0000002086162567138672, -2.574803113937378]
+[[entity]]
+name = "mixamorig:RightHandRing3_40"
+parent = "mixamorig:RightHandRing2_41"
+[[entity.components]]
+type = "Transform"
+rotation = [0.27261966466903687, 0.06141263246536255, 0.002715149661526084, 0.9601560831069946]
+scale = [1.0000001192092896, 0.9999999403953552, 1.0]
+translation = [-0.002988576889038086, -0.000002250037823614548, -2.5202887058258057]
+[[entity]]
+name = "mixamorig:RightHandRing4_39"
+parent = "mixamorig:RightHandRing3_40"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0000004821923766940017, 0.000000029336689522097004, 0.0000013401731848716736, 1.0]
+scale = [1.0000001192092896, 0.9999998807907104, 1.0]
+translation = [0.04989171028137207, 0.0000007450581733792205, -1.9718611240386963]
+[[entity]]
+name = "mixamorig:RightHandPinky1_46"
+parent = "mixamorig:RightHand_47"
+[[entity.components]]
+type = "Transform"
+rotation = [0.45872941613197327, 0.09560655802488327, -0.015712298452854156, 0.8832778930664063]
+scale = [1.0000001192092896, 1.000000238418579, 1.000000238418579]
+translation = [-4.250429153442383, -0.34832876920700073, -13.45293140411377]
+[[entity]]
+name = "mixamorig:RightHandPinky2_45"
+parent = "mixamorig:RightHandPinky1_46"
+[[entity.components]]
+type = "Transform"
+rotation = [0.499259889125824, 0.144783616065979, -0.0022121521178632975, 0.8542671799659729]
+scale = [1.0, 1.0, 1.0]
+translation = [-0.010302186012268066, 0.000005357866939448286, -1.8477497100830078]
+[[entity]]
+name = "mixamorig:RightHandPinky3_44"
+parent = "mixamorig:RightHandPinky2_45"
+[[entity.components]]
+type = "Transform"
+rotation = [0.4634488523006439, 0.14047905802726746, 0.002229064702987671, 0.8749147653579712]
+scale = [0.9999998807907104, 0.9999998807907104, 0.9999997615814209]
+translation = [-0.0031578540802001953, 0.000005460629381559556, -1.5215692520141602]
+[[entity]]
+name = "mixamorig:RightHandPinky4_43"
+parent = "mixamorig:RightHandPinky3_44"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0000000152504089356853, -0.000000008847564458847046, -0.00000001210719435817964, 1.0]
+scale = [0.9999999403953552, 0.9999998211860657, 0.9999999403953552]
+translation = [0.013463020324707031, 0.0000012516970855358522, -0.972570538520813]
+[[entity]]
+name = "mixamorig:LeftUpLeg_58"
+parent = "mixamorig:Hips_64"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.09054875373840332, -0.9934497475624084, 0.05421743169426918, 0.043805573135614395]
+scale = [0.999998927116394, 0.9999995231628418, 0.999997079372406]
+translation = [9.870521545410156, -0.10706424713134766, 6.0966796875]
+[[entity]]
+name = "mixamorig:LeftLeg_57"
+parent = "mixamorig:LeftUpLeg_58"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.07096319645643234, -0.0036589158698916435, 0.08845742046833038, 0.9935421943664551]
+scale = [1.0, 1.0000001192092896, 0.9999998807907104]
+translation = [-0.00000010686375162549666, 0.0000007980448231137416, -44.886905670166016]
+[[entity]]
+name = "mixamorig:LeftFoot_56"
+parent = "mixamorig:LeftLeg_57"
+[[entity.components]]
+type = "Transform"
+rotation = [0.41792064905166626, 0.06965401768684387, 0.10865829139947891, 0.899268627166748]
+scale = [1.0000001192092896, 1.0, 1.0000001192092896]
+translation = [0.000002067666855509742, 0.0000005102646696286683, -35.6265983581543]
+[[entity]]
+name = "mixamorig:LeftToeBase_55"
+parent = "mixamorig:LeftFoot_56"
+[[entity.components]]
+type = "Transform"
+rotation = [0.31382787227630615, 0.012964174151420593, 0.029476532712578773, 0.9489337205886841]
+scale = [1.0000001192092896, 1.000000238418579, 1.0]
+translation = [0.000004100179467059206, -0.0000043390596147219185, -14.871278762817383]
+[[entity]]
+name = "mixamorig:LeftToe_End_54"
+parent = "mixamorig:LeftToeBase_55"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.00000007840573346129531, 0.000000025174818674145172, 0.00000016210833564400673, 1.0]
+scale = [1.0000001192092896, 1.0, 1.000000238418579]
+translation = [-0.00000018998971995642933, 0.0000003576282665562758, -6.188456058502197]
+[[entity]]
+name = "mixamorig:RightUpLeg_63"
+parent = "mixamorig:Hips_64"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.11384908109903336, 0.9924247860908508, 0.013801534660160542, 0.044057782739400864]
+scale = [1.0000020265579224, 1.000000238418579, 1.0000057220458984]
+translation = [-9.870522499084473, -0.25251808762550354, 6.096672058105469]
+[[entity]]
+name = "mixamorig:RightLeg_62"
+parent = "mixamorig:RightUpLeg_63"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.15925204753875732, -0.00938474852591753, -0.0839986726641655, 0.9836133122444153]
+scale = [1.0, 0.9999998807907104, 0.9999998807907104]
+translation = [0.0000012025918749714037, 0.00000040157448211175506, -44.80245590209961]
+[[entity]]
+name = "mixamorig:RightFoot_61"
+parent = "mixamorig:RightLeg_62"
+[[entity.components]]
+type = "Transform"
+rotation = [0.5312174558639526, -0.057657692581415176, -0.15026922523975372, 0.8318069577217102]
+scale = [0.9999999403953552, 1.0, 0.9999998211860657]
+translation = [-0.0000023893271645647474, 0.0000012087615459677181, -35.62534713745117]
+[[entity]]
+name = "mixamorig:RightToeBase_60"
+parent = "mixamorig:RightFoot_61"
+[[entity.components]]
+type = "Transform"
+rotation = [0.3595750629901886, -0.010038173757493496, -0.030562590807676315, 0.9325615167617798]
+scale = [1.000000238418579, 1.0000001192092896, 1.0]
+translation = [0.0000006405895760508429, -0.0000007592935844513704, -14.240013122558594]
+[[entity]]
+name = "mixamorig:RightToe_End_59"
+parent = "mixamorig:RightToeBase_60"
+[[entity.components]]
+type = "Transform"
+rotation = [0.00000004441245238240299, 0.00000034912960700239637, 0.00000034156255424022675, 1.0]
+scale = [0.9999998211860657, 0.9999998807907104, 0.9999997019767761]
+translation = [-0.000001043080033014121, 0.0000004470340968509845, -5.992131233215332]
+[[entity]]
+name = "Object_7"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["b193d3a3-fa42-4191-8a8f-c92d4cb89ebc"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 0
+[[entity]]
+name = "Object_9"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["b193d3a3-fa42-4191-8a8f-c92d4cb89ebc"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 1
+[[entity]]
+name = "Object_11"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["7d24dafc-be09-41f5-a399-4410f8098698"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 2
+[[entity]]
+name = "Object_13"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["160add9e-96cc-4959-938f-20971659f196"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 3
+[[entity]]
+name = "Object_15"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["fc89c6b2-5cb0-4dbf-85c1-ba3c6c4fd299"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 4
+[[entity]]
+name = "Object_17"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["4a78ca59-bfdb-410a-bd81-d0b4dc5e6397"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 5
+[[entity]]
+name = "Object_19"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["4a78ca59-bfdb-410a-bd81-d0b4dc5e6397"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 6
+[[entity]]
+name = "Object_21"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["4a78ca59-bfdb-410a-bd81-d0b4dc5e6397"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 7
+[[entity]]
+name = "Object_23"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["4a78ca59-bfdb-410a-bd81-d0b4dc5e6397"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 8
+[[entity]]
+name = "Object_25"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["cd01ada1-9362-48d6-8231-a18a70f1b897"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 9
+[[entity]]
+name = "Object_27"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["1d722a7a-f341-4412-ae98-08055a2f97c1"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 10
+[[entity]]
+name = "Object_29"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["c51d8d33-f3ca-4e66-b98e-caeedde4f81a"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 11
+[[entity]]
+name = "Object_31"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["c51d8d33-f3ca-4e66-b98e-caeedde4f81a"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 12
+[[entity]]
+name = "Object_33"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["c51d8d33-f3ca-4e66-b98e-caeedde4f81a"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 13
+[[entity]]
+name = "Object_35"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["c51d8d33-f3ca-4e66-b98e-caeedde4f81a"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 14
+[[entity]]
+name = "Object_37"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 15
+[[entity]]
+name = "Object_39"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 16
+[[entity]]
+name = "Object_41"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 17
+[[entity]]
+name = "Object_43"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 18
+[[entity]]
+name = "Object_45"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 19
+[[entity]]
+name = "Object_47"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 20
+[[entity]]
+name = "Object_49"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 21
+[[entity]]
+name = "Object_51"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 22
+[[entity]]
+name = "Object_53"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 23
+[[entity]]
+name = "Object_55"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 24
+[[entity]]
+name = "Object_57"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 25
+[[entity]]
+name = "Object_59"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 26
+[[entity]]
+name = "Object_61"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 27
+[[entity]]
+name = "Object_63"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 28
+[[entity]]
+name = "Object_65"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 29
+[[entity]]
+name = "Object_67"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 30
+[[entity]]
+name = "Object_69"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 31
+[[entity]]
+name = "Object_71"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["82255461-0b6f-4749-809a-c8e927a10b52"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 32
+[[entity]]
+name = "Object_73"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["82255461-0b6f-4749-809a-c8e927a10b52"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 33
+[[entity]]
+name = "Object_75"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "Skin"
+skeleton = "972c9589-a2bf-43cd-9604-8514fb0c3ef8"
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["9e331fa9-c15b-43c3-a7b7-6091973897ce"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 34
+[[entity]]
+name = "boot_lp_65"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "boot_lp.001_66"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "helmet_Mesh.008_67"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "human.Body.001_humanBodyMesh.002_68"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "human.HighPolyEyes_human.HighPolyEyesMesh.001_69"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "magazine.001_Mesh.001_70"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "magazine.002_Mesh.003_71"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "magazine.003_Mesh.004_72"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "magazine_Mesh.002_73"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "mask_meshId0_name_74"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "night_vision_goggles_Mesh.010_75"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "pouch.001_meshId0_name.001_76"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "pouch.002_meshId0_name.003_77"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "pouch.003_meshId0_name.004_78"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "pouch_meshId0_name.005_79"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_10_low_80"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_11_low_81"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_13_low_82"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_20_low_83"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_21_low_84"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_22_low_85"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_23_low_86"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_24_low_87"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_24_low.001_88"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_24_low.002_89"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_25_low_90"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_29_low_91"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_30_low_92"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_39_low_93"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_4_low_94"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_5_low_95"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_6_low_96"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_7_low.001_sol_7_low.003_97"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_7_low.002_98"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "sol_8_low_sol_8_low.001_99"
+parent = "GLTF_created_0"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity]]
+name = "part_2_low_101"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.04268045723438263, -0.09510348737239838, 0.7749868035316467, 0.6233211159706116]
+scale = [1.1335469484329224, 1.1335467100143433, 1.1335469484329224]
+translation = [-0.014265328645706177, 0.2204217165708542, -1.0729714632034302]
+[[entity]]
+name = "Object_142"
+parent = "part_2_low_101"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["4a78ca59-bfdb-410a-bd81-d0b4dc5e6397"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 35
+[[entity]]
+name = "Object_143"
+parent = "part_2_low_101"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["b289da9d-e423-4333-b235-a1eaed2c72b1"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 36
+[[entity]]
+name = "Object_144"
+parent = "part_2_low_101"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["fd3bdfaa-5ca2-4561-b0e8-d9a48ff56bf0"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 37
+[[entity]]
+name = "Object_145"
+parent = "part_2_low_101"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["5ba18605-9916-44df-85e3-2d717ada0527"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 38
+[[entity]]
+name = "Object_146"
+parent = "part_2_low_101"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["3778f0b9-cfb6-4481-bc41-d06ff0cfe54e"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 39
+[[entity]]
+name = "Circle_102"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.1742544025182724, -0.31267622113227844, 0.6703718900680542, 0.6499773263931274]
+scale = [0.010848660953342915, 0.01084866188466549, 0.010848660953342915]
+translation = [-0.2948044538497925, 0.0064465999603271484, -1.4263849258422852]
+[[entity]]
+name = "Object_148"
+parent = "Circle_102"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["cd8d13af-bd6f-4ab5-8e56-fa63bfc2c5e7"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 40
+[[entity]]
+name = "Plane_103"
+parent = "GLTF_SceneRootNode"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.035684216767549515, -0.16451133787631989, -1.4984815120697021]
+[[entity]]
+name = "Object_150"
+parent = "Plane_103"
+[[entity.components]]
+type = "Transform"
+rotation = [0.0, 0.0, -0.0, 1.0]
+scale = [1.0, 1.0, 1.0]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["cd8d13af-bd6f-4ab5-8e56-fa63bfc2c5e7"]
+mesh = "ba840e3f-6772-4998-83ac-da25cc893aa3"
+surface_offset = 41

@@ -23,4 +23,8 @@ lod_count = 4
 texture_quality = 255
 skip_tangents = false
 strip_empty = true
-files = ["scenes/models/just_a_girl.mscn"]
+files = [
+    "scenes/models/girl.mscn",
+    "scenes/models/church.mscn",
+    "scenes/models/just_a_girl.mscn",
+]

@@ -8,7 +8,9 @@ namespace scenes {
 [[GROUPS]]
 [[SEGMENTS]]namespace [[SEGMENT]] {
 [[/SEGMENTS]]
+[[ITEMS]]
 inline constexpr std::string_view k[[ASSET_NAME_PASCAL]] = "[[SCENE_UUID]]";
+[[/ITEMS]]
 [[SEGMENTS_REV]]} // namespace [[SEGMENT]]
 [[/SEGMENTS_REV]]
 [[/GROUPS]]

@@ -9,6 +9,13 @@ namespace scenes {
 namespace models {
 
 inline constexpr std::string_view kJustAGirl = "abf2a568-2ff3-48f6-a895-b4142500366f";
+
+inline constexpr std::string_view kSwatOperator = "c8d0fc32-7be6-4429-8060-1622233894fd";
+
+inline constexpr std::string_view kChurch = "59aba93f-da85-488f-88a4-5fae8e1922b3";
+
+
+inline constexpr std::string_view kJustAGirl = "abf2a568-2ff3-48f6-a895-b4142500366f";
 } // namespace models
 
 

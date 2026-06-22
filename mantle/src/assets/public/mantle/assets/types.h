@@ -20,7 +20,16 @@
 #include <cstdint>
 #include <vector>
 
+#include <glm/glm.hpp>
+
 namespace mantle {
+
+    struct TextureUpload {
+        BufferHandle staging;
+        ImageHandle  image;
+        u32          mip_count;
+        u32          mip_offsets[16];
+    };
 
     MANTLE_HANDLE(MeshHandle);
     MANTLE_HANDLE(MaterialHandle);
@@ -42,6 +51,8 @@ namespace mantle {
         BufferHandle                  index_buffer;
         u32                           vertex_count;
         u32                           index_count;
+        u32                           lod_count;
+        u32                           lod_first_submesh[4];
         std::pmr::vector<SubMeshInfo> submeshes;
     };
 
@@ -54,6 +65,28 @@ namespace mantle {
         float    normal_scale;
         float    emissive_strength;
         uint32_t flags;
+        // Bindless texture indices (UINT32_MAX = none)
+        u32 bindless_basecolor = UINT32_MAX;
+        u32 bindless_normal    = UINT32_MAX;
+        u32 bindless_mr        = UINT32_MAX; // metallic-roughness
+        u32 bindless_emissive  = UINT32_MAX;
+        u32 bindless_occlusion = UINT32_MAX;
+        u32 bindless_sampler   = UINT32_MAX;
     };
+
+    struct MaterialGPU {
+        glm::vec4 base_color;              // 16B
+        glm::vec4 metallic_roughness;      // 16B (x=metallic, y=roughness, z=emissive_strength)
+        glm::vec4 emissive_alpha_cutoff;   // 16B (rgb=emissive, w=alpha_cutoff)
+        u32       base_color_tex;          // 4B
+        u32       normal_tex;              // 4B
+        u32       metallic_roughness_tex;  // 4B
+        u32       emissive_tex;            // 4B
+        u32       occlusion_tex;           // 4B
+        u32       sampler_idx;             // 4B
+        u32       flags;                   // 4B
+        u32       _padding[5];             // 20B align to 96B stride (shader uses idx * 96)
+    };
+    static_assert(sizeof(MaterialGPU) == 96, "MaterialGPU size mismatch");
 
 } // namespace mantle

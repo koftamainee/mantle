@@ -29,6 +29,6 @@ mantle_shader(game
 )
 
 mantle_shader(game
-    NAME debug_mesh
-    SOURCES "${SHADERS_DIR}/debug_mesh.slang"
+    NAME pbr_mesh
+    SOURCES "${SHADERS_DIR}/pbr_mesh.slang"
 )

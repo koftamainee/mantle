@@ -1,5 +1,7 @@
 #include "actions.h"
 #include "assets.gen.h"
+#include "camera_system.h"
+#include "components.h"
 #include "flecs.h"
 #include "mantle/ecs/components.h"
 #include "mantle/engine/engine.h"
@@ -10,13 +12,11 @@ using namespace game;
 
 
 void register_inputs(InputSystem &input) {
-    input.bind_axis(GameAction::MoveX, Key::W, Key::S);
-    input.bind_axis(GameAction::MoveX, ControllerAxis::LeftX);
-    input.bind_axis(GameAction::MoveY, Key::D, Key::A);
-    input.bind_axis(GameAction::MoveY, ControllerAxis::LeftY);
-
-    input.bind(GameAction::Jump, Key::Space);
-    input.bind(GameAction::Jump, ControllerButton::A);
+    input.bind_axis(GameAction::MoveForward, Key::S, Key::W);
+    input.bind_axis(GameAction::StrafeRight, Key::A, Key::D);
+    input.bind_axis(GameAction::MoveUp, Key::LShift, Key::Space);
+    input.bind_axis(GameAction::LookX, MouseAxis::MoveX, 50.0f);
+    input.bind_axis(GameAction::LookY, MouseAxis::MoveY, 50.0f);
 }
 
 int main() {
@@ -31,15 +31,18 @@ int main() {
     flecs::world &world = engine.world();
     auto &assets = engine.assets();
 
-    SceneHandle girl = assets.preload(scenes::models::kJustAGirl);
+    world.entity("FlyCamera")
+        .set(FlyCamera {});
 
-    LocalTransform transform = {};
-    transform.translation = {0.0f, 0.0f, 0.0f};
-    assets.instantiate(world, girl, transform);
+    register_fly_camera_system(world);
+
+    SceneHandle model = assets.preload(scenes::models::kJustAGirl);
+
+    assets.instantiate(world, model);
 
     engine.run();
 
-    assets.unload(girl);
+    assets.unload(model);
     engine.destroy();
 
 

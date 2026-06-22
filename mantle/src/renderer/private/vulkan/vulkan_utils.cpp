@@ -59,6 +59,27 @@ namespace mantle {
             case VK_FORMAT_D32_SFLOAT_S8_UINT: {
                 result = ImageFormat::D32S8;
             } break;
+            case VK_FORMAT_BC7_UNORM_BLOCK: {
+                result = ImageFormat::Bc7RgbaUnorm;
+            } break;
+            case VK_FORMAT_BC7_SRGB_BLOCK: {
+                result = ImageFormat::Bc7RgbaSrgb;
+            } break;
+            case VK_FORMAT_BC3_UNORM_BLOCK: {
+                result = ImageFormat::Bc3RgbaUnorm;
+            } break;
+            case VK_FORMAT_BC3_SRGB_BLOCK: {
+                result = ImageFormat::Bc3RgbaSrgb;
+            } break;
+            case VK_FORMAT_BC5_UNORM_BLOCK: {
+                result = ImageFormat::Bc5RgUnorm;
+            } break;
+            case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: {
+                result = ImageFormat::Astc4x4RgbaUnorm;
+            } break;
+            case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: {
+                result = ImageFormat::Astc4x4RgbaSrgb;
+            } break;
             case VK_FORMAT_UNDEFINED: {
                 result = ImageFormat::Undefined;
             } break;
@@ -103,6 +124,27 @@ namespace mantle {
             } break;
             case ImageFormat::D32S8: {
                 result = VK_FORMAT_D32_SFLOAT_S8_UINT;
+            } break;
+            case ImageFormat::Bc7RgbaUnorm: {
+                result = VK_FORMAT_BC7_UNORM_BLOCK;
+            } break;
+            case ImageFormat::Bc7RgbaSrgb: {
+                result = VK_FORMAT_BC7_SRGB_BLOCK;
+            } break;
+            case ImageFormat::Bc3RgbaUnorm: {
+                result = VK_FORMAT_BC3_UNORM_BLOCK;
+            } break;
+            case ImageFormat::Bc3RgbaSrgb: {
+                result = VK_FORMAT_BC3_SRGB_BLOCK;
+            } break;
+            case ImageFormat::Bc5RgUnorm: {
+                result = VK_FORMAT_BC5_UNORM_BLOCK;
+            } break;
+            case ImageFormat::Astc4x4RgbaUnorm: {
+                result = VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
+            } break;
+            case ImageFormat::Astc4x4RgbaSrgb: {
+                result = VK_FORMAT_ASTC_4x4_SRGB_BLOCK;
             } break;
             case ImageFormat::Undefined: {
                 result = VK_FORMAT_UNDEFINED;
@@ -436,6 +478,9 @@ namespace mantle {
         switch (stage) {
             case ShaderStage::Vertex: {
                 result = VK_SHADER_STAGE_VERTEX_BIT;
+            } break;
+            case ShaderStage::VertexFragment: {
+                result = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
             } break;
             case ShaderStage::TessellationControl: {
                 result = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;

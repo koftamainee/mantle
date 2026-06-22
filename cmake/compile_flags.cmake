@@ -1,5 +1,5 @@
 if(MSVC)
-    set(MANTLE_COMPILE_FLAGS /W4 /GR-)
+    set(MANTLE_COMPILE_FLAGS /W0 /GR-)
 else()
     set(MANTLE_COMPILE_FLAGS -fno-rtti -fno-exceptions)
 endif()

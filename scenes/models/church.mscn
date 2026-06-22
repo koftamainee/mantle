@@ -1,0 +1,216 @@
+[[entity]]
+name = "walls_Mesh_walls_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["0cb9ce67-6e36-424a-bb9a-b7a8466468b5"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 0
+[[entity]]
+name = "bricks_Mesh_bricks_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["11a9a879-a6bb-4ae8-9711-d9b18e01e227"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 1
+[[entity]]
+name = "roof_Mesh_roof_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["b2321a02-dd07-48df-8695-07b6b78b461e"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 2
+[[entity]]
+name = "statue_Mesh_statue_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["c8e72f39-31d1-4c36-9f63-07d14360e126"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 3
+[[entity]]
+name = "bell_Mesh_bell_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["68b0f260-3428-4b83-ad28-b89230b9ef4c"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 4
+[[entity]]
+name = "plaster_Mesh_plaster_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["909621be-587e-467d-8dae-8702601afc79"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 5
+[[entity]]
+name = "plaster_Mesh_plaster_Mat_0.001"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["909621be-587e-467d-8dae-8702601afc79"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 6
+[[entity]]
+name = "plaster_Mesh_plaster_Mat_0.002"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["909621be-587e-467d-8dae-8702601afc79"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 7
+[[entity]]
+name = "roof_parts_Mesh_roof_parts_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["50527efa-4900-422f-beca-981a9f6803fd"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 8
+[[entity]]
+name = "roof_parts_Mesh_roof_parts_Mat_0.001"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["50527efa-4900-422f-beca-981a9f6803fd"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 9
+[[entity]]
+name = "roof_parts_Mesh_roof_parts_Mat_0.002"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["50527efa-4900-422f-beca-981a9f6803fd"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 10
+[[entity]]
+name = "bricks_old_Mesh_bricks_old_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["d83e2093-f8d8-4ae9-a2aa-f9d7674bde13"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 11
+[[entity]]
+name = "stained_Mesh_stained_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["971f890a-348b-4378-893e-4c9a2d421e56"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 12
+[[entity]]
+name = "stained_Mesh_stained_Mat_0.001"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["971f890a-348b-4378-893e-4c9a2d421e56"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 13
+[[entity]]
+name = "doors_Mesh_doors_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["e59bb37a-06d5-44fb-a745-86050e4d0c61"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 14
+[[entity]]
+name = "symbol_Mesh_symbol_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["ae9349a0-1168-4764-a563-bb77e4800496"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 15
+[[entity]]
+name = "bottom_Mesh_bottom_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["36e14f73-3cc5-4b6d-b149-bd042299d4d1"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 16
+[[entity]]
+name = "leaves_Mesh_leaves_Mat_0"
+[[entity.components]]
+type = "Transform"
+rotation = [-0.70710688829422, 0.0, -0.0, 0.7071066498756409]
+scale = [0.3333333730697632, 0.3333333134651184, 0.3333333134651184]
+translation = [0.0, 0.0, -0.0]
+[[entity.components]]
+type = "MeshRenderer"
+materials = ["c5b32e57-1d62-4e8d-9bbf-df04f701e602"]
+mesh = "04166531-64f6-429c-989c-bf6fb47d3614"
+surface_offset = 17
